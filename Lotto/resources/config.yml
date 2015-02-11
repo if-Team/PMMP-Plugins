@@ -1,0 +1,8 @@
+# Price of one lotto ticket
+# default price: 1000
+price: 1000
+
+lastWinner: ChalkPE
+lastWinningAmount: 2000
+
+shops: []

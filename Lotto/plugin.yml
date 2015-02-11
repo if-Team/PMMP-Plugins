@@ -1,0 +1,10 @@
+name: Lotto
+author: Chalk
+main: chalkpe\lotto\Lotto
+api: [1.4.0, 1.4.1]
+version: "0.1"
+depend: [EconomyAPI]
+commands:
+  lotto:
+    usage: /lotto
+    description: Show status about lotto
