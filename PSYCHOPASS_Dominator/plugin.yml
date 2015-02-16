@@ -1,0 +1,36 @@
+name: PSYCHOPASS_Dominator
+main: hm\PSYCHOPASS\PSYCHOPASS_Dominator
+version: 0.3-beta
+author: hm
+api: [1.4.1]
+
+commands:
+ b:
+  permission: Dominator.commands.ban
+  description: Use Dominator Ban
+  usage: /b <index or nickname>
+ i:
+  permission: Dominator.commands.ipban
+  description: Use Dominator IP Ban
+  usage: /i <index or nickname>
+ k:
+  permission: Dominator.commands.kick
+  description: Use Dominator Kick
+  usage: /k <index or nickname>
+ s:
+  permission: Dominator.commands.subnetban
+  description: Use Dominator Subnetban
+  usage: /s <index or nickname>
+ l:
+  permission: Dominator.commands.list
+  description: Use Dominator List
+  usage: /l
+ p:
+  permission: Dominator.commands.pardon
+  description: Use Dominator Pardon
+  usage: /p <index or nickname>
+
+permissions:
+ Dominator.commands.*:
+  default: op
+  description: Allows commands of Dominator

@@ -1,0 +1,1 @@
+<?php echo "PocketMine-MP plugin SnowHalation v1.0-alpha\nThis file has been generated using DevTools v1.8.0 at Wed, 10 Dec 2014 00:17:01 +0800\n----------------\n";if(extension_loaded("phar")){$phar = new \Phar(__FILE__);foreach($phar->getMetadata() as $key => $value){echo ucfirst($key).": ".(is_array($value) ? implode(", ", $value):$value)."\n";}} __HALT_COMPILER(); ?>

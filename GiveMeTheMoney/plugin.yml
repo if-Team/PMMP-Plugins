@@ -1,0 +1,5 @@
+name: GiveMeTheMoney
+main: hm\GiveMeTheMoney\GiveMeTheMoney
+version: 2.0-alpha
+author: hm
+api: [1.4.1]

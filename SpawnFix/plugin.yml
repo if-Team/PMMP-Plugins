@@ -1,0 +1,5 @@
+name: SpawnFix
+main: SpawnFix\SpawnFix
+version: "1.0"
+author: hmm
+api: [1.1.0]

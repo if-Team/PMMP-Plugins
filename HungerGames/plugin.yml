@@ -1,0 +1,16 @@
+name: HungerGames
+main: HungerGames\HungerGames
+version: "1.1"
+author: hm
+api: [1.4.1]
+
+commands:
+ hunger:
+  permission: HungerGames.commands.hunger
+  description: HungerGames commands
+  usage: /hunger <protect> <pos1|pos2>
+
+permissions:
+ HungerGames.commands.*:
+  default: OP
+  description: Allows commands of HungerGame

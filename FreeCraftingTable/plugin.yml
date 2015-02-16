@@ -1,0 +1,5 @@
+name: FreeCraftingTable
+main: hm\FreeCraftingTable\FreeCraftingTable
+author: hm
+version: 1.0-alpha
+api: [1.4.1]

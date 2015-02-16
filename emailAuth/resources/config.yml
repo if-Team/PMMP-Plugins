@@ -1,0 +1,11 @@
+minPasswordLength: 8
+serverName: "PocketMine"
+subjectName: "[PocketMine] 회원가입 확인메일"
+encoding: euc-kr
+adminEmail: "hmkuak@naver.com"
+adminEmailHost: "smtp.naver.com"
+adminEmailPort: "587"
+adminEmailPassword: ""
+disableRegister: false
+default-prefix: "[ 서버 ]"
+authenticateTimeout: 60

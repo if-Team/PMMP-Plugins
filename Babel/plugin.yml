@@ -1,0 +1,9 @@
+name: Babel
+main: Babel\Babel
+version: 1.0-alpha
+author: hm
+api: [1.4.1]
+
+permissions:
+ babel:
+  default: OP

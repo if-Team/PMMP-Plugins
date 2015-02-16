@@ -1,0 +1,16 @@
+name : OpenVPNLock
+main : OpenVPNLock\OpenVPNLock
+author : hm
+version : 1.0
+api : [1.4.1]
+
+commands:
+ vpnupdate:
+  permission: OpenVPNLock.commands.OpenVPNLock
+  description: OpenVPNLock commands
+  usage: /vpnupdate
+
+permissions:
+ OpenVPNLock.commands.*:
+  default: op
+  description: Allows commands of OpenVPNLock 

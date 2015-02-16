@@ -1,0 +1,9 @@
+name: Farms
+main: hm\Farms\Farms
+version: 1.1-alpha
+author: hm
+api: [1.4.1]
+
+permissions:
+ Farms:
+  default: true

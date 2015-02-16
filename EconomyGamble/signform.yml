@@ -1,0 +1,50 @@
+---
+en-a1: '[gamble]'
+en-a2: 'price :'
+en-a3: When you touch,
+en-a4: Gain or loss by Price !
+en-b1: '[itemgamble]'
+en-b2: When you touch
+en-b3: a item, Gain or
+en-b4: loss the item !
+en-c1: '[lottery]'
+en-c2: 'price :'
+en-c3: You can buy a lot !
+en-c4: 'prize:'
+en-d1: '[randomgamble]'
+en-d2: When you touch,
+en-d3: randomly from your
+en-d4: money Gain or loss !
+ko-a1: '[도박]'
+ko-a2: '판돈 :'
+ko-a3: 터치시 해당금액만큼
+ko-a4: 돈을 얻거나 잃음 !
+ko-b1: '[아이템도박]'
+ko-b2: 터치시 해당아이템
+ko-b3: 랜덤하게 1개획득
+ko-b4: 하거나 1개잃음!
+ko-c1: '[로또]'
+ko-c2: '한장가격:'
+ko-c3: 여러개 구매가능!
+ko-c4: 당첨시
+ko-d1: '[랜덤도박]'
+ko-d2: 표지판을 터치
+ko-d3: 랜덤한 금액을
+ko-d4: 얻거나 잃습니다 !
+jp-a1: '[gamble]'
+jp-a2: '掛け金 :'
+jp-a3: タッチの際は、該当金額ほど
+jp-a4: お金を得たり失っます !
+jp-b1: '[itemgamble]'
+jp-b2: タッチして当該アイテム
+jp-b3: ランダムに1個獲得
+jp-b4: したり、1個失う !
+jp-c1: '[lottery]'
+jp-c2: '一枚の価格:'
+jp-c3: いくつか購入可能!
+jp-c4: 成功した時
+jp-d1: '[randomgamble]'
+jp-d2: 表示板をタッチ
+jp-d3: ランダムな金額を
+jp-d4: 得たり失っます !
+...

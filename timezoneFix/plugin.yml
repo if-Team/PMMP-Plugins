@@ -1,0 +1,5 @@
+name: timezoneFix
+main: timezoneFix\timezoneFix
+author: hm
+api: [1.4.1]
+version: 1.0-alpha

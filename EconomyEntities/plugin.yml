@@ -1,0 +1,10 @@
+name: EconomyEntities
+main: hm\EconomyEntities\EconomyEntities
+author: hm
+version : 3.6-alpha
+api: [1.4.1]
+
+permission:
+ economyentities:
+  default: OP
+  description: Allows commands of EconomyEntities control

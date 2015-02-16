@@ -1,0 +1,102 @@
+---
+setlanguage: en
+en-mustnumberic: The second line (any amount) is must be numeric
+en-GambleSetupFinish: successful in setting gamble !
+en-ItemGambleSetupFinish: successful in setting item gamble !
+en-LotterySetupFinish: successful in setting lottery !
+en-RandomGambleSetupFinish: successful in setting random gamble !
+en-WrongFormat-Sign: The signs of the wrong type! No Gambling !
+en-LacenfhMoney: Money is not enough ! No Gambling ! Retention amount:0
+en-SuccessGamble: Gambling was successful ! (≥∀≤)/
+en-SuccessGamble-a: acquisition !
+en-FailGamble: Failed gamble ! (づ_ど)
+en-FailGamble-a: loss !
+en-noitem: Please Touch to have an item !
+en-SuccessitemGamble: Gambling was successful ! (≥∀≤)/ One more item acquisition !
+en-FailitemGamble: Failed gamble ! (づ_ど) One Item loss !
+en-LotteryPayment: 'Purchased a lottery ! (≥∀≤)/ Amount:'
+en-LotteryPayment-a: Connect to the next day  will you know the result !
+en-AskAgain: 'Are you sure you want to gamble? To proceed please tap again. [Amount:'
+en-LotteryCheck: Reports the results of last day lottery !
+en-LotteryCheck-a: lottery
+en-LotteryCheck-b: ' lottery failed ! (づ_ど)'
+en-SuccessLottery: won the lottery!(≥∀≤)/
+en-SuccessLottery-a: Amount
+en-SuccessLottery-b: ' more lottery was successful'
+en-SuccessLottery-c: Received !
+en-Gamblehow-a: When installed according to the form of signs
+en-Gamblehow-b: You can install Gamble signs
+en-Gamblehow-c: With the following command check the form
+en-Gamblehow-d: 1.Please install the Sign
+en-Gamblehow-Gamble-a: 2.Put in the first line [gamble]
+en-Gamblehow-Gamble-b: 3.Put in the first line 'price'
+en-Gamblehow-ItemGamble: 2.Put in the first line [itemgamble]
+en-Gamblehow-Lottery: 2.Put in the first line [lottery]
+en-Gamblehow-Random: 2.Put in the first line [randomgamble]
+ko-mustnumberic: 2번째줄(원하는금액)은 무조건 숫자여야합니다
+ko-GambleSetupFinish: 도박기 세팅에 성공했습니다 !
+ko-ItemGambleSetupFinish: 아이템도박기 세팅에 성공했습니다 !
+ko-LotterySetupFinish: 로또기기 세팅에 성공했습니다 !
+ko-RandomGambleSetupFinish: 랜덤도박기 세팅에 성공했습니다 !
+ko-WrongFormat-Sign: 잘못된 형식의 표지판입니다! 도박불가 !
+ko-LackOfhMoney: 돈이 부족합니다 ! 도박불가 ! 보유금액:0
+ko-SuccessGamble: 도박에 성공했습니다 ! (≥∀≤)/
+ko-SuccessGamble-a: 획득 !
+ko-FailGamble: 도박에 실패했습니다! (づ_ど)
+ko-FailGamble-a: 손실 !
+ko-noitem: 원하는 아이템을 들고 터치해주세요 !
+ko-SuccessitemGamble: 도박에 성공했습니다 ! (≥∀≤)/ 아이템 하나 더 획득 !
+ko-FailitemGamble: 도박에 실패했습니다 ! (づ_ど) 아이템 하나 손실 !
+ko-LotteryPayment: '로또를 구매했습니다 ! (≥∀≤)/ 총:'
+ko-LotteryPayment-a: 다음날에 접속하시면 당첨결과를 알려드립니다 !
+ko-AskAgain: '도박을 하시겠습니까? 진행하려면 다시 탭해주세요. [보유금액:'
+ko-LotteryCheck: 지난일 로또 당첨결과를 확인합니다 !
+ko-LotteryCheck-a: 로또
+ko-LotteryCheck-b: 개 모두 꽝 ! (づ_ど)
+ko-SuccessLottery: 님이 로또당첨!(≥∀≤)/
+ko-SuccessLottery-a: 총
+ko-SuccessLottery-b: 개의 로또가 당첨되서
+ko-SuccessLottery-c: 달러를 받으셨습니다 !
+ko-Gamblehow-a: 표지판을 양식에맞춰 설치하면
+ko-Gamblehow-b: 겜블 표지판을 설치할 수 있습니다
+ko-Gamblehow-c: 아래명령어로 양식확인가능
+ko-Gamblehow-d: 1.표지판을 설치하세요
+ko-Gamblehow-Gamble-a: 2.첫번째줄에 [도박] 을 쓰세요
+ko-Gamblehow-Gamble-b: 3.두번째줄에 [판돈] 을 쓰세요
+ko-Gamblehow-ItemGamble: 2.첫번째줄에 [아이템도박] 을 쓰세요
+ko-Gamblehow-Lottery: 2.첫번째줄에 [로또] 를 쓰세요
+ko-Gamblehow-Random: 2.첫번째줄에 [랜덤도박] 을 쓰세요
+jp-mustnumberic: 2番目の列(望む価格)は無条件に数字でなければなりません
+jp-GambleSetupFinish: 賭博機設置に成功しました !
+jp-ItemGambleSetupFinish: アイテム賭博機設置に成功しました !
+jp-LotterySetupFinish: 宝くじ機器設置に成功しました !
+jp-RandomGambleSetupFinish: ランダム賭博機設置に成功しました !
+jp-WrongFormat-Sign: 誤った形式の表示板です!賭博不可 !
+jp-LacjpfhMoney: お金が不足です ! 賭博不可 ! 保有金額:0
+jp-SuccessGamble: 賭博に勝ちました ! (≥∀≤)/
+jp-SuccessGamble-a: ゲット !
+jp-FailGamble: 賭博に負けました ! (づ_ど)
+jp-FailGamble-a: 損失 !
+jp-noitem: アイテムを持ってタッチしてください !
+jp-SuccessitemGamble: 賭博に勝ちました ! (≥∀≤)/ アイテムもう一つ獲得 !
+jp-FailitemGamble: 賭博に負けました ! (づ_ど) アイテム一つ損失 !
+jp-LotteryPayment: '宝くじを購買しました ! (≥∀≤)/ 本数:'
+jp-LotteryPayment-a: 当選の結果は翌日接続時にお知らせします !
+jp-AskAgain: '賭博をしますか? 進めるためには再タッチしてください。[保有金額:'
+jp-LotteryCheck: 過ぎたことロットに当たった結果を確認します !
+jp-LotteryCheck-a: 宝くじ
+jp-LotteryCheck-b: 個すべて失敗 ! (づ_ど)
+jp-SuccessLottery: さんが宝くじに当たった!(≥∀≤)/
+jp-SuccessLottery-a: 全部
+jp-SuccessLottery-b: つの宝くじが当たって、
+jp-SuccessLottery-c: ドルを受けました !
+jp-Gamblehow-a: 表示板を様式に合わせてインストールすれば
+jp-Gamblehow-b: 賭博機の表示板を設置することができます
+jp-Gamblehow-c: 下記の命令語で様式確認可能
+jp-Gamblehow-d: 1.の表示板を設置してください
+jp-Gamblehow-Gamble-a: 2.最初の行に[賭博]を書いてください
+jp-Gamblehow-Gamble-b: 3.2列目に[賭け金の量]を書いてください
+jp-Gamblehow-ItemGamble: 2.最初の行に[アイテム賭博]を書いてください
+jp-Gamblehow-Lottery: 2.最初の行に[復権]を書いてください
+jp-Gamblehow-Random: 2.最初の行に[ランダム賭博]を書いてください
+...

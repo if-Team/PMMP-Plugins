@@ -1,0 +1,5 @@
+name: entitiesSave
+main: hm\entitiesSave\entitiesSave
+version: 1.0-alpha
+author: hm
+api: [1.4.1]

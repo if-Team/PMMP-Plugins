@@ -1,0 +1,52 @@
+# IF YOU NEED A SOME OTHER LANGUAGE SETTINGS #
+# YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
+
+#PLEASE SET HERE TO YOUR LANGUAGE PREFIX
+default-language: ko
+
+#(EN) ENGLISH
+
+#(KO) KOREAN
+ko-commands-buy: "구매"
+ko-commands-sell: "판매"
+ko-commands-itemlist: "아이템목록"
+ko-commands-makeholo: "홀로"
+ko-commands-ce: "ce"
+
+ko-commands-buy-usage: "/구매 <아이디:값> <갯수>"
+ko-commands-sell-usage: "/판매 <아이디:값> <갯수>"
+ko-commands-itemlist-usage: "/아이템목록"
+ko-commands-ce-usage: "/ce"
+
+ko-default-prefix: "[ 서버 ]"
+ko-only-in-game: "해당 명령어는 게임 내에서만 가능합니다"
+
+ko-sub-commands-create: "create"
+ko-sub-commands-change: "change"
+ko-sub-commands-lock: "freeze"
+ko-sub-commands-allowcreate: "allowcreate"
+ko-sub-commands-allowcommand: "allowcommand"
+
+ko-set-sign-buy: "구매"
+ko-set-sign-sell: "판매"
+ko-touch-buy: "[ 터치로 구매 ]"
+ko-touch-sell: "[ 터치로 판매 ]"
+
+ko-there-are-no-economyapi: "이코노미 API 플러그인이 없습니다! 플러그인 비활성화 됨!"
+ko-market-cannot-break: "마켓은 OP만이 파괴할 수 있습니다 !"
+ko-ur-not-use-market: "마켓을 이용할 권한이 없습니다 !"
+
+ko-set-sign-help1: "* 아래 양식대로 표지판을 설치하세요"
+ko-set-sign-help2-buy: "1번째 줄 : 구매"
+ko-set-sign-help2-sell: "1번째 줄 : 판매"
+ko-set-sign-help3: "2번째 줄 : 아이템번호:데미지"
+ko-set-sign-help4: "3번째 줄 : 가격 ( 숫자로만 설정 )"
+
+ko-commands-ce-help1: "/ce create <아이디:값> <수량>"
+ko-commands-ce-help2: "/ce change <아이디:값> <가격>"
+ko-commands-ce-help3: "/ce lock - 모든 거래를 동결"
+ko-commands-ce-help4: "/ce allowcreate - 유저의 상점생성허용"
+ko-commands-ce-help5: "/ce allowcommand - 유저의 /구매/판매 허용"
+
+# AND YOU CAN PROVIDE YOUR TRANSLATION       #
+# https://github.com/if-Team/Personal/tree/master/HmHmmHm/CreativeEconomy/resources/messages.yml

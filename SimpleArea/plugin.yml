@@ -1,0 +1,77 @@
+name: SimpleArea
+main: SimpleArea\SimpleArea
+version: 0.11-alpha
+author: hm
+api: [1.4.1]
+
+commands:
+ home:
+   permission: simplearea.commands.home
+   description: 집으로 이동합니다
+ sethome:
+   permission: simplearea.commands.sethome
+   description: 현재위치를 집으로 설정합니다
+ sellhome:
+   permission: simplearea.commands.delhome
+   description: 집을 판매처리합니다
+ givehome:
+   permission: simplearea.commands.givehome
+   description: 집을 다른유저에게 양도합니다
+ buyhome:
+   permission: simplearea.commands.buyhome
+   description: 집을 구매합니다
+ homelist:
+   permission: simplearea.commands.homelist
+   description: 구매가능한 집리스트를 출력합니다
+ rent:
+   permission: simplearea.commands.rent
+   description: 집을 임대요청하거나 설정합니다
+ invite:
+   permission: simplearea.commands.invite
+   description: 집을 다른유저에게 공유합니다
+ inviteout:
+   permission: simplearea.commands.inviteout
+   description: 공유받은 집을 공유 해제합니다
+ inviteclear:
+   permission: simplearea.commands.inviteclear
+   description: 해당 집의 공유를 모두 해제합니다 
+ invitelist:
+   permission: simplearea.commands.invitelist
+   description: 해당 집을 공유 받는 유저를 출력합니다
+ welcome:
+   permission: simplearea.commands.welcome
+   description: 집 환영메시지를 설정합니다
+ sa:
+   permission: simplearea.commands.simplearea
+   description: 심플에리어를 관리하는 명령어를 사용합니다
+ yap:
+   permission: simplearea.commands.yap
+   description: 인생경제맵을 명령어 한번에 생성합니다
+
+permissions:
+ simplearea.commands.home:
+  default: true
+ simplearea.commands.sethome:
+  default: true
+ simplearea.commands.buyhome:
+  default: true
+ simplearea.commands.givehome:
+  default: true
+ simplearea.commands.homelist:
+  default: true
+ simplearea.commands.rent:
+  default: true
+ simplearea.commands.invite:
+  default: true
+ simplearea.commands.inviteout:
+  default: true
+ simplearea.commands.inviteclear:
+  default: true
+ simplearea.commands.invitelist:
+  default: true
+ simplearea.commands.welcome:
+  default: true
+ simplearea.commands.simplearea:
+  default: OP
+ simplearea.commands.yap:
+  default: OP

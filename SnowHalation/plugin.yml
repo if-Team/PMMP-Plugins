@@ -1,0 +1,17 @@
+name: SnowHalation
+main: SnowHalation\SnowHalation
+version: 1.2-alpha
+author: hm
+api: [1.4.1]
+load: STARTUP
+
+commands:
+ snow:
+   permission: snowhalation
+   description: SnowHalation control commands
+   usage: /snow
+
+permissions:
+ snowhalation:
+  default: true
+  description: Allows commands of SnowHalation

@@ -1,0 +1,16 @@
+name: EconomyGamble
+main: hm\EconomyGamble\EconomyGamble
+version: 2.0-alpha
+author: hmm
+api: [1.4.1]
+
+commands:
+ gamblehow:
+  permission: EconomyGamble.commands.gamblehow
+  description: EconomyGamble Helper
+  usage: /gamblehow
+
+permissions:
+ EconomyGamble.commands.*:
+  default: true
+  description: Allows commands of EconomyGamble

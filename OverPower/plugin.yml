@@ -1,0 +1,5 @@
+name: OverPower
+main: hm\OverPower\OverPower
+author: hm
+version: 1.1-alpha
+api: [1.4.1]

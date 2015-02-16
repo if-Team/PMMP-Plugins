@@ -1,0 +1,5 @@
+name: FastFurnace
+main: hm\FastFurnace\FastFurnace
+version: 4.0-alpha
+author: hmm
+api: [1.4.1]

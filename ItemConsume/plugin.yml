@@ -1,0 +1,5 @@
+name: ItemConsume
+main: ItemConsume\ItemConsume
+author: hm
+version : 1.2-alpha
+api: [1.4.1]

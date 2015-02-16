@@ -1,0 +1,16 @@
+name: PSYCHOPASS_AreaPASS
+main: hm\PSYCHOPASS\PSYCHOPASS_AreaPASS
+version: 0.1-beta
+author: hm
+api: [1.4.1]
+
+commands:
+ AreaPASS:
+  permission: AreaPASS.commands
+  description: Use AreaPASS commands
+  usage: /AreaPASS <make|delete|protect|allow|forbid>
+
+permission:
+ AreaPASS.commands.*:
+  default: OP
+  description:Allow AreaPASS commands

@@ -1,0 +1,5 @@
+name: emailAuth
+main: emailAuth\emailAuth
+author: hm
+version: 0.1-alpha
+api: [1.4.1]

@@ -1,0 +1,40 @@
+name: NydusCanal
+main: NydusCanal\NydusCanal
+version: 1.5-alpha
+author: hm
+api: [1.4.1]
+
+commands:
+ warp:
+   permission: nyduscanal.commands.warp
+   description: nyduscanal control commands
+ warplist:
+   permission: nyduscanal.commands.warplist
+   description: nyduscanal control commands
+ addwarp:
+   permission: nyduscanal.commands.addwarp
+   description: nyduscanal control commands
+ delwarp:
+   permission: nyduscanal.commands.delwarp
+   description: nyduscanal control commands
+ lockwarp:
+   permission: nyduscanal.commands.lockwarp
+   description: nyduscanal control commands
+
+permissions:
+ nyduscanal.portal:
+  default: true
+ nyduscanal.signportal:
+  default: true
+ nyduscanal.lockwarp:
+  default: OP
+ nyduscanal.commands.warp:
+  default: true
+ nyduscanal.commands.warplist:
+  default: true
+ nyduscanal.commands.addwarp:
+  default: OP
+ nyduscanal.commands.delwarp:
+  default: OP
+ nyduscanal.commands.lockwarp:
+  default: OP

@@ -1,0 +1,8 @@
+---
+default-home-size: 20
+maximum-home-limit: 1
+show-prevent-message: true
+economy-enable: true
+economy-home-price: 5000
+economy-home-reward-price: 2500
+...

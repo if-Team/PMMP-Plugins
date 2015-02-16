@@ -1,0 +1,10 @@
+name: TreeChopper
+main: TreeChopper\TreeChopper
+version: 1.0-alpha
+author: hm
+api: [1.9.0]
+
+permissions:
+ TreeChopper:
+  default: true
+  description: "TreeChopper Permission"

@@ -1,0 +1,16 @@
+name: namingCaution
+main: hm\namingCaution\namingCaution
+version: 1.1-alpha
+author: hm
+api: [1.4.1]
+
+commands:
+ nc:
+  permission: namingCaution.commands.namingCaution
+  description: namingCaution commands
+  usage: /nc
+
+permissions:
+ namingCaution.commands.*:
+  default: op
+  description: Allows commands of namingCaution

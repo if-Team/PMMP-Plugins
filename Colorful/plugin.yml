@@ -1,0 +1,13 @@
+name: Colorful
+main: Colorful\Colorful
+author: hm
+version: 1.1-alpha
+api: [1.9.0]
+
+commands:
+ 색상표:
+  permisson: colorful
+
+permissons:
+ colorful:
+  default: true

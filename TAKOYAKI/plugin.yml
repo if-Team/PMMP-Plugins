@@ -1,0 +1,16 @@
+name: TAKOYAKI
+main: TAKOYAKI\TAKOYAKI
+version: 1.0-non-alpha
+author: hm
+api: [1.4.1]
+
+commands:
+ TAKOYAKI:
+  permission: TAKOYAKI.commands
+  description: Use TAKOYAKI commands
+  usage: /TAKOYAKI <login>
+
+permission:
+ TAKOYAKI.commands.*:
+  default: OP
+  description: Allow TAKOYAKI commands

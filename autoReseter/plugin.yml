@@ -1,0 +1,6 @@
+name : autoReseter
+main : hm\autoReseter\autoReseter
+description: "Automatic Server Restarter"
+version : 3.0-non-alpha
+author : hmm
+api : [1.4.1]

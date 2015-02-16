@@ -1,0 +1,5 @@
+name: placebo
+main: placebo\placebo
+version: 1.0-alpha
+author: hm
+api: [1.4.1]

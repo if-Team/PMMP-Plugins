@@ -1,0 +1,5 @@
+name: SteveWarn
+main: hm\SteveWarn\SteveWarn
+version: 1.0-alpha
+author: hm
+api: [1.4.1]

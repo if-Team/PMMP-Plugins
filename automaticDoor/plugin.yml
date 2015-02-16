@@ -1,0 +1,5 @@
+name: automaticDoor
+main: hm\automaticDoor\automaticDoor
+version: 1.0-alpha
+author: hm
+api: [1.4.1]

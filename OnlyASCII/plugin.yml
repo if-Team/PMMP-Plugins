@@ -1,0 +1,20 @@
+name: OnlyASCII
+main: OnlyASCII\OnlyASCII
+version: "1.1"
+author: hmm
+api: [1.1.0]
+
+commands:
+ OnlyASCII:
+  permission: OnlyASCII.commands.OnlyASCII
+  description: OnlyASCII manage command
+  usage: /OnlyASCII <enable | disable>
+
+permissions:
+ OnlyASCII.commands.*:
+  default: op
+  description: Allows commands of OnlyASCII
+  children:
+   OnlyASCII.commands.OnlyASCII:
+    default: op
+    description: Allows commands of OnlyASCII

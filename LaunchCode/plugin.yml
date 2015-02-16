@@ -1,0 +1,5 @@
+name : LaunchCode
+main : LaunchCode\LaunchCode
+author : hmm
+version : 1.0
+api : [1.4.1]

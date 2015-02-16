@@ -1,0 +1,5 @@
+name: illuminate
+main: hm\illuminate\illuminate
+version: 1.5-alpha
+author: hm
+api: [1.4.1]

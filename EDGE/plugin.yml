@@ -1,0 +1,5 @@
+name: EDGE
+main: EDGE\EDGE
+version: 1.0-alpha
+author: hm
+api: [1.4.1]

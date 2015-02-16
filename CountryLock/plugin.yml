@@ -1,0 +1,5 @@
+name : CountryLock
+main : CountryLock\CountryLock
+author : hm
+version : 1.0
+api : [1.4.1]

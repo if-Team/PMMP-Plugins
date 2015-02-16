@@ -1,0 +1,17 @@
+# IF YOU NEED A SOME OTHER LANGUAGE SETTINGS #
+# YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
+
+#PLEASE SET HERE TO YOUR LANGUAGE PREFIX
+default-language: ko
+
+#(EN) ENGLISH
+en-sign-set-message: "signcommand"
+en-sign-message: "[SignCommand]"
+
+#(KO) KOREAN
+ko-sign-set-message: "표지판명령"
+ko-sign-message: "[ 터치로 명령사용 ]"
+
+
+# AND YOU CAN PROVIDE YOUR TRANSLATION       #
+# https://github.com/if-Team/Personal/tree/master/HmHmmHm/AnnouncePro/resources/message.yml

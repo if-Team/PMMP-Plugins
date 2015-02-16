@@ -1,0 +1,31 @@
+name: PSYCHOPASS_API
+main: hm\PSYCHOPASS\PSYCHOPASS_API
+version: 0.1-beta
+author: hm
+api: [1.4.1]
+
+commands:
+ crime:
+  permission: PSYCHOPASS_API.commands.crime
+  description: Use PSYCHOPASS API commands
+  usage: /crime <get:set:add:reduce:clear>
+ 범죄계수:
+  permission: PSYCHOPASS_API.commands.crime
+  description: Use PSYCHOPASS API commands
+  usage: /범죄계수 <얻기:설정:가산:감산:초기화>
+ 색상체크:
+  permission: PSYCHOPASS_API.commands.color
+  description: Use PSYCHOPASS API commands
+  usage: /색상체크 <유저명>
+ colorcheck:
+  permission: PSYCHOPASS_API.commands.color
+  description: Use PSYCHOPASS API commands
+  usage: /colorcheck <유저명>
+
+permissions:
+ PSYCHOPASS_API.commands.crime:
+  default: op
+  description: Allows commands of PSYCHOPASS_API
+ PSYCHOPASS_API.commands.color:
+  default: true
+  description: Allows commands of PSYCHOPASS_API

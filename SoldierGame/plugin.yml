@@ -1,0 +1,17 @@
+name: SoldierGame
+main: SoldierGame\SoldierGame
+version: 1.0-alpha
+author: hm
+api: [1.4.1]
+load: STARTUP
+
+commands:
+ soldiergame:
+   permission: soldiergame
+   description: SoldierGame control commands
+   usage: /soldiergame
+
+permissions:
+ soldiergame:
+  default: true
+  description: Allows commands of SoldierGame

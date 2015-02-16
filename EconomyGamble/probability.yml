@@ -1,0 +1,8 @@
+---
+GambleProbability: 44/100
+ItemGambleProbability: 44/100
+LotteryProbability: 1/1000
+LotteryCompensation: "100000"
+LotteryPrice: "50"
+RandomGambleProbability: 44/100
+...

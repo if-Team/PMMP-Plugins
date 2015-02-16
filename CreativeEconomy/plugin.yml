@@ -1,0 +1,21 @@
+name: CreativeEconomy
+main: CreativeEconomy\CreativeEconomy
+version: 1.0-non-alpha
+author: hm
+api: [1.4.1]
+
+permissions:
+ creativeeconomy.commands.buy:
+  default: true
+ creativeeconomy.commands.sell:
+  default: true
+ creativeeconomy.commands.buylist:
+  default: true
+ creativeeconomy.commands.ce:
+  default: OP
+ creativeeconomy.shop.use:
+  default: true
+ creativeeconomy.shop.create:
+  default: OP
+ creativeeconomy.shop.break:
+  default: OP
