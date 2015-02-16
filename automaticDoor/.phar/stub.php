@@ -1,1 +1,0 @@
-<?php echo "PocketMine-MP plugin automaticDoor v1.0-alpha\nThis file has been generated using DevTools v1.8.0 at Sun, 05 Oct 2014 07:16:43 +0000\n----------------\n";if(extension_loaded("phar")){$phar = new \Phar(__FILE__);foreach($phar->getMetadata() as $key => $value){echo ucfirst($key).": ".(is_array($value) ? implode(", ", $value):$value)."\n";}} __HALT_COMPILER(); ?>

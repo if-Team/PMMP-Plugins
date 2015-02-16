@@ -75,4 +75,4 @@ ko-help-5: "/공지 반복 <시간초> - 공지 반복시간을 수정합니다.
 ko-help-6: "/공지 접두사|접미사 <내용>  - 공지 앞뒤에 단어를 추가합니다"
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
-# https://github.com/if-Team/Personal/tree/master/HmHmmHm/AnnouncePro/resources/messages.yml
+# https://github.com/if-Team/PMMP-Plugins/tree/master/AnnouncePro/resources/messages.yml
