@@ -1,0 +1,33 @@
+# IF YOU NEED A SOME OTHER LANGUAGE SETTINGS #
+# YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
+
+#PLEASE SET HERE TO YOUR LANGUAGE PREFIX
+default-language: ko
+
+#(EN) ENGLISH
+en-custompacket-not-exist: "[CustomPacket] CustomPacket plugin was not found. This plugin will be disabled."
+en-waypoint-command: "waypoint"
+en-waypoint-command-desc: "Set up and manage waypoints"
+en-waypoint-command-usage: "/waypoint"
+en-waypoint-add: "add"
+en-waypoint-del: "del"
+en-waypoint-list: "list"
+en-waypoint-clear: "clear"
+en-waypoint-onoff: "onoff"
+en-in-game-command: "in-game only available"
+
+#(KO) KOREAN
+ko-custompacket-not-exist: "[커스텀패킷] 커스텀패킷 플러그인이 없습니다. 플러그인을 비활성화 합니다."
+ko-waypoint-command: "웨이포인트"
+ko-waypoint-command-desc: "웨이포인트를 추가하고 관리합니다"
+ko-waypoint-command-usage: "/웨이포인트"
+ko-waypoint-add: "추가"
+ko-waypoint-add-help: "/웨이포인트 추가 <내용>"
+ko-waypoint-del: "삭제"
+ko-waypoint-list: "목록"
+ko-waypoint-clear: "초기화"
+ko-waypoint-onoff: "활성화"
+ko-in-game-command: "인게임에서만 사용가능합니다"
+
+# AND YOU CAN PROVIDE YOUR TRANSLATION       #
+# https://github.com/if-Team/PMMP-Plugins/tree/master/AnnouncePro/resources/messages.yml
