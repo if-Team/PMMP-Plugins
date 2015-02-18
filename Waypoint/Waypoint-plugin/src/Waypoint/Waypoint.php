@@ -13,6 +13,7 @@ use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\utils\Config;
 use pocketmine\Player;
 use pocketmine\utils\TextFormat;
+use pocketmine\command\PluginCommand;
 
 class Waypoint extends PluginBase implements Listener {
 	public $config, $configData;

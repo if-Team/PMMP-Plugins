@@ -26,8 +26,8 @@ en-waypoint-delete-complete: "You have deleted a waypoint properly!"
 en-waypoint-clear-complete: "Waypoints initialized properly!"
 
 en-in-game-command: "in-game only available"
-en-there-is-no-list: "There is no announce list!"
-en-now-list-show: "*Display a announce list !"
+en-there-is-no-list: "There is no waypoint list!"
+en-now-list-show: "*Display a waypoint list !"
 en-index_count: "Amount"
 
 #(KO) KOREAN
@@ -52,8 +52,8 @@ ko-waypoint-delete-complete: "웨이포인트를 정상적으로 삭제했습니
 ko-waypoint-clear-complete: "웨이포인트를 정상적으로 초기화했습니다 !"
 
 ko-in-game-command: "인게임에서만 사용가능합니다"
-ko-there-is-no-list: "해당하는 리스트가 없습니다 !"
-ko-now-list-show: "*공지리스트를 표시합니다 !"
+ko-there-is-no-list: "해당하는 웨이포인트 리스트가 없습니다 !"
+ko-now-list-show: "*웨이포인트 리스트를 표시합니다 !"
 ko-index_count: "총"
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
