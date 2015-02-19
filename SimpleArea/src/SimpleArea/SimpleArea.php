@@ -106,6 +106,8 @@ class SimpleArea extends PluginBase implements Listener {
 		$player = $event->getPlayer ();
 		$block = $event->getBlock ();
 		
+		if ($player->isOp ()) return;
+		
 		$area = $this->db [$block->getLevel ()->getFolderName ()]->getArea ( $block->x, $block->z );
 		
 		if ($area != false) {
@@ -132,6 +134,8 @@ class SimpleArea extends PluginBase implements Listener {
 	public function onBreak(BlockBreakEvent $event) {
 		$player = $event->getPlayer ();
 		$block = $event->getBlock ();
+		
+		if ($player->isOp ()) return;
 		
 		$area = $this->db [$block->getLevel ()->getFolderName ()]->getArea ( $block->x, $block->z );
 		
@@ -175,6 +179,8 @@ class SimpleArea extends PluginBase implements Listener {
 		
 		$player = $event->getPlayer ();
 		$block = $event->getBlock ();
+		
+		if ($player->isOp ()) return;
 		
 		if ($block->getId () == Block::SIGN_POST or $block->getId () == Block::WALL_SIGN) return;
 		
