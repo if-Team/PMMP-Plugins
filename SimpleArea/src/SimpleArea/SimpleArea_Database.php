@@ -26,9 +26,7 @@ class SimpleArea_Database {
 		$this->option = (new Config ( $this->path . "options.yml", Config::YAML, [ 
 				"white-option" => [ ],
 				"white-pvp-allow" => true,
-				"white-welcome" => "",
-				"hometax-enable" => false,
-				"hometax-price" => "2500" ] ))->getAll ();
+				"white-welcome" => "" ] ))->getAll ();
 		$this->index = count ( $this->yml ) - 1;
 		$this->makeHomeList ();
 	}
@@ -48,37 +46,6 @@ class SimpleArea_Database {
 		foreach ( $this->yml as $area )
 			if (isset ( $area ["startX"] )) if ($area ["startX"] <= $x and $area ["endX"] >= $x and $area ["startZ"] <= $z and $area ["endZ"] >= $z) return $area;
 		return false;
-	}
-	// TODO homeTax 매일마다 혹은 재부팅시마다 작동하게?..
-	public function homeTaxCheck() {
-		foreach ( $this->yml as $area )
-			if (isset ( $area ["startX"] )) if (! isset ( $area ["tax-time"] )) $area ["tax-time"] = date ( "Y-m-d H:i:s" );
-		// TODO 토지세 내게하기
-	}
-	public function homeTaxClear() {
-		foreach ( $this->yml as $area )
-			if (isset ( $area ["startX"] )) if (isset ( $area ["tax-time"] )) unset ( $this->yml [$area ["ID"] ["tax-time"]] );
-	}
-	public function makeTimestamp($date) {
-		$yy = substr ( $date, 0, 4 );
-		$mm = substr ( $date, 5, 2 );
-		$dd = substr ( $date, 8, 2 );
-		$hh = substr ( $date, 11, 2 );
-		$ii = substr ( $date, 14, 2 );
-		$ss = substr ( $date, 17, 2 );
-		return mktime ( $hh, $ii, $ss, $mm, $dd, $yy );
-	}
-	public function hometaxEnable() {
-		if ($this->option ["hometax-enable"]) {
-			$this->option ["hometax-enable"] = false;
-			return false;
-		} else {
-			$this->option ["hometax-enable"] = true;
-			return true;
-		}
-	}
-	public function hometaxPrice($price) {
-		$this->option ["hometax-price"] = $price;
 	}
 	public function changeWall($wall) {
 		$this->fence_type = $wall;

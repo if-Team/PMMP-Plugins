@@ -53,6 +53,7 @@ class SimpleArea extends PluginBase implements Listener {
 				"economy-enable" => true,
 				"economy-home-price" => 5000,
 				"economy-home-reward-price" => 2500,
+				"hour-tax-price" => 4,
 				"default-prefix" => $this->get ( "default-prefix" ),
 				"welcome-prefix" => $this->get ( "welcome-prefix" ),
 				"default-wall-type" => 139 ] );
@@ -64,6 +65,11 @@ class SimpleArea extends PluginBase implements Listener {
 		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
 				$this,
 				"autoSave" ] ), 2400 );
+		
+		foreach ( $this->getServer ()->getLevels () as $level )
+			$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
+					$this->db [$level->getFolderName ()],
+					"hourTaxCheck" ] ), 20 * 60 * 60 );
 		
 		if ($this->checkEconomyAPI ()) $this->economyAPI = \onebone\economyapi\EconomyAPI::getInstance ();
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
@@ -404,9 +410,12 @@ class SimpleArea extends PluginBase implements Listener {
 							$this->homeprice ( $player );
 						}
 						break;
-					case $this->get ( "commands-sa-landtax" ) :
-						// TODO 토지세 기능 활성화
-						// TODO 토지세 가격 설정
+					case $this->get ( "commands-sa-hourtax" ) :
+						if (isset ( $args [1] )) {
+							$this->setHourTax ( $player, $args [1] );
+						} else {
+							$this->setHourTax ( $player );
+						}
 						break;
 					case $this->get ( "commands-sa-fence" ) :
 						if (isset ( $args [1] )) {
@@ -433,6 +442,35 @@ class SimpleArea extends PluginBase implements Listener {
 				break;
 		}
 		return true;
+	}
+	public function setHourTax(Player $player, $tax = null) {
+		if ($tax == null or ! is_numeric ( $tax )) {
+			$this->message ( $player, "/sa hourtax <한 시간 토지세 값>" );
+			$this->message ( $player, "( 토지세 값을 0 으로 하면 비활성화 처리됨 )" );
+			return;
+		}
+		$this->config_Data ["hour-tax-price"] = $tax;
+		$this->message ( $player, "한 시간 토지세를 정상적으로 설정했습니다" );
+	}
+	public function hourTaxCheck() {
+		if ($this->config_Data ["hour-tax-price"] <= 0) return;
+		foreach ( $this->getServer ()->getLevels () as $level )
+			foreach ( $this->db [$level->getFolderName ()]->getAll () as $area )
+				if (isset ( $area ["is-home"] ) and $area ["is-home"] == true and $area ["resident"] [0] != null) {
+					if ($this->checkEconomyAPI ()) {
+						$money = $this->economyAPI->myMoney ( $area ["resident"] [0] );
+						if ($money == false) return;
+						if ($money >= $this->config_Data ["hour-tax-price"]) {
+							$this->economyAPI->reduceMoney ( $area ["resident"] [0], $this->config_Data ["hour-tax-price"] );
+							$player = $this->getServer ()->getPlayerExact ( $area ["resident"] [0] );
+							if ($player != null) $this->message ( $player, "한시간 토지세 " . $this->config_Data ["hour-tax-price"] . "달러가 납부되었습니다" );
+						} else {
+							$player = $this->getServer ()->getPlayerExact ( $area ["resident"] [0] );
+							if ($player != null) $this->message ( $player, "토지세를 납부할 돈이 없어" . $area ["ID"] . "번 영역이 차압됩니다" );
+							$this->db [$level->getFolderName ()]->setResident ( $area ["ID"], [ ] );
+						}
+					}
+				}
 	}
 	public function setFenceType(Player $player, $fenceType = null) {
 		if ($fenceType == null) {
@@ -638,7 +676,12 @@ class SimpleArea extends PluginBase implements Listener {
 				$this->message ( $player, "성공적으로 집을 구매했습니다 !" );
 				if ($this->checkEconomyAPI ()) {
 					$this->economyAPI->reduceMoney ( $player, $this->config_Data ["economy-home-price"] );
-					$this->message ( $player, "( 집 구매가격 " . $this->config_Data ["economy-home-price"] . "$ 가 지불 되었습니다 !" );
+					$this->message ( $player, "( 집 구매가격 " . $this->config_Data ["economy-home-price"] . "$ 가 지불 되었습니다 ! )" );
+					
+					if ($this->config_Data ["hour-tax-price"] > 0) {
+						$this->economyAPI->addMoney ( $player, $this->config_Data ["hour-tax-price"] );
+						$this->message ( $player, "( 집 1시간 토지세 값을 지급 받았습니다 ! )" );
+					}
 				}
 			} else {
 				$this->alert ( $player, "해당 집엔 이미 소유자가 있습니다. 구매불가 !" );
@@ -854,7 +897,7 @@ class SimpleArea extends PluginBase implements Listener {
 			$this->message ( $player, "/sa homelimit - 영역보유한계 설정", "" );
 			$this->message ( $player, "/sa economy - 이코노미 활성화 설정", "" );
 			$this->message ( $player, "/sa homeprice - 집가격 설정", "" );
-			$this->message ( $player, "/sa landtax - 토지세 설정", "" );
+			$this->message ( $player, "/sa hourtax - 한 시간 당 토지세 설정", "" );
 			$this->message ( $player, "/sa fence - 자동울타리관련 설정", "" );
 			$this->message ( $player, "/sa message - 금지메시지표시 설정", "" );
 			$this->message ( $player, "( /sa help 1|2 - 설명문을 출력합니다 ) " );
