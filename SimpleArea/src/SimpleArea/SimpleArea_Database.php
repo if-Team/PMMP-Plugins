@@ -29,8 +29,8 @@ class SimpleArea_Database {
 				"white-welcome" => "",
 				"hometax-enable" => false,
 				"hometax-price" => "2500" ] ))->getAll ();
-		$this->makeHomeList ();
 		$this->index = count ( $this->yml ) - 1;
+		$this->makeHomeList ();
 	}
 	public function save() {
 		$config = new Config ( $this->path . "protects.yml", Config::YAML );
@@ -88,16 +88,16 @@ class SimpleArea_Database {
 	}
 	public function makeHomeList() {
 		foreach ( $this->yml as $area )
-			if (isset ( $area ["is-home"] ) and $area ["is-home"] == true and $area ["resident"] == null) $this->homelist [$area ["ID"]] = null;
+			if (isset ( $area ["is-home"] ) and $area ["is-home"] == true and $area ["resident"] [0] == null) $this->homelist [$area ["ID"]] = null;
 	}
-	public function getHomeList($id) {
+	public function getHomeList() {
 		return $this->homelist;
 	}
 	public function addHomeList($id) {
-		$this->homelist [$id] = null;
+		if (! isset ( $this->homelist [$id] )) $this->homelist [$id] = null;
 	}
 	public function removeHomeList($id) {
-		unset ( $this->homelist [$id] );
+		if (isset ( $this->homelist [$id] )) unset ( $this->homelist [$id] );
 	}
 	public function getUserHome($username, $number) {
 		return isset ( $this->yml ["user-property"] [$username] [$number] ) ? $this->yml ["user-property"] [$username] [$number] : false;
@@ -151,6 +151,7 @@ class SimpleArea_Database {
 				"rent-allow" => $rent_allow,
 				"welcome" => "",
 				"pvp-allow" => true ];
+		if ($ishome == true and $resident == null) $this->addHomeList ( $this->index );
 		return $this->index ++;
 	}
 	public function setFence($startX, $endX, $startZ, $endZ, $length = 3) {
@@ -223,6 +224,7 @@ class SimpleArea_Database {
 			
 			$area = $this->getAreaById ( $id );
 			$this->removeFence ( $area ["startX"], $area ["endX"], $area ["startZ"], $area ["endZ"], 3 );
+			$this->removeHomeList ( $id );
 			unset ( $this->yml [$id] );
 			return true;
 		}
@@ -269,6 +271,12 @@ class SimpleArea_Database {
 	}
 	public function setResident($id, Array $resident) {
 		$this->yml [$id] ["resident"] = $resident;
+		
+		if ($resident [0] == null) {
+			$this->addHomeList ( $id );
+		} else {
+			$this->removeHomeList ( $id );
+		}
 	}
 	public function checkResident($id, $resident) {
 		foreach ( $this->yml [$id] ["resident"] as $list )
@@ -304,6 +312,7 @@ class SimpleArea_Database {
 	}
 	public function addResident($id, $resident) {
 		$this->yml [$id] ["resident"] [] = $resident;
+		$this->removeHomeList ( $id );
 	}
 	public function removeUserProperty($username, $id) {
 		foreach ( $this->yml ["user-property"] [$username] as $index => $target_id )
@@ -312,6 +321,7 @@ class SimpleArea_Database {
 	public function removeResident($id, $resident) {
 		foreach ( $this->yml [$id] ["resident"] as $index => $target )
 			if ($target == $resident) unset ( $this->yml [$id] ["resident"] [$index] );
+		if ($this->yml [$id] ["resident"] [0] == null) $this->addHomeList ( $id );
 	}
 }
 

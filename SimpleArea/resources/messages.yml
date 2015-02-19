@@ -98,7 +98,9 @@ ko-protect-area-created: "번 영역을 생성했습니다."
 ko-protect-sa-protect-possible: "/sa protect 로 보호여부를 설정가능"
 ko-whiteworld-enabled: " 맵에 화이트월드 설정을 활성화 했습니다."
 ko-whiteworld-disabled: " 맵에 화이트월드 설정을 해제 했습니다."
-
+ko-now-list-show: "*구매가능한 영역 리스트를 표시합니다 !"
+ko-index_count: "총"
+ko-there-is-no-list: "해당하는 리스트가 없습니다 !"
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/tree/master/simplearea_Float/resources/message.yml

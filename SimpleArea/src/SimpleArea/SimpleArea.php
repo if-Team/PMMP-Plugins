@@ -548,6 +548,7 @@ class SimpleArea extends PluginBase implements Listener {
 				$this->message ( $player, $this->get ( "protect-if-you-stop-protect-use-cancel" ) );
 				return true;
 			}
+			
 			$pos = $this->areaPosCast ( $this->make_Queue [$player->getName ()] ["pos1"], $this->make_Queue [$player->getName ()] ["pos2"] );
 			$checkOverapArea = $this->db [$player->getLevel ()->getFolderName ()]->checkOverlap ( $pos [0], $pos [1], $pos [2], $pos [3] );
 			if ($checkOverapArea != false) {
@@ -578,13 +579,32 @@ class SimpleArea extends PluginBase implements Listener {
 			}
 		}
 	}
-	public function homelist(Player $player) {
-		// TODO 출력방식
+	public function homelist(Player $player, $index = 1) {
 		$this->message ( $player, "/home *집번호 로 해당 집으로 워프가능" );
-		$this->message ( $player, "/buyhome 집번호 로 해당 집 구매가능" );
-		// TODO /home *번호
-		// TODO /buyhome 번호
-		// TODO /home *번호 퍼미션
+		
+		$once_print = 20;
+		$target = $this->db [$player->getLevel ()->getFolderName ()]->getHomeList ();
+		
+		$index_count = count ( $target );
+		$index_key = array_keys ( $target );
+		$full_index = floor ( $index_count / $once_print );
+		
+		if ($index_count > $full_index * $once_print) $full_index ++;
+		
+		if ($index <= $full_index) {
+			$player->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "now-list-show" ) . " ({$index}/{$full_index}) " . $this->get ( "index_count" ) . ": {$index_count}" );
+			$message = null;
+			for($for_i = $once_print; $for_i >= 1; $for_i --) {
+				$now_index = $index * $once_print - $for_i;
+				if (! isset ( $index_key [$now_index] )) break;
+				$now_key = $index_key [$now_index];
+				$message .= TextFormat::DARK_AQUA . "[" . $now_key . "번 영역] ";
+			}
+			$player->sendMessage ( $message );
+		} else {
+			$player->sendMessage ( TextFormat::RED . $this->get ( "there-is-no-list" ) );
+			return false;
+		}
 	}
 	public function whiteWorld(Player $player) {
 		if (! $this->db [$player->getLevel ()->getFolderName ()]->isWhiteWorld ()) {
@@ -776,6 +796,23 @@ class SimpleArea extends PluginBase implements Listener {
 	}
 	public function goHome(Player $player, $home_number) {
 		if (! is_numeric ( $home_number )) {
+			if (isset ( explode ( "*", $home_number )[1] )) {
+				$generic_number = explode ( "*", $home_number )[1];
+				if (! is_numeric ( $generic_number )) {
+					$this->alert ( $player, "집번호는 숫자만 가능합니다 !" );
+					return false;
+				}
+				$area = $this->db [$player->getLevel ()->getFolderName ()]->getAreaById ( $generic_number );
+				if ($area == false) {
+					$this->alert ( $player, "해당 번호의 집은 존재하지않습니다" );
+					return false;
+				}
+				$x = (($area ["startX"]) + 1);
+				$z = (($area ["startZ"]) + 1);
+				$y = ($player->getLevel ()->getHighestBlockAt ( $x, $z ) + 2);
+				$player->teleport ( new Vector3 ( $x, $y, $z ) );
+				return true;
+			}
 			$this->alert ( $player, "집번호는 숫자만 가능합니다 !" );
 			return false;
 		}
@@ -1160,11 +1197,11 @@ class SimpleArea extends PluginBase implements Listener {
 			return (count ( $this->db [$player->level->getFolderName ()]->getUserProperty ( $player->getName () ) ) < $this->config_Data ["maximum-home-limit"]) ? true : false;
 		}
 	}
-	public function message(Player $player, $text = "", $mark = null) {
+	public function message($player, $text = "", $mark = null) {
 		if ($mark == null) $mark = $this->config_Data ["default-prefix"];
 		$player->sendMessage ( TextFormat::DARK_AQUA . $mark . " " . $text );
 	}
-	public function alert(Player $player, $text = "", $mark = null) {
+	public function alert($player, $text = "", $mark = null) {
 		if ($mark == null) $mark = $this->config_Data ["default-prefix"];
 		$player->sendMessage ( TextFormat::RED . $mark . " " . $text );
 	}
