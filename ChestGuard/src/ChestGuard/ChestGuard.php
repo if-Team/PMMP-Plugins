@@ -27,23 +27,16 @@ class ChestGuard extends PluginBase implements Listener {
 	public function onPlace(BlockPlaceEvent $event) {
 		if ($event->getBlock ()->getId () != Block::CHEST) return;
 		$block = $event->getBlock ();
-	
 		
-		if($this->sideCheck($block->x + 1, $block->y, $block->z, $block->getLevel(), $event->getPlayer()->getName()) == Block::CHEST or
-			$this->sideCheck($block->x - 1, $block->y, $block->z, $block->getLevel(), $event->getPlayer()->getName()) == Block::CHEST or
-			$this->sideCheck($block->x, $block->y, $block->z + 1, $block->getLevel(), $event->getPlayer()->getName()) == Block::CHEST or
-			$this->sideCheck($block->x, $block->y, $block->z - 1, $block->getLevel(), $event->getPlayer()->getName()) == Block::CHEST){
-			$event->getPlayer()->sendMessage(TextFormat::RED . "바로 옆에 다른사람의 상자가 있습니다, 설치 불가능 !");
+		if ($this->sideCheck ( $block->x + 1, $block->y, $block->z, $block->getLevel (), $event->getPlayer ()->getName () ) == Block::CHEST or $this->sideCheck ( $block->x - 1, $block->y, $block->z, $block->getLevel (), $event->getPlayer ()->getName () ) == Block::CHEST or $this->sideCheck ( $block->x, $block->y, $block->z + 1, $block->getLevel (), $event->getPlayer ()->getName () ) == Block::CHEST or $this->sideCheck ( $block->x, $block->y, $block->z - 1, $block->getLevel (), $event->getPlayer ()->getName () ) == Block::CHEST) {
+			$event->getPlayer ()->sendMessage ( TextFormat::RED . "바로 옆에 다른사람의 상자가 있습니다, 설치 불가능 !" );
 			return;
 		}
 		$this->configData ["{$block->x}:{$block->y}:{$block->z}"] = $event->getPlayer ()->getName ();
 	}
-	public function sideCheck($x, $y, $z, Level $level, $name){
-		if($level->getBlockIdAt($x, $y, $z) == Block::CHEST){
-			if(isset($this->configData ["{$x}:{$y}:{$z}"]))
-				if($this->configData ["{$x}:{$y}:{$z}"] != $name ()){
-					return true;
-				}
+	public function sideCheck($x, $y, $z, Level $level, $name) {
+		if ($level->getBlockIdAt ( $x, $y, $z ) == Block::CHEST) {
+			if (isset ( $this->configData ["{$x}:{$y}:{$z}"] )) if ($this->configData ["{$x}:{$y}:{$z}"] != $name) return true;
 		}
 		return false;
 	}
