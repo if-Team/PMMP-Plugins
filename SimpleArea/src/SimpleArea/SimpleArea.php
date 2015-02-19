@@ -68,7 +68,7 @@ class SimpleArea extends PluginBase implements Listener {
 		
 		foreach ( $this->getServer ()->getLevels () as $level )
 			$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
-					$this->db [$level->getFolderName ()],
+					$this,
 					"hourTaxCheck" ] ), 20 * 60 * 60 );
 		
 		if ($this->checkEconomyAPI ()) $this->economyAPI = \onebone\economyapi\EconomyAPI::getInstance ();
