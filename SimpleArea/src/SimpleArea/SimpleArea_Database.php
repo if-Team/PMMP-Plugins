@@ -218,7 +218,7 @@ class SimpleArea_Database {
 		if (isset ( $this->yml [$id] )) {
 			$area = $this->getAreaById ( $id );
 			foreach ( $area ["resident"] as $username )
-				foreach ( $this->yml ["user-property"] [$username] as $index => $user_area_id )
+				if (isset ( $this->yml ["user-property"] [$username] )) foreach ( $this->yml ["user-property"] [$username] as $index => $user_area_id )
 					if ($user_area_id == $id) unset ( $this->yml ["user-property"] [$username] [$index] );
 			
 			$area = $this->getAreaById ( $id );
