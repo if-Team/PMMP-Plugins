@@ -178,12 +178,41 @@ class SimpleArea_Database {
 			$this->setHighestBlockAt ( $endX, $endZ - $i, $this->fence_type );
 		}
 	}
+	public function removeFence($startX, $endX, $startZ, $endZ, $length = 3) {
+		$this->removeHighestWall ( $startX, $startZ );
+		for($i = 1; $i <= $length; $i ++) {
+			$this->removeHighestWall ( $startX + $i, $startZ );
+			$this->removeHighestWall ( $startX, $startZ + $i );
+		}
+		
+		$this->removeHighestWall ( $startX, $endZ );
+		for($i = 1; $i <= $length; $i ++) {
+			$this->removeHighestWall ( $startX + $i, $endZ );
+			$this->removeHighestWall ( $startX, $endZ - $i );
+		}
+		
+		$this->removeHighestWall ( $endX, $startZ );
+		for($i = 1; $i <= $length; $i ++) {
+			$this->removeHighestWall ( $endX - $i, $startZ );
+			$this->removeHighestWall ( $endX, $startZ + $i );
+		}
+		
+		$this->removeHighestWall ( $endX, $endZ );
+		for($i = 1; $i <= $length; $i ++) {
+			$this->removeHighestWall ( $endX - $i, $endZ );
+			$this->removeHighestWall ( $endX, $endZ - $i );
+		}
+	}
 	public function setHighestBlockAt($x, $z, $block) {
 		$y = $this->level->getHighestBlockAt ( $x, $z );
 		
 		if (! $this->isSolid ( $this->level->getBlockIdAt ( $x, $y, $z ) )) $y --;
 		
 		$this->level->setBlock ( new Vector3 ( $x, ++ $y, $z ), Block::get ( $block ) );
+	}
+	public function removeHighestWall($x, $z) {
+		$y = $this->level->getHighestBlockAt ( $x, $z );
+		if ($this->level->getBlockIdAt ( $x, $y, $z ) == $this->fence_type) $this->level->setBlock ( new Vector3 ( $x, $y, $z ), Block::get ( Block::AIR ) );
 	}
 	public function removeAreaById($id) {
 		if (isset ( $this->yml [$id] )) {
@@ -192,6 +221,8 @@ class SimpleArea_Database {
 				foreach ( $this->yml ["user-property"] [$username] as $index => $user_area_id )
 					if ($user_area_id == $id) unset ( $this->yml ["user-property"] [$username] [$index] );
 			
+			$area = $this->getAreaById ( $id );
+			$this->removeFence ( $area ["startX"], $area ["endX"], $area ["startZ"], $area ["endZ"], 3 );
 			unset ( $this->yml [$id] );
 			return true;
 		}
