@@ -34,3 +34,15 @@ permissions:
  Dominator.commands.*:
   default: op
   description: Allows commands of Dominator
+ Dominator.commands.ban:
+  default: op
+ Dominator.commands.ipban:
+  default: op
+ Dominator.commands.kick:
+  default: op
+ Dominator.commands.subnetban:
+  default: op
+ Dominator.commands.list:
+  default: op
+ Dominator.commands.pardon:
+  default: op
