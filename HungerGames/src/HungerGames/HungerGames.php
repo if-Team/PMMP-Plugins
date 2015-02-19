@@ -143,7 +143,7 @@ class HungerGames extends PluginBase implements Listener {
 		}
 	}
 	public function checkArrow(ProjectileLaunchEvent $event) {
-		if ($entity instanceof Arrow) $this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
+		if ($event->getEntity () instanceof Arrow) $this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
 				$this,
 				"removeArrow" ], [ 
 				$event ] ), 20 );
