@@ -218,10 +218,11 @@ class SimpleArea extends PluginBase implements Listener {
 		} else {
 			$dif = abs ( ( int ) round ( $player->x - $this->player_pos [$player->getName ()] ["x"] ) );
 			$dif += abs ( ( int ) round ( $player->z - $this->player_pos [$player->getName ()] ["z"] ) );
-			if ($dif > 3) {
+			if ($dif > 5) {
 				$this->player_pos [$player->getName ()] ["x"] = ( int ) round ( $player->x );
 				$this->player_pos [$player->getName ()] ["z"] = ( int ) round ( $player->z );
 				$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
+				if (! isset ( $area ["is-home"] ) or $area ["is-home"] == false) return;
 				if ($area != null) {
 					if (! isset ( $this->checkMove [$event->getPlayer ()->getName ()] )) {
 						$this->checkMove [$event->getPlayer ()->getName ()] = $area ["ID"];
