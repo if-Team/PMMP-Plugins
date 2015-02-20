@@ -771,70 +771,70 @@ class SimpleArea extends PluginBase implements Listener {
 			if ($this->db [$player->getLevel ()->getFolderName ()]->isProtected ( $area ["ID"] )) {
 				$this->db [$player->getLevel ()->getFolderName ()]->setProtected ( $area ["ID"], false );
 				$this->db [$player->getLevel ()->getFolderName ()]->setOption ( $area ["ID"], [ ] );
-				$this->message ( $player, "지형수정 허용 설정이 완료되었습니다 !" );
-				$this->message ( $player, "( / sa forbid 블럭아이디 - 별도로 금지할 블럭설정 가능 )" );
+				$this->message ( $player, $this->get ( "unprotect-complete" ) );
+				$this->message ( $player, $this->get ( "forbidblock-help" ) );
 			} else {
 				$this->db [$player->getLevel ()->getFolderName ()]->setProtected ( $area ["ID"], true );
 				$this->db [$player->getLevel ()->getFolderName ()]->setOption ( $area ["ID"], [ ] );
-				$this->message ( $player, "지형수정 비허용 설정이 완료되었습니다 !" );
-				$this->message ( $player, "( / sa allow 블럭아이디 - 별도로 허용할 블럭설정 가능 )" );
+				$this->message ( $player, $this->get ( "protect-complete" ) );
+				$this->message ( $player, $this->get ( "allowblock-help" ) );
 			}
 		}
 	}
 	public function pvp(Player $player) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
-			$this->alert ( $player, "현재 위치에서 영역을 찾을 수 없습니다." );
-			$this->alert ( $player, "영역 안에서만 PVP 허용/비허용 설정이가능합니다." );
+			$this->alert ( $player, $this->get ( "home-doesent-exist" ) );
+			$this->alert ( $player, $this->get ( "need-home-to-pvp" ) );
 			return false;
 		} else {
 			if ($this->db [$player->getLevel ()->getFolderName ()]->isPvpAllow ( $area ["ID"] )) {
 				$this->db [$player->getLevel ()->getFolderName ()]->setPvpAllow ( $area ["ID"], false );
-				$this->message ( $player, "PVP 비허용 설정이 완료되었습니다!" );
-				$this->message ( $player, "( /sa pvp 다시 입력시 허용설정 가능 )" );
+				$this->message ( $player, $this->get ( "pvp-forbid-complete" ) );
+				$this->message ( $player, $this->get ( "pvp-allow-help" ) );
 			} else {
 				$this->db [$player->getLevel ()->getFolderName ()]->setPvpAllow ( $area ["ID"], true );
-				$this->message ( $player, "PVP 허용 설정이 완료되었습니다!" );
-				$this->message ( $player, "( /sa pvp 다시 입력시 비허용설정 가능 )" );
+				$this->message ( $player, $this->get ( "pvp-allow-complete" ) );
+				$this->message ( $player, $this->get ( "pvp-forbid-help" ) );
 			}
 		}
 	}
 	public function welcome(Player $player, $text) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
-			$this->alert ( $player, "현재 위치에서 집을 찾을 수 없습니다." );
-			$this->alert ( $player, "집 안에서만 환영메시지 설정이가능합니다." );
+			$this->alert ( $player, $this->get ( "home-doesent-exist" ) );
+			$this->alert ( $player, $this->get ( "need-home-to-welcome" ) );
 			return false;
 		} else {
 			if ($area ["resident"] [0] != $player->getName () and ! $player->isOp ()) {
-				$this->alert ( $player, "본인의 땅이 아닙니다. 환영메시지 설정 불가능." );
+				$this->alert ( $player, $this->get ( "here-is-not-your-area" ) );
 				return false;
 			}
 			$this->db [$player->getLevel ()->getFolderName ()]->setWelcome ( $area ["ID"], $text );
-			$this->message ( $player, "환영메시지 설정이 완료되었습니다!" );
+			$this->message ( $player, $this->get ( "set-welcome-complete" ) );
 		}
 	}
 	public function sellHome(Player $player) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
-			$this->alert ( $player, "현재 위치에서 집을 찾을 수 없습니다." );
-			$this->alert ( $player, "집 안에서만 판매 명령어 사용이 가능합니다." );
+			$this->alert ( $player, $this->get ( "home-doesent-exist" ) );
+			$this->alert ( $player, $this->get ( "home-doesent-exist" ) );
 			return false;
 		}
 		if (! $this->db [$player->getLevel ()->getFolderName ()]->isHome ( $area ["ID"] )) {
-			$this->alert ( $player, "이 영역은 집이 아닌 보호구역입니다. 판매 불가능." );
+			$this->alert ( $player, $this->get ( "here-is-protect-area" ) );
 			return false;
 		}
 		if ($area ["resident"] [0] != $player->getName () and ! $player->isOp ()) {
-			$this->alert ( $player, "본인의 땅이 아닙니다. 판매 불가능." );
+			$this->alert ( $player, $this->get ( "here-is-not-your-area" ) );
 			return false;
 		} else {
 			$this->db [$player->getLevel ()->getFolderName ()]->removeUserProperty ( $player->getName (), $area ["ID"] );
 			$this->db [$player->getLevel ()->getFolderName ()]->setResident ( $area ["ID"], [ ] );
-			$this->message ( $player, "해당 집을 판매처리 했습니다 !" );
+			$this->message ( $player, $this->get ( "sellhome-complete" ) );
 			if ($this->checkEconomyAPI ()) {
 				$this->economyAPI->addMoney ( $player, $this->config_Data ["economy-home-reward-price"] );
-				$this->message ( $player, "보상금액 : " . $this->config_Data ["economy-home-reward-price"] . "$ 이 지급되었습니다 !" );
+				$this->message ( $player, $this->get ( "sellhome-price-award-1" ) . $this->config_Data ["economy-home-reward-price"] . $this->get ( "sellhome-price-award-2" ) );
 			}
 		}
 	}
@@ -843,12 +843,12 @@ class SimpleArea extends PluginBase implements Listener {
 			if (isset ( explode ( "*", $home_number )[1] )) {
 				$generic_number = explode ( "*", $home_number )[1];
 				if (! is_numeric ( $generic_number )) {
-					$this->alert ( $player, "집번호는 숫자만 가능합니다 !" );
+					$this->alert ( $player, $this->get ( "home-number-must-numeric" ) );
 					return false;
 				}
 				$area = $this->db [$player->getLevel ()->getFolderName ()]->getAreaById ( $generic_number );
 				if ($area == false) {
-					$this->alert ( $player, "해당 번호의 집은 존재하지않습니다" );
+					$this->alert ( $player, $this->get ( "home-number-doesent-exist" ) );
 					return false;
 				}
 				$x = (($area ["startX"]) + 1);
@@ -857,13 +857,13 @@ class SimpleArea extends PluginBase implements Listener {
 				$player->teleport ( new Vector3 ( $x, $y, $z ) );
 				return true;
 			}
-			$this->alert ( $player, "집번호는 숫자만 가능합니다 !" );
+			$this->alert ( $player, $this->get ( "home-number-must-numeric" ) );
 			return false;
 		}
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getUserHome ( $player->getName (), $home_number );
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getAreaById ( $area );
 		if ($area == false) {
-			$this->alert ( $player, "해당 번호의 집은 존재하지않습니다" );
+			$this->alert ( $player, $this->get ( "home-number-doesent-exist" ) );
 			return false;
 		}
 		$x = (($area ["startX"]) + 1);
@@ -875,54 +875,54 @@ class SimpleArea extends PluginBase implements Listener {
 	public function printHomeList(Player $player) {
 		$homes = $this->db [$player->getLevel ()->getFolderName ()]->getUserHomes ( $player->getName () );
 		if ($homes == false) {
-			$this->alert ( $player, "영역을 소유하고 있지 않습니다 !" );
+			$this->alert ( $player, $this->get ( "you-dont-have-area" ) );
 			return false;
 		}
-		$this->message ( $player, "보유 중인 집리스트를 출력합니다. (집번호로 워프)" );
+		$this->message ( $player, $this->get ( "show-your-area-list" ) );
 		foreach ( $homes as $index => $home ) {
-			$this->message ( $player, $index . "번 " );
+			$this->message ( $player, "[ " . $index . $this->get ( "homelist-name" ) . " ]" );
 		}
 		return true;
 	}
 	public function helpPage(Player $player, $pageNumber = 1) {
-		$this->message ( $player, "* 심플오스 설명을 출력합니다 (" . $pageNumber . "/2) *" );
+		$this->message ( $player, $this->get ( "help-page-intro" ) . " (" . $pageNumber . "/2) *" );
 		if ($pageNumber == 1) {
-			$this->message ( $player, "/sa whiteworld - 화이트월드 설정", "" );
-			$this->message ( $player, "/sa make - 별도 영역보호 설정", "" );
-			$this->message ( $player, "/sa delete - 영역보호-홈 삭제", "" );
-			$this->message ( $player, "/sa protect - 영역 지형보호여부 설정", "" );
-			$this->message ( $player, "/sa allow - 수정 허용시킬 블럭 설정", "" );
-			$this->message ( $player, "/sa forbid - 수정 금지시킬 블럭 설정", "" );
-			$this->message ( $player, "( /sa help 1|2 - 설명문을 출력합니다 ) " );
+			$this->message ( $player, $this->get ( "help-page-white" ), "" );
+			$this->message ( $player, $this->get ( "help-page-make" ), "" );
+			$this->message ( $player, $this->get ( "help-page-delete" ), "" );
+			$this->message ( $player, $this->get ( "help-page-protect" ), "" );
+			$this->message ( $player, $this->get ( "help-page-allow" ), "" );
+			$this->message ( $player, $this->get ( "help-page-forbid" ), "" );
+			$this->message ( $player, $this->get ( "help-page-cutpage1" ), "" );
 		} else {
-			$this->message ( $player, "/sa homelimit - 영역보유한계 설정", "" );
-			$this->message ( $player, "/sa economy - 이코노미 활성화 설정", "" );
-			$this->message ( $player, "/sa homeprice - 집가격 설정", "" );
-			$this->message ( $player, "/sa hourtax - 한 시간 당 토지세 설정", "" );
-			$this->message ( $player, "/sa fence - 자동울타리관련 설정", "" );
-			$this->message ( $player, "/sa message - 금지메시지표시 설정", "" );
-			$this->message ( $player, "( /sa help 1|2 - 설명문을 출력합니다 ) " );
+			$this->message ( $player, $this->get ( "help-page-homelimit" ), "" );
+			$this->message ( $player, $this->get ( "help-page-economy" ), "" );
+			$this->message ( $player, $this->get ( "help-page-homeprice" ), "" );
+			$this->message ( $player, $this->get ( "help-page-hourtax" ), "" );
+			$this->message ( $player, $this->get ( "help-page-fence" ), "" );
+			$this->message ( $player, $this->get ( "help-page-message" ), "" );
+			$this->message ( $player, $this->get ( "help-page-cutpage2" ), "" );
 		}
 	}
 	public function invite(Player $player, $invited) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
-			$this->alert ( $player, "현재 위치에서 집을 찾을 수 없습니다." );
-			$this->alert ( $player, "집 안에서만 공유 명령어 사용이가능합니다." );
+			$this->alert ( $player, $this->get ( "home-doesent-exist" ) );
+			$this->alert ( $player, $this->get ( "need-home-to-invite" ) );
 			return false;
 		}
 		if ($area ["resident"] [0] != $player->getName ()) {
-			$this->alert ( $player, "본인의 땅이 아닙니다. 초대 불가능." );
+			$this->alert ( $player, $this->get ( "here-is-not-your-area" ) );
 			return false;
 		} else {
 			if ($area ["resident"] [0] == $invited) {
-				$this->alert ( $player, "자기자신에게 집을 공유할 수 없습니다 !" );
+				$this->alert ( $player, $this->get ( "cannot-invite-self" ) );
 				return false;
 			}
 			foreach ( $area ["resident"] as $resident ) {
 				if ($invited == $resident) {
-					$this->alert ( $player, $resident . "님은 이미 이집을 공유 받았습니다 !" );
-					$this->message ( $player, "( /inviteclear 로 모든 공유 해제가능 )" );
+					$this->alert ( $player, $resident . $this->get ( "is-already-invited" ) );
+					$this->message ( $player, $this->get ( "inviteclear-help" ) );
 					return false;
 				}
 			}
@@ -932,15 +932,15 @@ class SimpleArea extends PluginBase implements Listener {
 				$this->db [$player->getLevel ()->getFolderName ()]->addResident ( $area ["ID"], $invite->getName () );
 				$this->db [$player->getLevel ()->getFolderName ()]->addUserProperty ( $invite->getName (), $area ["ID"] );
 				
-				$this->message ( $player, "이 집을 " . $invited . "님과 공유했습니다." );
-				$this->message ( $player, "( /inviteclear 로 모든 공유 해제가능 )" );
-				$this->message ( $player, "( /invitelist 로 이 집의 공유 내역 확인가능 )" );
+				$this->message ( $player, $this->get ( "invite-success-1" ) . $invited . $this->get ( "invite-success-2" ) );
+				$this->message ( $player, $this->get ( "inviteclear-help" ) );
+				$this->message ( $player, $this->get ( "invitelist-help" ) );
 				
-				$this->message ( $invite, $area ["ID"] . "번 집을 " . $player->getName () . "님이 공유했습니다 !" );
-				$this->message ( $invite, "( /inviteout 으로 받은 초대를 해제할 수 있습니다 ! )" );
-				$this->message ( $invite, "( /invitelist 로 이 집의 공유 내역 확인가능 )" );
+				$this->message ( $invite, $area ["ID"] . $this->get ( "invited-success-1" ) . $player->getName () . $this->get ( "invited-success-2" ) );
+				$this->message ( $invite, $this->get ( "inviteout-help" ) );
+				$this->message ( $invite, $this->get ( "invitelist-help" ) );
 			} else {
-				$this->alert ( $player, "해당 유저가 오프라인 입니다 ! ( 초대불가능 )" );
+				$this->alert ( $player, $this->get ( "target-is-offline" ) );
 			}
 		}
 		return true;
@@ -948,74 +948,74 @@ class SimpleArea extends PluginBase implements Listener {
 	public function inviteout(Player $player) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
-			$this->alert ( $player, "현재 위치에서 집을 찾을 수 없습니다." );
-			$this->alert ( $player, "집 안에서만 초대해제 명령어 사용이가능합니다." );
+			$this->alert ( $player, $this->get ( "home-doesent-exist" ) );
+			$this->alert ( $player, $this->get ( "need-home-to-inviteout" ) );
 			return false;
 		}
 		if ($area ["resident"] [0] == $player->getName ()) {
-			$this->alert ( $player, "본인의 땅입니다, 초대해제 불가능 !" );
+			$this->alert ( $player, $this->get ( "youre-owner" ) );
 			return false;
 		} else {
 			foreach ( $area ["resident"] as $index => $resident ) {
 				if ($player->getName () == $resident) {
 					$this->db [$player->getLevel ()->getFolderName ()]->removeUserProperty ( $resident, $area ["ID"] );
 					$this->db [$player->getLevel ()->getFolderName ()]->removeResident ( $area ["ID"], $resident );
-					$this->message ( $player, "정상적으로 초대를 해제했습니다 !" );
+					$this->message ( $player, $this->get ( "inviteout-complete" ) );
 					
 					$owner = $this->getServer ()->getPlayerExact ( $area ["resident"] [0] );
-					if ($owner != null) $this->message ( $owner, "{$area ["ID"]}번 집에서 {$player->getName()}님이 공유를 해제했습니다" );
+					if ($owner != null) $this->message ( $owner, $area ["ID"] . $this->get ( "inviteout-success-1" ) . $player->getName () . $this->get ( "inviteout-success-2" ) );
 					return true;
 				}
 			}
-			$this->alert ( $player, "이 집에 초대받은 이력이 없습니다 ! ( 초대해제 불가능 ! )" );
+			$this->alert ( $player, $this->get ( "your-not-invited" ) );
 			return false;
 		}
 	}
 	public function invitelist(Player $player) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
-			$this->alert ( $player, "현재 위치에서 집을 찾을 수 없습니다." );
-			$this->alert ( $player, "집 안에서만 초대리스트 명령어 사용이가능합니다." );
+			$this->alert ( $player, $this->get ( "home-doesent-exist" ) );
+			$this->alert ( $player, $this->get ( "need-home-to-invitelist" ) );
 			return false;
 		} else {
 			$residents = null;
 			foreach ( $area ["resident"] as $index => $resident )
 				$residents .= "[{$index}]" . $resident . " ";
-			$this->message ( $player, "이 집을 공유 받고 있는 유저를 출력합니다 !\n{$residents}" );
+			$this->message ( $player, $this->get ( "print-invite-list" ) . "\n{$residents}" );
 			return true;
 		}
 	}
 	public function printInviteList(CommandSender $player) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
-			$this->alert ( $player, "현재 위치에서 집을 찾을 수 없습니다." );
-			$this->alert ( $player, "집 안에서만 공유확인 명령어 사용이가능합니다." );
+			$this->alert ( $player, $this->get ( "home-doesent-exist" ) );
+			$this->alert ( $player, $this->get ( "need-home-to-invitelist" ) );
 			return false;
 		}
 		if ($area ["resident"] [0] != $player->getName ()) {
-			$this->alert ( $player, "본인의 땅이 아닙니다. 초대확인 불가능." );
+			$this->alert ( $player, $this->get ( "here-is-not-your-area" ) );
 			return false;
 		} else {
-			$this->message ( $player, "이집을 공유 중인 유저를 출력합니다.(" . count () . ")" );
+			$this->message ( $player, $this->get ( "print-invited-list" ) . "(" . count () . ")" );
 		}
 		return true;
 	}
 	public function inviteclear(Player $player) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
-			$this->alert ( $player, "현재 위치에서 집을 찾을 수 없습니다." );
-			$this->alert ( $player, "집 안에서만 공유해제 명령어 사용이가능합니다." );
+			$this->alert ( $player, $this->get ( "home-doesent-exist" ) );
+			$this->alert ( $player, $this->get ( "need-home-to-clear" ) );
 			return false;
 		}
 		if ($area ["resident"] [0] != $player->getName ()) {
-			$this->alert ( $player, "본인의 땅이 아닙니다. 초대삭제 불가능." );
+			$this->alert ( $player, $this->get ( "here-is-not-your-area" ) );
 			return false;
 		} else {
 			foreach ( $area ["resident"] as $res )
 				if ($res != $player->getName ()) $this->db [$player->getLevel ()->getFolderName ()]->removeUserProperty ( $res, $area ["ID"] );
 			$this->db [$player->getLevel ()->getFolderName ()]->setResident ( $area ["ID"], [ 
 					$player->getName () ] );
-			$this->message ( $player, "이 집의 공유허용을 모두 해제했습니다." );
+			$this->message ( $player, $this->get ( "inviteclear-complete" ) );
 		}
 		
 		return true;
@@ -1045,15 +1045,15 @@ class SimpleArea extends PluginBase implements Listener {
 		if ($this->checkEconomyEnable () and $this->checkEconomyAPI ()) {
 			$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 			if ($area == false) {
-				$this->alert ( $player, "영역을 찾을 수 없습니다." );
+				$this->alert ( $player, $this->get ( "home-doesent-exist" ) );
 				return false;
 			}
 			if ($area ["resident"] [0] == $player->getName ()) {
 				if (isset ( $this->rent_Queue [$player->getName ()] )) {
 					$money = $this->economyAPI->myMoney ( $this->rent_Queue [$player->getName ()] ["buyer"] );
 					if ($money < $price) {
-						$this->alert ( $this->rent_Queue [$player->getName ()] ["buyer"], "지불하려는 임대비가 부족합니다 ! 임대신청 실패 !" );
-						$this->alert ( $player, "임대 신청자의 돈이 부족해져서 임대신청이 취소되었습니다" );
+						$this->alert ( $this->rent_Queue [$player->getName ()] ["buyer"], $this->get ( "rent-failed-not-enough-money" ) );
+						$this->alert ( $player, $this->get ( "owner-rent-failed-not-enough-money" ) );
 						unset ( $this->rent_Queue [$player->getName ()] );
 						return false;
 					}
@@ -1067,58 +1067,58 @@ class SimpleArea extends PluginBase implements Listener {
 					
 					$this->db [$player->getLevel ()->getFolderName ()]->addUserProperty ( $buyer->getName (), $id );
 					$this->db [$player->getLevel ()->getFolderName ()]->addResident ( $id, $buyer->getName () );
-					$this->message ( $player, "{$id}번 영역을 정상적으로 임대 했습니다 !" );
-					$this->message ( $buyer, "{$id}번 영역을 정상적으로 임대 받았습니다 !" );
+					$this->message ( $player, $id . $this->get ( "rent-owner-rent-complete" ) );
+					$this->message ( $buyer, $id . $this->get ( "rent-buyer-rent-complete" ) );
 					
 					unset ( $this->rent_Queue [$player->getName ()] );
 					return true;
 				}
 				if ($area ["rent-allow"] == true) {
 					$this->db [$player->getLevel ()->getFolderName ()]->setRentAllow ( $area ["ID"], false );
-					$this->message ( $player, "이 집에 오는 임대요청을 받지 않게 처리했습니다 !" );
-					$this->message ( $player, "( /rent 를 다시한번 쓰면 활성화가능 ! )" );
+					$this->message ( $player, $this->get ( "rent-all-request-denied" ) );
+					$this->message ( $player, $this->get ( "rent-enable-help" ) );
 				} else {
 					$this->db [$player->getLevel ()->getFolderName ()]->setRentAllow ( $area ["ID"], true );
-					$this->message ( $player, "이 집에 오는 임대요청을 받게끔 처리했습니다 !" );
-					$this->message ( $player, "( /rent 를 다시한번 쓰면 비활성화가능 ! )" );
+					$this->message ( $player, $this->get ( "rent-all-request-approved" ) );
+					$this->message ( $player, $this->get ( "rent-disable-help" ) );
 				}
 				return false;
 			}
 			foreach ( $area ["resident"] as $resident ) {
 				if ($resident == $player->getName ()) {
-					$this->alert ( $player, "이미 해당 영역을 공유받고 있습니다 ! 렌트불가능 !" );
+					$this->alert ( $player, $this->get ( "already-rented" ) );
 					return false;
 				}
 			}
 			if ($price == null) {
-				$this->message ( $player, "/rent <지불할 가격> - 한번만 지불" );
-				$this->message ( $player, "요청 시 집주인이 승낙/거절을 하게되며" );
-				$this->message ( $player, "10초안에 승낙할 시 구매가 완료 됩니다." );
+				$this->message ( $player, $this->get ( "commands-rent-help" ) );
+				$this->message ( $player, $this->get ( "rent-help-1" ) );
+				$this->message ( $player, $this->get ( "rent-help-2" ) );
 				return false;
 			} else {
 				if (! is_numeric ( $price )) {
-					$this->alert ( $player, "임대비는 숫자로만 입력 가능합니다 !" );
+					$this->alert ( $player, $this->get ( "rent-price-must-be-number" ) );
 					return false;
 				} else {
 					if ($area ["rent-allow"] == false) {
-						$this->message ( $player, "이 집의 소유자가 해당 집의 임대요청을 받지않습니다 !" );
-						$this->message ( $player, $area ["resident"] [0] . "님에게 임대허용을 요청해보세요 !" );
+						$this->message ( $player, $this->get ( "rent-request-denied" ) );
+						$this->message ( $player, $area ["resident"] [0] . $this->get ( "rent-owner-check" ) );
 						return false;
 					}
 					$money = $this->economyAPI->myMoney ( $player );
 					if ($money < $price) {
-						$this->alert ( $player, "지불하려는 임대비가 부족합니다 ! 임대신청 실패 !" );
+						$this->alert ( $player, $this->get ( "not-enough-rent-price" ) );
 						return false;
 					}
 					$owner = $this->getServer ()->getPlayerExact ( $area ["resident"] [0] );
 					if ($owner == null) {
-						$this->message ( $player, "집주인이 오프라인 상태입니다 ! 구매불가능 !" );
-						$this->message ( $player, $area ["resident"] [0] . "님이 로그인 하면 다시시도해보세요 !" );
+						$this->message ( $player, $this->get ( "owner-is-offline" ) );
+						$this->message ( $player, $area ["resident"] [0] . $this->get ( "please-run-owner-is-online" ) );
 						return false;
 					}
 					if (isset ( $this->rent_Queue [$owner->getName ()] )) {
-						$this->alert ( $player, "이미 집주인이 다른 임대신청을 받고 있습니다 !" );
-						$this->alert ( $player, "10초 후에 다시 임대신청 시도 해주세요!" );
+						$this->alert ( $player, $this->get ( "too-many-request-here" ) );
+						$this->alert ( $player, $this->get ( "please-try-rent-10sec-later" ) );
 						return false;
 					}
 					$this->message ( $owner, $player->getName () . "님이 " . $area ["ID"] . "번 땅을 임대받길 원합니다 !" );
@@ -1156,12 +1156,12 @@ class SimpleArea extends PluginBase implements Listener {
 		}
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == false) {
-			$this->alert ( $player, "영역을 찾을 수 없습니다." );
+			$this->alert ( $player, $this->get ( "home-doesent-exist" ) );
 			return false;
 		}
 		if ($area ["resident"] [0] != $player->getName ()) {
 			if (! $player->isOp ()) {
-				$this->alert ( $player, "영역 소유주가 아닙니다, 삭제불가능." );
+				$this->alert ( $player, $this->get ( "youre-not-owner" ) );
 				return false;
 			} else {
 				$this->delete_Queue [$player->getName ()] = $area;
