@@ -5,23 +5,23 @@ author: hm
 api: [1.4.1]
 
 commands:
- home:
-   permission: simplearea.commands.home
+ area:
+   permission: simplearea.commands.area
    description: 집으로 이동합니다
- sethome:
-   permission: simplearea.commands.sethome
+ setarea:
+   permission: simplearea.commands.setarea
    description: 현재위치를 집으로 설정합니다
- sellhome:
-   permission: simplearea.commands.delhome
+ sellarea:
+   permission: simplearea.commands.delarea
    description: 집을 판매처리합니다
- givehome:
-   permission: simplearea.commands.givehome
+ givearea:
+   permission: simplearea.commands.givearea
    description: 집을 다른유저에게 양도합니다
- buyhome:
-   permission: simplearea.commands.buyhome
+ buyarea:
+   permission: simplearea.commands.buyarea
    description: 집을 구매합니다
- homelist:
-   permission: simplearea.commands.homelist
+ arealist:
+   permission: simplearea.commands.arealist
    description: 구매가능한 집리스트를 출력합니다
  rent:
    permission: simplearea.commands.rent
@@ -49,15 +49,15 @@ commands:
    description: 인생경제맵을 명령어 한번에 생성합니다
 
 permissions:
- simplearea.commands.home:
+ simplearea.commands.area:
   default: true
- simplearea.commands.sethome:
+ simplearea.commands.setarea:
   default: true
- simplearea.commands.buyhome:
+ simplearea.commands.buyarea:
   default: true
- simplearea.commands.givehome:
+ simplearea.commands.givearea:
   default: true
- simplearea.commands.homelist:
+ simplearea.commands.arealist:
   default: true
  simplearea.commands.rent:
   default: true
