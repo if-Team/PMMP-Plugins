@@ -446,12 +446,12 @@ class SimpleArea extends PluginBase implements Listener {
 	}
 	public function setHourTax(Player $player, $tax = null) {
 		if ($tax == null or ! is_numeric ( $tax )) {
-			$this->message ( $player, "/sa hourtax <한 시간 토지세 값>" );
-			$this->message ( $player, "( 토지세 값을 0 으로 하면 비활성화 처리됨 )" );
+			$this->message ( $player, $this->get ( "commands-sa-hourtax-help" ) );
+			$this->message ( $player, $this->get ( "commands-sa-hourtax-help-1" ) );
 			return;
 		}
 		$this->config_Data ["hour-tax-price"] = $tax;
-		$this->message ( $player, "한 시간 토지세를 정상적으로 설정했습니다" );
+		$this->message ( $player, $this->get ( "commands-sa-hourtax-complete" ) );
 	}
 	public function hourTaxCheck() {
 		if ($this->config_Data ["hour-tax-price"] <= 0) return;
@@ -464,10 +464,10 @@ class SimpleArea extends PluginBase implements Listener {
 						if ($money >= $this->config_Data ["hour-tax-price"]) {
 							$this->economyAPI->reduceMoney ( $area ["resident"] [0], $this->config_Data ["hour-tax-price"] );
 							$player = $this->getServer ()->getPlayerExact ( $area ["resident"] [0] );
-							if ($player != null) $this->message ( $player, "한시간 토지세 " . $this->config_Data ["hour-tax-price"] . "달러가 납부되었습니다" );
+							if ($player != null) $this->message ( $player, $this->get ( "hourtax-is-paid-1" ) . $this->config_Data ["hour-tax-price"] . $this->get ( "hourtax-is-paid-2" ) );
 						} else {
 							$player = $this->getServer ()->getPlayerExact ( $area ["resident"] [0] );
-							if ($player != null) $this->message ( $player, "토지세를 납부할 돈이 없어" . $area ["ID"] . "번 영역이 차압됩니다" );
+							if ($player != null) $this->message ( $player, $this->get ( "sequestrated-1" ) . $area ["ID"] . $this->get ( "sequestrated-2" ) );
 							$this->db [$level->getFolderName ()]->setResident ( $area ["ID"], [ ] );
 						}
 					}
@@ -538,26 +538,26 @@ class SimpleArea extends PluginBase implements Listener {
 		}
 		$target = $this->getServer ()->getPlayerExact ( $target );
 		if ($target == null) {
-			$this->message ( $player, $this->get ( "givehome-target-is-offline" ) );
-			$this->message ( $player, $this->get ( "givehome-need-to-online-people" ) );
+			$this->message ( $player, $this->get ( "target-is-offline" ) );
+			$this->message ( $player, $this->get ( "need-to-online-people" ) );
 			return false;
 		}
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
-			$this->alert ( $player, $this->get ( "givehome-home-doesent-exist" ) );
-			$this->alert ( $player, $this->get ( "givehome-need-home" ) );
+			$this->alert ( $player, $this->get ( "home-doesent-exist" ) );
+			$this->alert ( $player, $this->get ( "need-home" ) );
 			return false;
 		}
 		if (! $this->db [$player->getLevel ()->getFolderName ()]->isHome ( $area ["ID"] )) {
-			$this->alert ( $player, $this->get ( "givehome-here-is-protect-area" ) );
+			$this->alert ( $player, $this->get ( "here-is-protect-area" ) );
 			return false;
 		}
 		if ($area ["resident"] [0] != $player->getName ()) {
-			$this->alert ( $player, $this->get ( "givehome-youre-not-owner" ) );
+			$this->alert ( $player, $this->get ( "youre-not-owner" ) );
 			return false;
 		} else {
 			if ($area ["resident"] [0] == $target->getName ()) {
-				$this->alert ( $player, $this->get ( "givehome-already-youre-home" ) );
+				$this->alert ( $player, $this->get ( "already-youre-home" ) );
 				return false;
 			}
 			$this->db [$player->getLevel ()->getFolderName ()]->removeUserProperty ( $player->getName (), $area ["ID"] );
@@ -619,7 +619,7 @@ class SimpleArea extends PluginBase implements Listener {
 		}
 	}
 	public function homelist(Player $player, $index = 1) {
-		$this->message ( $player, "/home *집번호 로 해당 집으로 워프가능" );
+		$this->message ( $player, $this->get ( "commands-home-generic-help" ) );
 		
 		$once_print = 20;
 		$target = $this->db [$player->getLevel ()->getFolderName ()]->getHomeList ();
@@ -637,7 +637,7 @@ class SimpleArea extends PluginBase implements Listener {
 				$now_index = $index * $once_print - $for_i;
 				if (! isset ( $index_key [$now_index] )) break;
 				$now_key = $index_key [$now_index];
-				$message .= TextFormat::DARK_AQUA . "[" . $now_key . "번 영역] ";
+				$message .= TextFormat::DARK_AQUA . "[" . $now_key . $this->get ( "homelist-name" ) . "] ";
 			}
 			$player->sendMessage ( $message );
 		} else {
@@ -658,34 +658,34 @@ class SimpleArea extends PluginBase implements Listener {
 	public function buyHome(Player $player) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
-			$this->alert ( $player, "현재 위치에서 영역을 찾을 수 없습니다." );
-			$this->alert ( $player, "영역 안에서만 집구매 명령 사용이 가능 !" );
+			$this->alert ( $player, $this->get ( "home-doesent-exist" ) );
+			$this->alert ( $player, $this->get ( "need-home" ) );
 			return false;
 		} else {
 			if ($area ["resident"] [0] == null) {
 				if ($this->checkEconomyAPI ()) {
 					$money = $this->economyAPI->myMoney ( $player );
 					if ($money < 5000) {
-						$this->message ( $player, "집을 구매하는데 실패했습니다 !" );
-						$this->message ( $player, "( 집 구매가격 " . ($this->config_Data ["economy-home-price"] - $money) . "$ 가 더 필요합니다 !" );
+						$this->message ( $player, $this->get ( "buyhome-failed" ) );
+						$this->message ( $player, $this->get ( "not-enough-money-to-buyhome-1" ) . ($this->config_Data ["economy-home-price"] - $money) . $this->get ( "not-enough-money-to-buyhome-2" ) );
 						return false;
 					}
 				}
 				$this->db [$player->getLevel ()->getFolderName ()]->setResident ( $area ["ID"], [ 
 						$player->getName () ] );
 				$this->db [$player->getLevel ()->getFolderName ()]->addUserProperty ( $player->getName (), $area ["ID"] );
-				$this->message ( $player, "성공적으로 집을 구매했습니다 !" );
+				$this->message ( $player, $this->get ( "buyhome-success" ) );
 				if ($this->checkEconomyAPI ()) {
 					$this->economyAPI->reduceMoney ( $player, $this->config_Data ["economy-home-price"] );
-					$this->message ( $player, "( 집 구매가격 " . $this->config_Data ["economy-home-price"] . "$ 가 지불 되었습니다 ! )" );
+					$this->message ( $player, $this->get ( "buyhome-paid-1" ) . $this->config_Data ["economy-home-price"] . $this->get ( "buyhome-paid-2" ) );
 					
 					if ($this->config_Data ["hour-tax-price"] > 0) {
 						$this->economyAPI->addMoney ( $player, $this->config_Data ["hour-tax-price"] );
-						$this->message ( $player, "( 집 1시간 토지세 값을 지급 받았습니다 ! )" );
+						$this->message ( $player, $this->get ( "one-hourtax-received" ) );
 					}
 				}
 			} else {
-				$this->alert ( $player, "해당 집엔 이미 소유자가 있습니다. 구매불가 !" );
+				$this->alert ( $player, $this->get ( "already-someone-to-buyhome" ) );
 				return false;
 			}
 		}
@@ -694,22 +694,22 @@ class SimpleArea extends PluginBase implements Listener {
 	public function allowBlock(Player $player, $block) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
-			$this->alert ( $player, "현재 위치에서 영역을 찾을 수 없습니다." );
-			$this->alert ( $player, "영역 안에서만 수정허용 블럭 설정이 가능 !" );
+			$this->alert ( $player, $this->get ( "home-doesent-exist" ) );
+			$this->alert ( $player, $this->get ( "need-home-to-allowblock" ) );
 			return false;
 		} else {
 			if ($block == "clear") {
 				$this->db [$player->getLevel ()->getFolderName ()]->setOption ( $area ["ID"], [ ] );
-				$this->message ( $player, "수정허용 블럭 설정을 초기화했습니다 !" );
+				$this->message ( $player, $this->get ( "allowblock-list-cleared" ) );
 				return true;
 			}
 			if (isset ( explode ( ":", $block )[1] )) {
 				if (! is_numeric ( explode ( ":", $block )[0] )) {
-					$this->alert ( $player, "블럭 아이디 값은 숫자만 가능합니다 !" );
+					$this->alert ( $player, $this->get ( "block-id-must-numeric" ) );
 					return;
 				}
 				if (! is_numeric ( explode ( ":", $block )[1] )) {
-					$this->alert ( $player, "블럭 데미지 값은 숫자만 가능합니다 !" );
+					$this->alert ( $player, $this->get ( "block-damage-must-numeric" ) );
 					return;
 				}
 			} else {
@@ -718,33 +718,33 @@ class SimpleArea extends PluginBase implements Listener {
 			
 			$check = $this->db [$player->getLevel ()->getFolderName ()]->addOption ( $area ["ID"], $block );
 			if ($check) {
-				$this->message ( $player, "수정허용 블럭 설정을 추가했습니다 !" );
-				$this->message ( $player, "( /sa allow clear 명령어로 설정 초기화가 가능합니다 !" );
+				$this->message ( $player, $this->get ( "allowblock-list-added" ) );
+				$this->message ( $player, $this->get ( "allowblock-list-clear-help" ) );
 			} else {
-				$this->message ( $player, "해당 블럭은 이미 수정허용 되어있습니다 !" );
-				$this->message ( $player, "( /sa allow clear 명령어로 설정 초기화가 가능합니다 !" );
+				$this->message ( $player, $this->get ( "already-allowblocked" ) );
+				$this->message ( $player, $this->get ( "allowblock-list-clear-help" ) );
 			}
 		}
 	}
 	public function forbidBlock(Player $player, $block) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
-			$this->alert ( $player, "현재 위치에서 영역을 찾을 수 없습니다." );
-			$this->alert ( $player, "영역 안에서만 수정금지 블럭 설정이 가능 !" );
+			$this->alert ( $player, $this->get ( "home-doesent-exist" ) );
+			$this->alert ( $player, $this->get ( "need-home-to-forbidblock" ) );
 			return false;
 		} else {
 			if ($block == "clear") {
 				$this->db [$player->getLevel ()->getFolderName ()]->setOption ( $area ["ID"], [ ] );
-				$this->message ( $player, "수정금지 블럭 설정을 초기화했습니다 !" );
+				$this->message ( $player, $this->get ( "forbidblock-list-cleared" ) );
 				return true;
 			}
 			if (isset ( explode ( ":", $block )[1] )) {
 				if (! is_numeric ( explode ( ":", $block )[0] )) {
-					$this->alert ( $player, "블럭 아이디 값은 숫자만 가능합니다 !" );
+					$this->alert ( $player, $this->get ( "block-id-must-numeric" ) );
 					return;
 				}
 				if (! is_numeric ( explode ( ":", $block )[1] )) {
-					$this->alert ( $player, "블럭 데미지 값은 숫자만 가능합니다 !" );
+					$this->alert ( $player, $this->get ( "block-damage-must-numeric" ) );
 					return;
 				}
 			} else {
@@ -753,19 +753,19 @@ class SimpleArea extends PluginBase implements Listener {
 			
 			$check = $this->db [$player->getLevel ()->getFolderName ()]->addOption ( $area ["ID"], $block );
 			if ($check) {
-				$this->message ( $player, "수정금지 블럭 설정을 추가했습니다 !" );
-				$this->message ( $player, "( /sa forbid clear 명령어로 설정 초기화가 가능합니다 !" );
+				$this->message ( $player, $this->get ( "forbidblock-list-added" ) );
+				$this->message ( $player, $this->get ( "forbidblock-list-clear-help" ) );
 			} else {
-				$this->message ( $player, "해당 블럭은 이미 수정금지 되어있습니다 !" );
-				$this->message ( $player, "( /sa forbid clear 명령어로 설정 초기화가 가능합니다 !" );
+				$this->message ( $player, $this->get ( "already-forbidblocked" ) );
+				$this->message ( $player, $this->get ( "forbidblock-list-clear-help" ) );
 			}
 		}
 	}
 	public function protect(Player $player) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
-			$this->alert ( $player, "현재 위치에서 영역을 찾을 수 없습니다." );
-			$this->alert ( $player, "영역 안에서만 지형수정 허용유무 설정이 가능 !" );
+			$this->alert ( $player, $this->get ( "home-doesent-exist" ) );
+			$this->alert ( $player, $this->get ( "need-home-to-protect" ) );
 			return false;
 		} else {
 			if ($this->db [$player->getLevel ()->getFolderName ()]->isProtected ( $area ["ID"] )) {
