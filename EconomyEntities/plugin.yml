@@ -1,7 +1,7 @@
 name: EconomyEntities
 main: hm\EconomyEntities\EconomyEntities
 author: hm
-version : 3.6-alpha
+version : 3.7-alpha
 api: [1.4.1]
 
 permission:
