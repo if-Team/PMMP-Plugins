@@ -1,0 +1,18 @@
+# IF YOU NEED A SOME OTHER LANGUAGE SETTINGS #
+# YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
+
+#PLEASE SET HERE TO YOUR LANGUAGE PREFIX
+default-language: ko
+
+
+#(EN) ENGLISH
+en-default-prefix: "[purge]"
+en-purge-is-started: "CAUTION! now is the night all PVP is allowed"
+en-purge-is-stopped: "CAUTION! now is the day all PVP is NOT allowed"
+en-cant-pvp-in-night: "PVP is not allow! (only at night)"
+
+#(KO) KOREAN
+ko-default-prefix: "[ 퍼지 ]"
+ko-purge-is-started: "주의 ! 밤이 되었습니다. 모든 PVP가 허용됩니다"
+ko-purge-is-stopped: "주의 ! 낮이 되었습니다. 모든 PVP가 비허용됩니다"
+ko-cant-pvp-in-night: "낮에는 PVP 를 할 수 없습니다 ! 밤에만 가능 !"
