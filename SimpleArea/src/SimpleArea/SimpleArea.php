@@ -423,7 +423,7 @@ class SimpleArea extends PluginBase implements Listener {
 					case $this->get ( "commands-sa-message" ) :
 						$this->IhatePreventMessage ( $player );
 						break;
-					case $this->get ( "commands-setarea" ) :
+					case $this->get ( "commands-sa-setarea" ) :
 						$this->IhateSetMake ( $player );
 						break;
 					case $this->get ( "commands-sa-help" ) :

@@ -6,6 +6,7 @@ default-language: ko
 
 #(EN) ENGLISH
 
+
 #(KO) KOREAN
 ko-default-prefix: "[ 서버 ]"
 ko-welcome-prefix: "[ 환영메시지 ]"
@@ -45,6 +46,7 @@ ko-commands-sa-economy: "economy"
 ko-commands-sa-areaprice: "areaprice"
 ko-commands-sa-areaprice-help: "/sa areaprice <가격> - 기본적으로 받을 영역 가격을 설정 !"
 ko-commands-sa-message: "message"
+ko-commands-sa-setarea: "setarea"
 ko-commands-sa-help: "help"
 ko-commands-sa-yap: "yap"
 ko-commands-sa-fence: "fence"
@@ -247,6 +249,8 @@ ko-commands-welcome-desc: "집 환영메시지를 설정합니다"
 ko-commands-simplearea-desc: "심플에리어를 관리하는 명령어를 사용합니다"
 ko-commands-yap-desc: "인생경제맵을 명령어 한번에 생성합니다"
 
+ko-setarea-disabled: "자동영역 설정을 비활성화 했습니다 ( 다시 입력시 활성화 ! )"
+ko-setarea-enabled: "자동영역 설정을 활성화 했습니다 ( 다시 입력시 비활성화 ! )"
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/tree/master/SimpleArea/resources/message.yml
