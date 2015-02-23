@@ -92,7 +92,7 @@ class SimpleArea_Database {
 			if (! $this->checkUserProperty ( $username, $id )) $this->yml ["user-property"] [$username] [] = $id;
 		}
 	}
-	public function addArea($resident, $startX, $endX, $startZ, $endZ, $ishome = false, $protect = true, $option = [], $rent_allow = true) {
+	public function addArea($resident, $startX, $endX, $startZ, $endZ, $ishome = false, $protect = true, $allowOption = [], $forbidOption = [], $rent_allow = true) {
 		if ($this->checkOverlap ( $startX, $endX, $startZ, $endZ ) != false) return false;
 		
 		if ($ishome) {
@@ -114,7 +114,8 @@ class SimpleArea_Database {
 				"startZ" => $startZ,
 				"endZ" => $endZ,
 				"protect" => $protect,
-				"option" => $option,
+				"allow-option" => $allowOption,
+				"forbid-option" => $forbidOption,
 				"rent-allow" => $rent_allow,
 				"welcome" => "",
 				"pvp-allow" => true ];
@@ -222,9 +223,22 @@ class SimpleArea_Database {
 	public function isRentAllow($id) {
 		return ( bool ) $this->yml [$id] ["rent-allow"];
 	}
-	public function isOption($id, $option) {
+	public function isAllowOption($id, $option) {
 		$io = explode ( ":", $option );
-		foreach ( $this->yml [$id] ["option"] as $getoption ) {
+		if (! isset ( $this->yml [$id] ["allow-option"] )) $this->yml [$id] ["allow-option"] = [ ];
+		foreach ( $this->yml [$id] ["allow-option"] as $getoption ) {
+			$go = explode ( ":", $getoption );
+			if ($io [0] == $go [0]) {
+				if (! isset ( $io [1] ) or ! isset ( $go [1] )) return true;
+				if ($io [1] == $go [1]) return true;
+			}
+		}
+		return false;
+	}
+	public function isForbidOption($id, $option) {
+		$io = explode ( ":", $option );
+		if (! isset ( $this->yml [$id] ["forbid-option"] )) $this->yml [$id] ["forbid-option"] = [ ];
+		foreach ( $this->yml [$id] ["forbid-option"] as $getoption ) {
 			$go = explode ( ":", $getoption );
 			if ($io [0] == $go [0]) {
 				if (! isset ( $io [1] ) or ! isset ( $go [1] )) return true;
@@ -253,8 +267,11 @@ class SimpleArea_Database {
 	public function setProtected($id, $bool) {
 		$this->yml [$id] ["protect"] = ( bool ) $bool;
 	}
-	public function setOption($id, Array $option) {
-		$this->yml [$id] ["option"] = $option;
+	public function setAllowOption($id, Array $option) {
+		$this->yml [$id] ["allow-option"] = $option;
+	}
+	public function setForbidOption($id, Array $option) {
+		$this->yml [$id] ["forbid-option"] = $option;
 	}
 	public function setRentAllow($id, $bool) {
 		$this->yml [$id] ["rent-allow"] = $bool;
@@ -265,16 +282,30 @@ class SimpleArea_Database {
 	public function setPvpAllow($id, $bool) {
 		$this->yml [$id] ["pvp-allow"] = $bool;
 	}
-	public function addOption($id, $option) {
+	public function addAllowOption($id, $option) {
 		$io = explode ( ":", $option );
-		foreach ( $this->yml [$id] ["option"] as $getoption ) {
+		if (! isset ( $this->yml [$id] ["allow-option"] )) $this->yml [$id] ["allow-option"] = [ ];
+		foreach ( $this->yml [$id] ["allow-option"] as $getoption ) {
 			$go = explode ( ":", $getoption );
 			if ($io [0] == $go [0]) {
 				if (! isset ( $io [1] )) return false;
 				if ($io [1] == $go [1]) return false;
 			}
 		}
-		$this->yml [$id] ["option"] [] = $option;
+		$this->yml [$id] ["allow-option"] [] = $option;
+		return true;
+	}
+	public function addForbidOption($id, $option) {
+		$io = explode ( ":", $option );
+		if (! isset ( $this->yml [$id] ["forbid-option"] )) $this->yml [$id] ["forbid-option"] = [ ];
+		foreach ( $this->yml [$id] ["forbid-option"] as $getoption ) {
+			$go = explode ( ":", $getoption );
+			if ($io [0] == $go [0]) {
+				if (! isset ( $io [1] )) return false;
+				if ($io [1] == $go [1]) return false;
+			}
+		}
+		$this->yml [$id] ["forbid-option"] [] = $option;
 		return true;
 	}
 	public function addResident($id, $resident) {

@@ -136,12 +136,12 @@ class SimpleArea extends PluginBase implements Listener {
 		if ($area != false) {
 			if ($this->db [$block->getLevel ()->getFolderName ()]->checkResident ( $area ["ID"], $player->getName () )) return;
 			if ($this->db [$block->getLevel ()->getFolderName ()]->isProtected ( $area ["ID"] )) {
-				if ($this->db [$block->getLevel ()->getFolderName ()]->isOption ( $area ["ID"], $block->getID () . ":" . $block->getDamage () )) return;
+				if ($this->db [$block->getLevel ()->getFolderName ()]->isAllowOption ( $area ["ID"], $block->getID () . ":" . $block->getDamage () )) return;
 				if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "block-change-denied" ) );
 				$event->setCancelled ();
 				return;
 			} else {
-				if ($this->db [$block->getLevel ()->getFolderName ()]->isOption ( $area ["ID"], $block->getID () . ":" . $block->getDamage () )) {
+				if ($this->db [$block->getLevel ()->getFolderName ()]->isForbidOption ( $area ["ID"], $block->getID () . ":" . $block->getDamage () )) {
 					if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "block-active-denied" ) );
 					$event->setCancelled ();
 				}
@@ -165,12 +165,12 @@ class SimpleArea extends PluginBase implements Listener {
 		if ($area != false) {
 			if (isset ( $area ["resident"] [0] )) if ($this->db [$block->getLevel ()->getFolderName ()]->checkResident ( $area ["ID"], $player->getName () )) return;
 			if ($this->db [$block->getLevel ()->getFolderName ()]->isProtected ( $area ["ID"] ) == true) {
-				if ($this->db [$block->getLevel ()->getFolderName ()]->isOption ( $area ["ID"], $block->getID () . ":" . $block->getDamage () )) return;
+				if ($this->db [$block->getLevel ()->getFolderName ()]->isAllowOption ( $area ["ID"], $block->getID () . ":" . $block->getDamage () )) return;
 				if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "block-change-denied" ) );
 				$event->setCancelled ();
 				return;
 			} else {
-				if ($this->db [$block->getLevel ()->getFolderName ()]->isOption ( $area ["ID"], $block->getID () . ":" . $block->getDamage () )) {
+				if ($this->db [$block->getLevel ()->getFolderName ()]->isForbidOption ( $area ["ID"], $block->getID () . ":" . $block->getDamage () )) {
 					if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "block-active-denied" ) );
 					$event->setCancelled ();
 				}
@@ -705,7 +705,7 @@ class SimpleArea extends PluginBase implements Listener {
 			return false;
 		} else {
 			if ($block == "clear") {
-				$this->db [$player->getLevel ()->getFolderName ()]->setOption ( $area ["ID"], [ ] );
+				$this->db [$player->getLevel ()->getFolderName ()]->setAllowOption ( $area ["ID"], [ ] );
 				$this->message ( $player, $this->get ( "allowblock-list-cleared" ) );
 				return true;
 			}
@@ -721,8 +721,7 @@ class SimpleArea extends PluginBase implements Listener {
 			} else {
 				$block = $block . ":0";
 			}
-			
-			$check = $this->db [$player->getLevel ()->getFolderName ()]->addOption ( $area ["ID"], $block );
+			$check = $this->db [$player->getLevel ()->getFolderName ()]->addAllowOption ( $area ["ID"], $block );
 			if ($check) {
 				$this->message ( $player, $this->get ( "allowblock-list-added" ) );
 				$this->message ( $player, $this->get ( "allowblock-list-clear-help" ) );
@@ -740,7 +739,7 @@ class SimpleArea extends PluginBase implements Listener {
 			return false;
 		} else {
 			if ($block == "clear") {
-				$this->db [$player->getLevel ()->getFolderName ()]->setOption ( $area ["ID"], [ ] );
+				$this->db [$player->getLevel ()->getFolderName ()]->setForbidOption ( $area ["ID"], [ ] );
 				$this->message ( $player, $this->get ( "forbidblock-list-cleared" ) );
 				return true;
 			}
@@ -756,8 +755,7 @@ class SimpleArea extends PluginBase implements Listener {
 			} else {
 				$block = $block . ":0";
 			}
-			
-			$check = $this->db [$player->getLevel ()->getFolderName ()]->addOption ( $area ["ID"], $block );
+			$check = $this->db [$player->getLevel ()->getFolderName ()]->addForbidOption ( $area ["ID"], $block );
 			if ($check) {
 				$this->message ( $player, $this->get ( "forbidblock-list-added" ) );
 				$this->message ( $player, $this->get ( "forbidblock-list-clear-help" ) );
@@ -776,11 +774,9 @@ class SimpleArea extends PluginBase implements Listener {
 		} else {
 			if ($this->db [$player->getLevel ()->getFolderName ()]->isProtected ( $area ["ID"] )) {
 				$this->db [$player->getLevel ()->getFolderName ()]->setProtected ( $area ["ID"], false );
-				$this->db [$player->getLevel ()->getFolderName ()]->setOption ( $area ["ID"], [ ] );
 				$this->message ( $player, $this->get ( "unprotect-complete" ) );
 				$this->message ( $player, $this->get ( "forbidblock-help" ) );
 			} else {
-				$this->db [$player->getLevel ()->getFolderName ()]->setProtected ( $area ["ID"], true );
 				$this->db [$player->getLevel ()->getFolderName ()]->setOption ( $area ["ID"], [ ] );
 				$this->message ( $player, $this->get ( "protect-complete" ) );
 				$this->message ( $player, $this->get ( "allowblock-help" ) );
