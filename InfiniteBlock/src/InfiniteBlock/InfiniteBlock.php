@@ -30,7 +30,7 @@ class InfiniteBlock extends PluginBase implements Listener {
 		$this->config_Data = $this->config->getAll ();
 		
 		$this->mineSort ();
-		$this->index = count($this->config_Data);
+		$this->index = count ( $this->config_Data );
 		
 		$this->registerCommand ( $this->get ( "infinite" ), "InfiniteBlock", $this->get ( "infinite-desc" ), $this->get ( "infinite-help" ), $this->messages ["en-infinite"] );
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
@@ -65,12 +65,12 @@ class InfiniteBlock extends PluginBase implements Listener {
 		if (isset ( $this->make_Queue [$event->getPlayer ()->getName ()] )) {
 			if ($this->make_Queue [$event->getPlayer ()->getName ()] ["pos1"] == false) {
 				$event->setCancelled ();
-				$this->make_Queue [$event->getPlayer ()->getName ()] ["pos1"] = $event->getBlock ()->getSide ( 0 );
+				$this->make_Queue [$event->getPlayer ()->getName ()] ["pos1"] = $event->getBlock ();
 				$this->message ( $event->getPlayer (), $this->get ( "complete-pos1" ) );
 				return;
 			} else if ($this->make_Queue [$event->getPlayer ()->getName ()] ["pos2"] == false) {
 				$event->setCancelled ();
-				$this->make_Queue [$event->getPlayer ()->getName ()] ["pos2"] = $event->getBlock ()->getSide ( 0 );
+				$this->make_Queue [$event->getPlayer ()->getName ()] ["pos2"] = $event->getBlock ();
 				$this->message ( $event->getPlayer (), $this->get ( "complete-pos2" ) );
 				$this->message ( $event->getPlayer (), $this->get ( "complete-pos-msg1" ) );
 				$this->message ( $event->getPlayer (), $this->get ( "complete-pos-msg2" ) );
@@ -99,7 +99,7 @@ class InfiniteBlock extends PluginBase implements Listener {
 			
 			$pos = $this->areaPosCast ( $this->make_Queue [$player->getName ()] ["pos1"], $this->make_Queue [$player->getName ()] ["pos2"] );
 			
-			$checkOverapArea = $this->checkOverlap ( $pos [0], $pos [1], $pos [2], $pos [3] );
+			$checkOverapArea = $this->checkOverlap ( $pos [0], $pos [1], $pos [2], $pos [3], $pos [4], $pos [5]);
 			
 			if ($checkOverapArea != false) {
 				if (! isset ( $this->make_Queue [$player->getName ()] ["overrap"] )) {
@@ -110,7 +110,7 @@ class InfiniteBlock extends PluginBase implements Listener {
 					return;
 				} else {
 					while ( 1 ) {
-						$checkOverapArea = $this->chechhkOverlap ( $pos [0], $pos [1], $pos [2], $pos [3] );
+						$checkOverapArea = $this->checkOverlap ( $pos [0], $pos [1], $pos [2], $pos [3], $pos [4], $pos [5]);
 						if ($checkOverapArea == false) break;
 						
 						$this->removeAreaById ( $checkOverapArea ["ID"] );
@@ -119,7 +119,7 @@ class InfiniteBlock extends PluginBase implements Listener {
 				}
 			}
 			
-			$check = $this->addArea ( $pos [0], $pos [1], $pos [2], $pos [3], $ismine );
+			$check = $this->addArea ( $pos [0], $pos [1], $pos [2], $pos [3], $pos [4], $pos [5], $ismine );
 			
 			unset ( $this->make_Queue [$player->getName ()] );
 			if ($check === false) {
@@ -132,19 +132,21 @@ class InfiniteBlock extends PluginBase implements Listener {
 		}
 	}
 	public function onBreak(BlockBreakEvent $event) {
-		$area = $this->getArea ( $event->getBlock ()->x, $event->getBlock ()->z );
+		$area = $this->getArea ( $event->getBlock ()->x, $event->getBlock ()->y, $event->getBlock ()->z );
 		if ($area != false) {
 			if ($area ["is-mine"] == true) {
 				$event->setCancelled ();
 				$drops = $event->getBlock ()->getDrops ( $event->getItem () );
 				foreach ( $drops as $drop )
-					if ($drop [2] > 0) $event->getPlayer ()->getInventory ()->addItem ( Item::get ( ...$drop ) );
+					//if ($drop [2] > 0) $event->getPlayer ()->getInventory ()->addItem ( Item::get (...$drop));
+					if ($drop [2] > 0) $event->getPlayer ()->getInventory ()->addItem ( Item::get (...$drop));
 				$event->getBlock ()->getLevel ()->setBlock ( $event->getBlock (), Block::get ( $this->randomMine () ) );
 			} else {
 				$event->setCancelled ();
 				$drops = $event->getBlock ()->getDrops ( $event->getItem () );
 				foreach ( $drops as $drop )
-					if ($drop [2] > 0) $event->getPlayer ()->getInventory ()->addItem ( Item::get ( ...$drop ) );
+					//if ($drop [2] > 0) $event->getPlayer ()->getInventory ()->addItem ( Item::get (...$drop));
+					if ($drop [2] > 0) $event->getPlayer ()->getInventory ()->addItem ( Item::get (...$drop));
 			}
 		}
 	}
@@ -261,13 +263,20 @@ class InfiniteBlock extends PluginBase implements Listener {
 	}
 	public function areaPosCast(Position $pos1, Position $pos2) {
 		$startX = ( int ) $pos1->getX ();
+		$startY = ( int ) $pos1->getY ();
 		$startZ = ( int ) $pos1->getZ ();
 		$endX = ( int ) $pos2->getX ();
+		$endY = ( int ) $pos2->getY ();
 		$endZ = ( int ) $pos2->getZ ();
 		if ($startX > $endX) {
 			$backup = $startX;
 			$startX = $endX;
 			$endX = $backup;
+		}
+		if ($startY > $endY) {
+			$backup = $startY;
+			$startY = $endY;
+			$endY = $backup;
 		}
 		if ($startZ > $endZ) {
 			$backup = $startZ;
@@ -277,23 +286,27 @@ class InfiniteBlock extends PluginBase implements Listener {
 		return [ 
 				$startX,
 				$endX,
+				$startY,
+				$endY,
 				$startZ,
 				$endZ ];
 	}
-	public function checkOverlap($startX, $endX, $startZ, $endZ) {
+	public function checkOverlap($startX, $endX, $startY, $endY, $startZ, $endZ) {
 		foreach ( $this->config_Data as $area ) {
-			if (isset ( $area ["startX"] )) if ((($area ["startX"] < $startX and $area ["endX"] > $startX) or ($area ["startX"] < $endX and $area ["endX"] > $endX)) and (($area ["startZ"] < $startZ and $area ["endZ"] > $startZ) or ($area ["endZ"] < $endZ and $area ["endZ"] > $endZ))) return $area;
+			if (isset ( $area ["startX"] )) if ((($area ["startX"] < $startX and $area ["endX"] > $startX) or ($area ["startX"] < $endX and $area ["endX"] > $endX)) and (($area ["startY"] < $startY and $area ["endY"] > $startY) or ($area ["startY"] < $endY and $area ["endY"] > $endY)) and (($area ["startZ"] < $startZ and $area ["endZ"] > $startZ) or ($area ["endZ"] < $endZ and $area ["endZ"] > $endZ))) return $area;
 		}
 		return false;
 	}
-	public function addArea($startX, $endX, $startZ, $endZ, $ismine = false) {
-		if ($this->checkOverlap ( $startX, $endX, $startZ, $endZ ) != false) return false;
+	public function addArea($startX, $endX, $startY, $endY, $startZ, $endZ, $ismine = false) {
+		if ($this->checkOverlap ( $startX, $endX, $startY, $endY, $startZ, $endZ ) != false) return false;
 		
 		$this->config_Data [$this->index] = [ 
 				"ID" => $this->index,
 				"is-mine" => $ismine,
 				"startX" => $startX,
 				"endX" => $endX,
+				"startY" => $startY,
+				"endY" => $endY,
 				"startZ" => $startZ,
 				"endZ" => $endZ ];
 		return $this->index ++;
@@ -304,7 +317,7 @@ class InfiniteBlock extends PluginBase implements Listener {
 			$this->message ( $player, $this->get ( "area-delete-complete" ) );
 			return true;
 		}
-		$area = $this->getArea ( $player->x, $player->z );
+		$area = $this->getArea ( $player->x, $player->y, $player->z );
 		if ($area == false) {
 			$this->alert ( $player, $this->get ( "can-not-find-area" ) );
 			return false;
@@ -316,9 +329,9 @@ class InfiniteBlock extends PluginBase implements Listener {
 	public function removeAreaById($id) {
 		if (isset ( $this->config_Data [$id] )) unset ( $this->config_Data [$id] );
 	}
-	public function getArea($x, $z) {
+	public function getArea($x, $y, $z) {
 		foreach ( $this->config_Data as $area )
-			if (isset ( $area ["startX"] )) if ($area ["startX"] <= $x and $area ["endX"] >= $x and $area ["startZ"] <= $z and $area ["endZ"] >= $z) return $area;
+			if (isset ( $area ["startX"] )) if ($area ["startX"] <= $x and $area ["endX"] >= $x and $area ["startY"] <= $y and $area ["endY"] >= $y and $area ["startZ"] <= $z and $area ["endZ"] >= $z) return $area;
 		return false;
 	}
 	public function getAreaById($id) {
