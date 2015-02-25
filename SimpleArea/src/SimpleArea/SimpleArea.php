@@ -148,8 +148,15 @@ class SimpleArea extends PluginBase implements Listener {
 			}
 		} else {
 			if ($this->db [$block->getLevel ()->getFolderName ()]->isWhiteWorld ()) {
-				if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "whiteworld-change-denied" ) );
-				$event->setCancelled ();
+				if ($this->db [$block->getLevel ()->getFolderName ()]->option ["white-protect"] == true) {
+					if ($this->db [$block->getLevel ()->getFolderName ()]->isWhiteWorldAllowOption ( $block->getID () . ":" . $block->getDamage () )) return;
+					if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "whiteworld-change-denied" ) );
+					$event->setCancelled ();
+				} else {
+					if ($this->db [$block->getLevel ()->getFolderName ()]->isWhiteWorldForbidOption ( $block->getID () . ":" . $block->getDamage () )) return;
+					if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "block-active-denied" ) );
+					$event->setCancelled ();
+				}
 				return;
 			}
 		}
@@ -168,7 +175,6 @@ class SimpleArea extends PluginBase implements Listener {
 				if ($this->db [$block->getLevel ()->getFolderName ()]->isAllowOption ( $area ["ID"], $block->getID () . ":" . $block->getDamage () )) return;
 				if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "block-change-denied" ) );
 				$event->setCancelled ();
-				return;
 			} else {
 				if ($this->db [$block->getLevel ()->getFolderName ()]->isForbidOption ( $area ["ID"], $block->getID () . ":" . $block->getDamage () )) {
 					if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "block-active-denied" ) );
@@ -178,8 +184,15 @@ class SimpleArea extends PluginBase implements Listener {
 			return;
 		}
 		if ($this->db [$block->getLevel ()->getFolderName ()]->isWhiteWorld ()) {
-			if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "whiteworld-change-denied" ) );
-			$event->setCancelled ();
+			if ($this->db [$block->getLevel ()->getFolderName ()]->option ["white-protect"] == true) {
+				if ($this->db [$block->getLevel ()->getFolderName ()]->isWhiteWorldAllowOption ( $block->getID () . ":" . $block->getDamage () )) return;
+				if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "whiteworld-change-denied" ) );
+				$event->setCancelled ();
+			} else {
+				if ($this->db [$block->getLevel ()->getFolderName ()]->isWhiteWorldForbidOption ( $block->getID () . ":" . $block->getDamage () )) return;
+				if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "block-active-denied" ) );
+				$event->setCancelled ();
+			}
 			return;
 		}
 	}
@@ -259,11 +272,15 @@ class SimpleArea extends PluginBase implements Listener {
 				$player = $event->getEntity ();
 				$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 				if ($area != null) if (! $this->db [$player->getLevel ()->getFolderName ()]->isPvpAllow ( $area ["ID"] )) $event->setCancelled ();
+				else if ($area == null) if (! $this->db [$player->getLevel ()->getFolderName ()]->isWhiteWorldPvpAllow ()) $event->setCancelled ();
 			}
 			if ($event->getDamager () instanceof Player) {
 				$player = $event->getDamager ();
 				$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 				if ($area != null) if (! $this->db [$player->getLevel ()->getFolderName ()]->isPvpAllow ( $area ["ID"] )) {
+					$this->message ( $player, $this->get ( "here-is-pvp-not-allow" ) );
+					$event->setCancelled ();
+				} else if ($area == null) if (! $this->db [$player->getLevel ()->getFolderName ()]->isWhiteWorldPvpAllow ()) {
 					$this->message ( $player, $this->get ( "here-is-pvp-not-allow" ) );
 					$event->setCancelled ();
 				}
@@ -495,7 +512,7 @@ class SimpleArea extends PluginBase implements Listener {
 						} else {
 							$player = $this->getServer ()->getPlayerExact ( $area ["resident"] [0] );
 							if ($player != null) $this->message ( $player, $this->get ( "sequestrated-1" ) . $area ["ID"] . $this->get ( "sequestrated-2" ) );
-							$this->db [$level->getFolderName ()]->setResident ( $area ["ID"], [ ] );
+							$this->db [$level->getFolderName ()]->setResident ( $area ["ID"], [ null ] );
 						}
 					}
 				}
@@ -694,7 +711,7 @@ class SimpleArea extends PluginBase implements Listener {
 					$money = $this->economyAPI->myMoney ( $player );
 					if ($money < 5000) {
 						$this->message ( $player, $this->get ( "buyarea-failed" ) );
-						$this->message ( $player, $this->get ( "not-enough-money-to-buyarea-1" ) . ($this->config_Data ["economy-area-price"] - $money) . $this->get ( "not-enough-money-to-buyarea-2" ) );
+						$this->message ( $player, $this->get ( "not-enough-money-to-buyarea-1" ) . ($this->config_Data ["economy-home-price"] - $money) . $this->get ( "not-enough-money-to-buyarea-2" ) );
 						return false;
 					}
 				}
@@ -704,7 +721,7 @@ class SimpleArea extends PluginBase implements Listener {
 				$this->message ( $player, $this->get ( "buyarea-success" ) );
 				if ($this->checkEconomyAPI ()) {
 					$this->economyAPI->reduceMoney ( $player, $this->config_Data ["economy-home-price"] );
-					$this->message ( $player, $this->get ( "buyarea-paid-1" ) . $this->config_Data ["economy-area-price"] . $this->get ( "buyarea-paid-2" ) );
+					$this->message ( $player, $this->get ( "buyarea-paid-1" ) . $this->config_Data ["economy-home-price"] . $this->get ( "buyarea-paid-2" ) );
 					
 					if ($this->config_Data ["hour-tax-price"] > 0) {
 						$this->economyAPI->addMoney ( $player, $this->config_Data ["hour-tax-price"] );
@@ -739,7 +756,7 @@ class SimpleArea extends PluginBase implements Listener {
 				} else {
 					$block = $block . ":0";
 				}
-				$check = $this->db [$player->getLevel ()->getFolderName ()]->addWhiteWorldAllowOption ( $area ["ID"], $block );
+				$check = $this->db [$player->getLevel ()->getFolderName ()]->addWhiteWorldAllowOption ( $block );
 				if ($check) {
 					$this->message ( $player, $this->get ( "allowblock-list-added" ) );
 					$this->message ( $player, $this->get ( "allowblock-list-clear-help" ) );
@@ -801,7 +818,7 @@ class SimpleArea extends PluginBase implements Listener {
 				} else {
 					$block = $block . ":0";
 				}
-				$check = $this->db [$player->getLevel ()->getFolderName ()]->addWhiteWorldForbidOption ( $area ["ID"], $block );
+				$check = $this->db [$player->getLevel ()->getFolderName ()]->addWhiteWorldForbidOption ( $block );
 				if ($check) {
 					$this->message ( $player, $this->get ( "forbidblock-list-added" ) );
 					$this->message ( $player, $this->get ( "forbidblock-list-clear-help" ) );
@@ -845,6 +862,18 @@ class SimpleArea extends PluginBase implements Listener {
 	public function protect(Player $player) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
+			if ($this->db [$player->getLevel ()->getFolderName ()]->isWhiteWorld ()) {
+				if ($this->db [$player->getLevel ()->getFolderName ()]->option ["white-protect"] == true) {
+					$this->db [$player->getLevel ()->getFolderName ()]->option ["white-protect"] == false;
+					$this->message ( $player, $this->get ( "unprotect-complete" ) );
+					$this->message ( $player, $this->get ( "forbidblock-help" ) );
+				} else {
+					$this->db [$player->getLevel ()->getFolderName ()]->option ["white-protect"] == true;
+					$this->message ( $player, $this->get ( "protect-complete" ) );
+					$this->message ( $player, $this->get ( "allowblock-help" ) );
+				}
+				return;
+			}
 			$this->alert ( $player, $this->get ( "area-doesent-exist" ) );
 			$this->alert ( $player, $this->get ( "need-area-to-protect" ) );
 			return false;
@@ -921,7 +950,7 @@ class SimpleArea extends PluginBase implements Listener {
 			return false;
 		} else {
 			$this->db [$player->getLevel ()->getFolderName ()]->removeUserProperty ( $player->getName (), $area ["ID"] );
-			$this->db [$player->getLevel ()->getFolderName ()]->setResident ( $area ["ID"], [ ] );
+			$this->db [$player->getLevel ()->getFolderName ()]->setResident ( $area ["ID"], [ null ] );
 			$this->message ( $player, $this->get ( "sellarea-complete" ) );
 			if ($this->checkEconomyAPI ()) {
 				$this->economyAPI->addMoney ( $player, $this->config_Data ["economy-home-reward-price"] );

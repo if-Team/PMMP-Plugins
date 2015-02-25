@@ -27,6 +27,7 @@ class SimpleArea_Database {
 				"white-allow-option" => [ ],
 				"white-forbid-option" => [ ],
 				"white-pvp-allow" => true,
+				"white-protect" => true,
 				"white-welcome" => "" ] ))->getAll ();
 		$this->index = count ( $this->yml ) - 1;
 		$this->makeHomeList ();
@@ -46,7 +47,7 @@ class SimpleArea_Database {
 	public function getArea($x, $z) {
 		foreach ( $this->yml as $area )
 			if (isset ( $area ["startX"] )) if ($area ["startX"] <= $x and $area ["endX"] >= $x and $area ["startZ"] <= $z and $area ["endZ"] >= $z) return $area;
-		return false;
+		return null;
 	}
 	public function changeWall($wall) {
 		$this->fence_type = $wall;
@@ -248,13 +249,41 @@ class SimpleArea_Database {
 		}
 		return false;
 	}
+	public function isWhiteWorldAllowOption($option) {
+		$io = explode ( ":", $option );
+		if (! isset ( $this->option ["white-allow-option"] )) $this->option ["white-allow-option"] = [ ];
+		foreach ( $this->option ["white-allow-option"] as $getoption ) {
+			$go = explode ( ":", $getoption );
+			if ($io [0] == $go [0]) {
+				if (! isset ( $io [1] ) or ! isset ( $go [1] )) return true;
+				if ($io [1] == $go [1]) return true;
+			}
+		}
+		return false;
+	}
+	public function isWhiteWorldForbidOption($option) {
+		$io = explode ( ":", $option );
+		if (! isset ( $this->option ["white-forbid-option"] )) $this->option ["white-forbid-option"] = [ ];
+		foreach ( $this->option ["white-forbid-option"] as $getoption ) {
+			$go = explode ( ":", $getoption );
+			if ($io [0] == $go [0]) {
+				if (! isset ( $io [1] ) or ! isset ( $go [1] )) return true;
+				if ($io [1] == $go [1]) return true;
+			}
+		}
+		return false;
+	}
 	public function isPvpAllow($id) {
 		return ( bool ) $this->yml [$id] ["pvp-allow"];
+	}
+	public function isWhiteWorldPvpAllow() {
+		return ( bool ) $this->option ["pvp-allow"];
 	}
 	public function setResident($id, Array $resident) {
 		$this->yml [$id] ["resident"] = $resident;
 		
-		if ($resident [0] == null) {
+		//if ($resident [0] == null) {
+		if (empty($resident [0])) {
 			$this->addHomeList ( $id );
 		} else {
 			$this->removeHomeList ( $id );
@@ -309,7 +338,7 @@ class SimpleArea_Database {
 		$this->yml [$id] ["forbid-option"] [] = $option;
 		return true;
 	}
-public function addWhiteWorldAllowOption($id, $option) {
+	public function addWhiteWorldAllowOption($option) {
 		$io = explode ( ":", $option );
 		if (! isset ( $this->option ["white-allow-option"] )) $this->option ["white-allow-option"] = [ ];
 		foreach ( $this->option ["white-allow-option"] as $getoption ) {
@@ -322,7 +351,7 @@ public function addWhiteWorldAllowOption($id, $option) {
 		$this->option ["white-allow-option"] [] = $option;
 		return true;
 	}
-	public function addWhiteWorldForbidOption($id, $option) {
+	public function addWhiteWorldForbidOption($option) {
 		$io = explode ( ":", $option );
 		if (! isset ( $this->option ["white-forbid-option"] )) $this->option ["white-forbid-option"] = [ ];
 		foreach ( $this->option ["white-forbid-option"] as $getoption ) {

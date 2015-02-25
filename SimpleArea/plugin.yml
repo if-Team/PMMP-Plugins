@@ -9,6 +9,8 @@ permissions:
   default: true
  simplearea.commands.setarea:
   default: true
+ simplearea.commands.sellarea:
+  default: true
  simplearea.commands.buyarea:
   default: true
  simplearea.commands.givearea:
