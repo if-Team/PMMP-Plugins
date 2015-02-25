@@ -1,52 +1,8 @@
 name: SimpleArea
 main: SimpleArea\SimpleArea
-version: 0.12-alpha
+version: 0.13-alpha
 author: hm
 api: [1.4.1]
-
-commands:
- area:
-   permission: simplearea.commands.area
-   description: 집으로 이동합니다
- setarea:
-   permission: simplearea.commands.setarea
-   description: 현재위치를 집으로 설정합니다
- sellarea:
-   permission: simplearea.commands.delarea
-   description: 집을 판매처리합니다
- givearea:
-   permission: simplearea.commands.givearea
-   description: 집을 다른유저에게 양도합니다
- buyarea:
-   permission: simplearea.commands.buyarea
-   description: 집을 구매합니다
- arealist:
-   permission: simplearea.commands.arealist
-   description: 구매가능한 집리스트를 출력합니다
- rent:
-   permission: simplearea.commands.rent
-   description: 집을 임대요청하거나 설정합니다
- invite:
-   permission: simplearea.commands.invite
-   description: 집을 다른유저에게 공유합니다
- inviteout:
-   permission: simplearea.commands.inviteout
-   description: 공유받은 집을 공유 해제합니다
- inviteclear:
-   permission: simplearea.commands.inviteclear
-   description: 해당 집의 공유를 모두 해제합니다 
- invitelist:
-   permission: simplearea.commands.invitelist
-   description: 해당 집을 공유 받는 유저를 출력합니다
- welcome:
-   permission: simplearea.commands.welcome
-   description: 집 환영메시지를 설정합니다
- sa:
-   permission: simplearea.commands.simplearea
-   description: 심플에리어를 관리하는 명령어를 사용합니다
- yap:
-   permission: simplearea.commands.yap
-   description: 인생경제맵을 명령어 한번에 생성합니다
 
 permissions:
  simplearea.commands.area:
