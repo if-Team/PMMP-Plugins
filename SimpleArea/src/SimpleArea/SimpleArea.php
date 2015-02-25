@@ -777,7 +777,7 @@ class SimpleArea extends PluginBase implements Listener {
 				$this->message ( $player, $this->get ( "unprotect-complete" ) );
 				$this->message ( $player, $this->get ( "forbidblock-help" ) );
 			} else {
-				$this->db [$player->getLevel ()->getFolderName ()]->setOption ( $area ["ID"], [ ] );
+				$this->db [$player->getLevel ()->getFolderName ()]->setProtected ( $area ["ID"], true );
 				$this->message ( $player, $this->get ( "protect-complete" ) );
 				$this->message ( $player, $this->get ( "allowblock-help" ) );
 			}
