@@ -48,6 +48,7 @@ ko-commands-sa-areaprice-help: "/sa areaprice <가격> - 기본적으로 받을 
 ko-commands-sa-message: "message"
 ko-commands-sa-setarea: "setarea"
 ko-commands-sa-help: "help"
+ko-commands-sa-changemode: "changemode"
 ko-commands-sa-yap: "yap"
 ko-commands-sa-fence: "fence"
 ko-commands-sa-fence-help: "/sa fence <종류> - 인생맵의 울타리의 종류를 설정합니다 !"
@@ -251,6 +252,8 @@ ko-commands-yap-desc: "인생경제맵을 명령어 한번에 생성합니다"
 
 ko-setarea-disabled: "자동영역 설정을 비활성화 했습니다 ( 다시 입력시 활성화 ! )"
 ko-setarea-enabled: "자동영역 설정을 활성화 했습니다 ( 다시 입력시 비활성화 ! )"
+ko-changemode-to-protect-area: "지역보호 영역으로 영역 상태가 변경되었습니다"
+ko-changemode-to-lifegame-area: "인생게임 영역으로 영역 상태가 변경되었습니다"
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/tree/master/SimpleArea/resources/message.yml

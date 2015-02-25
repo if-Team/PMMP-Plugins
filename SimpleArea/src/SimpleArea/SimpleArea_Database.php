@@ -15,7 +15,7 @@ use pocketmine\block\Block;
 
 class SimpleArea_Database {
 	private $path, $level, $fence_type;
-	private $yml, $index, $homelist = [ ];
+	public $yml, $index, $homelist = [ ];
 	public function __construct($path, Level $level, $fence_type = 139) {
 		$this->path = &$path;
 		$this->level = &$level;

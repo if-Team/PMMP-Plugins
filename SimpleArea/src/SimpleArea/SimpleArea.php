@@ -419,7 +419,6 @@ class SimpleArea extends PluginBase implements Listener {
 							$this->setFenceType ( $player );
 						}
 						break;
-					
 					case $this->get ( "commands-sa-message" ) :
 						$this->IhatePreventMessage ( $player );
 						break;
@@ -433,6 +432,9 @@ class SimpleArea extends PluginBase implements Listener {
 							$this->helpPage ( $player );
 						}
 						break;
+					case $this->get ( "commands-sa-changemode" ) :
+						$this->changeMode ( $player );
+						break;
 					default :
 						$this->helpPage ( $player );
 						break;
@@ -440,6 +442,25 @@ class SimpleArea extends PluginBase implements Listener {
 				break;
 		}
 		return true;
+	}
+	public function changeMode(Player $player) {
+		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
+		if ($area == null) {
+			$this->alert ( $player, $this->get ( "area-doesent-exist" ) );
+			$this->alert ( $player, $this->get ( "need-area" ) );
+			return false;
+		}
+		if ($this->db [$player->getLevel ()->getFolderName ()]->isHome ( $area ["ID"] )) {
+			$this->db [$player->getLevel ()->getFolderName ()]->removeFence ( $area ["startX"], $area ["endX"], $area ["startZ"], $area ["endZ"] );
+			$this->db [$player->getLevel ()->getFolderName ()]->yml [$area ["ID"]] ["is-home"] = false;
+			$this->db [$player->getLevel ()->getFolderName ()]->yml [$area ["ID"]] ["resident"] = [ 
+					$player->getName () ];
+			$this->message ( $player, $this->get ( "changemode-to-protect-area" ) );
+		} else {
+			$this->db [$player->getLevel ()->getFolderName ()]->setFence ( $area ["startX"], $area ["endX"], $area ["startZ"], $area ["endZ"] );
+			$this->db [$player->getLevel ()->getFolderName ()]->yml [$area ["ID"]] ["is-home"] = true;
+			$this->message ( $player, $this->get ( "changemode-to-lifegame-area" ) );
+		}
 	}
 	public function IhateSetMake(Player $player) {
 		if ($this->config_Data ["enable-setarea"] == true) {
