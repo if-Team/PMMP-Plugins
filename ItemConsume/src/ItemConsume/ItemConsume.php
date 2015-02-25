@@ -70,20 +70,7 @@ class ItemConsume extends PluginBase implements Listener {
 		$z = $block->z + 0.5;
 		
 		$tile = $block->getLevel ()->getTile ( $block );
-		if ($tile instanceof Tile) {
-			if ($tile instanceof InventoryHolder) {
-				if ($tile instanceof Chest) {
-					$tile->unpair ();
-				}
-				foreach ( $tile->getInventory ()->getContents () as $chestItem ) {
-					if (! ($player instanceof Player)) {
-						$block->getLevel ()->dropItem ( $block, $chestItem );
-					} else {
-						$player->getInventory ()->addItem ( $chestItem );
-					}
-				}
-			}
-		}
+		if ($tile instanceof Chest) return;
 		if ($event->getItem () instanceof Item) {
 			$event->getItem ()->useOn ( $block );
 			if ($event->getItem ()->isTool () and $event->getItem ()->getDamage () >= $event->getItem ()->getMaxDurability ()) {
