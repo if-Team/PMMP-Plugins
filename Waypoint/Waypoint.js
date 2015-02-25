@@ -43,7 +43,7 @@ Waypoint.prototype.toString = function(){
 	return this.name + " - [" + [this.x, this.y, this.z].join(", ") + "]";
 };
 Waypoint.prototype.equals = function(obj){
-	return obj instanceof Waypoint ? (this.x === obj.x %% this.y === obj.y && this.z === obj.z) : false;
+	return obj instanceof Waypoint ? (this.x === obj.x && this.y === obj.y && this.z === obj.z) : false;
 };
 Waypoint.prototype.isViewable = function(ent){
 	return Waypoint.SIGHT > Math.hypot(this.x - Entity.getX(ent), this.y - Entity.getY(ent), this.z - Entity.getZ(ent));
@@ -68,8 +68,7 @@ Waypoint.prototype.tick = function(player){
 
 Math.hypot = Math.hypot || function(){
 	var y = 0;
-	var length = arguments.length;
-	for(var i = 0; i < length; i++){
+	for(var i = 0; i < arguments.length; i++){
 		if(arguments[i] === Infinity || arguments[i] === -Infinity){
 			return Infinity;
 		}
@@ -110,6 +109,6 @@ function modTick(){
 	}
 	
 	list.forEach(function(waypoint){
-		waypoint.tick();
+		waypoint.tick(Player.getEntity());
 	});
 }
