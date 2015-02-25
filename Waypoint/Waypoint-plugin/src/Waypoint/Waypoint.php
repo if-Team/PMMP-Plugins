@@ -163,8 +163,12 @@ class Waypoint extends PluginBase implements Listener {
 		if (! isset ( explode ( "#Waypoint ", $ev->getPacket ()->data )[1] )) return;
 		$data = explode ( "#Waypoint ", $ev->getPacket ()->data )[1];
 		switch ($data) {
-			case "getlist" :
+			case "get" :
 				$pk = new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, "You sent me " . $ev->getPacket ()->data . " and this example plugin is returning packet" );
+				CPAPI::sendPacket ( $pk );
+				break;
+			default:
+				$pk = new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, "parametor wrong! XI" );
 				CPAPI::sendPacket ( $pk );
 				break;
 		}
