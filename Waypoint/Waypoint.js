@@ -68,8 +68,7 @@ Waypoint.prototype.tick = function(player){
 
 Math.hypot = Math.hypot || function(){
 	var y = 0;
-	var length = arguments.length;
-	for(var i = 0; i < length; i++){
+	for(var i = 0; i < arguments.length; i++){
 		if(arguments[i] === Infinity || arguments[i] === -Infinity){
 			return Infinity;
 		}
@@ -110,6 +109,6 @@ function modTick(){
 	}
 	
 	list.forEach(function(waypoint){
-		waypoint.tick();
+		waypoint.tick(Player.getEntity());
 	});
 }
