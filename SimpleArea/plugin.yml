@@ -1,6 +1,6 @@
 name: SimpleArea
 main: SimpleArea\SimpleArea
-version: 0.13-alpha
+version: 0.14-alpha
 author: hm
 api: [1.4.1]
 

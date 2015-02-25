@@ -29,6 +29,7 @@ use pocketmine\block\Block;
 use pocketmine\event\level\LevelLoadEvent;
 use pocketmine\event\level\LevelUnloadEvent;
 use pocketmine\command\PluginCommand;
+use pocketmine\event\player\PlayerDeathEvent;
 
 class SimpleArea extends PluginBase implements Listener {
 	private static $instance = null;
@@ -287,6 +288,19 @@ class SimpleArea extends PluginBase implements Listener {
 			}
 		}
 	}
+	public function onDeath(PlayerDeathEvent $event) {
+		$player = $event->getEntity ();
+		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
+		if ($area == null) {
+			if ($this->db [$player->getLevel ()->getFolderName ()]->isWhiteWorld ()) {
+				if ($this->db [$player->getLevel ()->getFolderName ()]->option ["white-invensave"]) $event->setKeepInventory ( true );
+				return;
+			}
+			return;
+		} else {
+			if ($this->db [$player->getLevel ()->getFolderName ()]->isInvenSave ( $area ["ID"] )) $event->setKeepInventory ( true );
+		}
+	}
 	public function onCommand(CommandSender $player, Command $command, $label, Array $args) {
 		if (! $player instanceof Player) {
 			$this->alert ( $player, $this->get ( "only-in-game" ) );
@@ -452,6 +466,9 @@ class SimpleArea extends PluginBase implements Listener {
 					case $this->get ( "commands-sa-changemode" ) :
 						$this->changeMode ( $player );
 						break;
+					case $this->get ( "commands-sa-invensave" ) :
+						$this->setInvenSave ( $player );
+						break;
 					default :
 						$this->helpPage ( $player );
 						break;
@@ -459,6 +476,32 @@ class SimpleArea extends PluginBase implements Listener {
 				break;
 		}
 		return true;
+	}
+	public function setInvenSave(Player $player) {
+		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
+		if ($area == null) {
+			if ($this->db [$player->getLevel ()->getFolderName ()]->isWhiteWorld ()) {
+				if ($this->db [$player->getLevel ()->getFolderName ()]->option ["white-invensave"]) {
+					$this->message ( $player, $this->get ( "invensave-disabled" ) );
+					$this->db [$player->getLevel ()->getFolderName ()]->option ["white-invensave"] = false;
+				} else {
+					$this->message ( $player, $this->get ( "invensave-enabled" ) );
+					$this->db [$player->getLevel ()->getFolderName ()]->option ["white-invensave"] = true;
+				}
+				return;
+			}
+			$this->alert ( $player, $this->get ( "area-doesent-exist" ) );
+			$this->alert ( $player, $this->get ( "need-area" ) );
+			return;
+		} else {
+			if ($this->db [$player->getLevel ()->getFolderName ()]->isInvenSave ( $area ["ID"] )) {
+				$this->message ( $player, $this->get ( "invensave-disabled" ) );
+				$this->db [$player->getLevel ()->getFolderName ()]->setInvenSave ( $area ["ID"], false );
+			} else {
+				$this->message ( $player, $this->get ( "invensave-enabled" ) );
+				$this->db [$player->getLevel ()->getFolderName ()]->setInvenSave ( $area ["ID"], true );
+			}
+		}
 	}
 	public function changeMode(Player $player) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
@@ -512,7 +555,8 @@ class SimpleArea extends PluginBase implements Listener {
 						} else {
 							$player = $this->getServer ()->getPlayerExact ( $area ["resident"] [0] );
 							if ($player != null) $this->message ( $player, $this->get ( "sequestrated-1" ) . $area ["ID"] . $this->get ( "sequestrated-2" ) );
-							$this->db [$level->getFolderName ()]->setResident ( $area ["ID"], [ null ] );
+							$this->db [$level->getFolderName ()]->setResident ( $area ["ID"], [ 
+									null ] );
 						}
 					}
 				}
@@ -950,7 +994,8 @@ class SimpleArea extends PluginBase implements Listener {
 			return false;
 		} else {
 			$this->db [$player->getLevel ()->getFolderName ()]->removeUserProperty ( $player->getName (), $area ["ID"] );
-			$this->db [$player->getLevel ()->getFolderName ()]->setResident ( $area ["ID"], [ null ] );
+			$this->db [$player->getLevel ()->getFolderName ()]->setResident ( $area ["ID"], [ 
+					null ] );
 			$this->message ( $player, $this->get ( "sellarea-complete" ) );
 			if ($this->checkEconomyAPI ()) {
 				$this->economyAPI->addMoney ( $player, $this->config_Data ["economy-home-reward-price"] );

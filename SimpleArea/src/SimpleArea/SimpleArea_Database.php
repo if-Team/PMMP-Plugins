@@ -28,7 +28,8 @@ class SimpleArea_Database {
 				"white-forbid-option" => [ ],
 				"white-pvp-allow" => true,
 				"white-protect" => true,
-				"white-welcome" => "" ] ))->getAll ();
+				"white-welcome" => "",
+				"white-invensave" => false ] ))->getAll ();
 		$this->index = count ( $this->yml ) - 1;
 		$this->makeHomeList ();
 	}
@@ -120,7 +121,8 @@ class SimpleArea_Database {
 				"forbid-option" => $forbidOption,
 				"rent-allow" => $rent_allow,
 				"welcome" => "",
-				"pvp-allow" => true ];
+				"pvp-allow" => true,
+				"invensave" => true ];
 		if ($ishome == true and $resident == null) $this->addHomeList ( $this->index );
 		return $this->index ++;
 	}
@@ -279,11 +281,21 @@ class SimpleArea_Database {
 	public function isWhiteWorldPvpAllow() {
 		return ( bool ) $this->option ["pvp-allow"];
 	}
+	public function isInvenSave($id) {
+		if (! isset ( $this->yml [$id] ["invensave"] )) $this->yml [$id] ["invensave"] = true;
+		if ($this->yml [$id] ["invensave"]) return true;
+		return false;
+	}
+	public function setInvenSave($id, $bool) {
+		if (! isset ( $this->yml [$id] ["invensave"] )) $this->yml [$id] ["invensave"] = true;
+		$this->yml [$id] ["invensave"] = $bool;
+		return false;
+	}
 	public function setResident($id, Array $resident) {
 		$this->yml [$id] ["resident"] = $resident;
 		
-		//if ($resident [0] == null) {
-		if (empty($resident [0])) {
+		// if ($resident [0] == null) {
+		if (empty ( $resident [0] )) {
 			$this->addHomeList ( $id );
 		} else {
 			$this->removeHomeList ( $id );
