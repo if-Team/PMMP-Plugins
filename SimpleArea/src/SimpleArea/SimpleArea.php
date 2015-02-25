@@ -721,14 +721,42 @@ class SimpleArea extends PluginBase implements Listener {
 	public function allowBlock(Player $player, $block) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
+			if ($this->db [$player->getLevel ()->getFolderName ()]->isWhiteWorld ()) {
+				if ($block == "clear") {
+					$this->db [$player->getLevel ()->getFolderName ()]->option ["white-allow-option"] = [ ];
+					$this->message ( $player, $this->get ( "allowblock-list-cleared" ) );
+					return;
+				}
+				if (isset ( explode ( ":", $block )[1] )) {
+					if (! is_numeric ( explode ( ":", $block )[0] )) {
+						$this->alert ( $player, $this->get ( "block-id-must-numeric" ) );
+						return;
+					}
+					if (! is_numeric ( explode ( ":", $block )[1] )) {
+						$this->alert ( $player, $this->get ( "block-damage-must-numeric" ) );
+						return;
+					}
+				} else {
+					$block = $block . ":0";
+				}
+				$check = $this->db [$player->getLevel ()->getFolderName ()]->addWhiteWorldAllowOption ( $area ["ID"], $block );
+				if ($check) {
+					$this->message ( $player, $this->get ( "allowblock-list-added" ) );
+					$this->message ( $player, $this->get ( "allowblock-list-clear-help" ) );
+				} else {
+					$this->message ( $player, $this->get ( "already-allowblocked" ) );
+					$this->message ( $player, $this->get ( "allowblock-list-clear-help" ) );
+				}
+				return;
+			}
 			$this->alert ( $player, $this->get ( "area-doesent-exist" ) );
 			$this->alert ( $player, $this->get ( "need-area-to-allowblock" ) );
-			return false;
+			return;
 		} else {
 			if ($block == "clear") {
 				$this->db [$player->getLevel ()->getFolderName ()]->setAllowOption ( $area ["ID"], [ ] );
 				$this->message ( $player, $this->get ( "allowblock-list-cleared" ) );
-				return true;
+				return;
 			}
 			if (isset ( explode ( ":", $block )[1] )) {
 				if (! is_numeric ( explode ( ":", $block )[0] )) {
@@ -755,6 +783,34 @@ class SimpleArea extends PluginBase implements Listener {
 	public function forbidBlock(Player $player, $block) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
+			if ($this->db [$player->getLevel ()->getFolderName ()]->isWhiteWorld ()) {
+				if ($block == "clear") {
+					$this->db [$player->getLevel ()->getFolderName ()]->option ["white-forbid-option"] = [ ];
+					$this->message ( $player, $this->get ( "forbidblock-list-cleared" ) );
+					return;
+				}
+				if (isset ( explode ( ":", $block )[1] )) {
+					if (! is_numeric ( explode ( ":", $block )[0] )) {
+						$this->alert ( $player, $this->get ( "block-id-must-numeric" ) );
+						return;
+					}
+					if (! is_numeric ( explode ( ":", $block )[1] )) {
+						$this->alert ( $player, $this->get ( "block-damage-must-numeric" ) );
+						return;
+					}
+				} else {
+					$block = $block . ":0";
+				}
+				$check = $this->db [$player->getLevel ()->getFolderName ()]->addWhiteWorldForbidOption ( $area ["ID"], $block );
+				if ($check) {
+					$this->message ( $player, $this->get ( "forbidblock-list-added" ) );
+					$this->message ( $player, $this->get ( "forbidblock-list-clear-help" ) );
+				} else {
+					$this->message ( $player, $this->get ( "already-forbidblocked" ) );
+					$this->message ( $player, $this->get ( "forbidblock-list-clear-help" ) );
+				}
+				return;
+			}
 			$this->alert ( $player, $this->get ( "area-doesent-exist" ) );
 			$this->alert ( $player, $this->get ( "need-area-to-forbidblock" ) );
 			return false;
@@ -807,6 +863,18 @@ class SimpleArea extends PluginBase implements Listener {
 	public function pvp(Player $player) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
+			if ($this->db [$player->getLevel ()->getFolderName ()]->isWhiteWorld ()) {
+				if ($this->db [$player->getLevel ()->getFolderName ()]->option ["white-pvp-allow"] == true) {
+					$this->db [$player->getLevel ()->getFolderName ()]->option ["white-pvp-allow"] = false;
+					$this->message ( $player, $this->get ( "pvp-forbid-complete" ) );
+					$this->message ( $player, $this->get ( "pvp-allow-help" ) );
+				} else {
+					$this->db [$player->getLevel ()->getFolderName ()]->option ["white-pvp-allow"] = true;
+					$this->message ( $player, $this->get ( "pvp-allow-complete" ) );
+					$this->message ( $player, $this->get ( "pvp-forbid-help" ) );
+				}
+				return;
+			}
 			$this->alert ( $player, $this->get ( "area-doesent-exist" ) );
 			$this->alert ( $player, $this->get ( "need-area-to-pvp" ) );
 			return false;

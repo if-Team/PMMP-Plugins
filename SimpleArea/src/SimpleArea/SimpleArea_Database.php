@@ -15,7 +15,7 @@ use pocketmine\block\Block;
 
 class SimpleArea_Database {
 	private $path, $level, $fence_type;
-	public $yml, $index, $homelist = [ ];
+	public $yml, $option, $index, $homelist = [ ];
 	public function __construct($path, Level $level, $fence_type = 139) {
 		$this->path = &$path;
 		$this->level = &$level;
@@ -24,7 +24,8 @@ class SimpleArea_Database {
 				"whiteworld" => false,
 				"user-property" => [ ] ] ))->getAll ();
 		$this->option = (new Config ( $this->path . "options.yml", Config::YAML, [ 
-				"white-option" => [ ],
+				"white-allow-option" => [ ],
+				"white-forbid-option" => [ ],
 				"white-pvp-allow" => true,
 				"white-welcome" => "" ] ))->getAll ();
 		$this->index = count ( $this->yml ) - 1;
@@ -306,6 +307,32 @@ class SimpleArea_Database {
 			}
 		}
 		$this->yml [$id] ["forbid-option"] [] = $option;
+		return true;
+	}
+public function addWhiteWorldAllowOption($id, $option) {
+		$io = explode ( ":", $option );
+		if (! isset ( $this->option ["white-allow-option"] )) $this->option ["white-allow-option"] = [ ];
+		foreach ( $this->option ["white-allow-option"] as $getoption ) {
+			$go = explode ( ":", $getoption );
+			if ($io [0] == $go [0]) {
+				if (! isset ( $io [1] )) return false;
+				if ($io [1] == $go [1]) return false;
+			}
+		}
+		$this->option ["white-allow-option"] [] = $option;
+		return true;
+	}
+	public function addWhiteWorldForbidOption($id, $option) {
+		$io = explode ( ":", $option );
+		if (! isset ( $this->option ["white-forbid-option"] )) $this->option ["white-forbid-option"] = [ ];
+		foreach ( $this->option ["white-forbid-option"] as $getoption ) {
+			$go = explode ( ":", $getoption );
+			if ($io [0] == $go [0]) {
+				if (! isset ( $io [1] )) return false;
+				if ($io [1] == $go [1]) return false;
+			}
+		}
+		$this->option ["white-forbid-option"] [] = $option;
 		return true;
 	}
 	public function addResident($id, $resident) {
