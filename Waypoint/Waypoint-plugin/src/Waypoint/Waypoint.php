@@ -27,7 +27,7 @@ class Waypoint extends PluginBase implements Listener {
 			return;
 		}
 		$this->registerCommand ( $this->get ( "waypoint-command" ), $this->get ( "waypoint-command" ), "waypoint.command", $this->get ( "waypoint-command-desc" ), $this->get ( "waypoint-command-usage" ) );
-		$this->config = new Config ( $this->getDataFolder () . "announce.yml", Config::YAML, [ 
+		$this->config = new Config ( $this->getDataFolder () . "waypoints.yml", Config::YAML, [ 
 				"enable" => true,
 				"waypoints" => [ ] ] );
 		$this->configData = $this->config->getAll ();
@@ -54,6 +54,14 @@ class Waypoint extends PluginBase implements Listener {
 		$commandMap->register ( $fallback, $command );
 	}
 	public function onCommand(CommandSender $player, Command $command, $label, Array $args) {
+		if (! isset ( $args [0] )) {
+			$player->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "help-add" ) );
+			$player->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "help-del" ) );
+			$player->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "help-list" ) );
+			$player->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "help-clear" ) );
+			$player->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "help-onoff" ) );
+			return true;
+		}
 		switch (strtolower ( $command->getName () )) {
 			case $this->get ( "waypoint-command" ) :
 				switch ($args [0]) {
@@ -62,16 +70,16 @@ class Waypoint extends PluginBase implements Listener {
 						$text = implode ( " ", $args );
 						if (! $player instanceof Player) {
 							$player->sendMessage ( $this->get ( "in-game-command" ) );
-							return;
+							return true;
 						}
 						if ($text == "" or $text == " ") {
 							$player->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "waypoint-add-help" ) );
-							return;
+							return true;
 						}
-						$point = ( int ) round ( $player->x ) . ":" . ( int ) round ( $player->y ) . ":" . ( int ) round ( $player->z );
+						$point = ( int ) round ( $player->x ) . "." . ( int ) round ( $player->y ) . "." . ( int ) round ( $player->z );
 						if (isset ( $this->configData ["waypoints"] [$point] )) {
 							$player->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "waypoint-already-exist" ) );
-							return;
+							return true;
 						}
 						$this->configData ["waypoints"] [$point] = $text;
 						$player->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "waypoint-add-complete" ) );
@@ -120,15 +128,28 @@ class Waypoint extends PluginBase implements Listener {
 							$player->sendMessage ( $this->get ( "waypoint-enabled" ) );
 						}
 						break;
+					default :
+						$player->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "help-add" ) );
+						$player->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "help-del" ) );
+						$player->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "help-list" ) );
+						$player->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "help-clear" ) );
+						$player->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "help-onoff" ) );
+						break;
 				}
 				break;
 		}
 		return true;
 	}
 	public function refreshList() {
-		$list = "";
-		foreach ( $this->configData ["waypoints"] as $index => $message )
-			$list = "L" . $index . " M" . $message . "\\n";
+		$list = [ ];
+		foreach ( $this->configData ["waypoints"] as $index => $message ) {
+			$pos = explode ( ".", $index );
+			$list [] = [ 
+					"x" => $pos [0],
+					"y" => $pos [1],
+					"z" => $pos [2],
+					"name" => $message ];
+		}
 		$this->waypointList = $list;
 	}
 	public function WaypointList(CommandSender $player, $index = 1) {
@@ -164,10 +185,10 @@ class Waypoint extends PluginBase implements Listener {
 		$data = explode ( "#Waypoint ", $ev->getPacket ()->data )[1];
 		switch ($data) {
 			case "get" :
-				$pk = new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, "You sent me " . $ev->getPacket ()->data . " and this example plugin is returning packet" );
+				$pk = new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, json_encode ( $this->configData ["waypoints"] ) );
 				CPAPI::sendPacket ( $pk );
 				break;
-			default:
+			default :
 				$pk = new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, "parametor wrong! XI" );
 				CPAPI::sendPacket ( $pk );
 				break;
