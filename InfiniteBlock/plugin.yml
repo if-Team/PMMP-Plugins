@@ -1,0 +1,9 @@
+name: InfiniteBlock
+main: InfiniteBlock\InfiniteBlock
+version: 0.1-alpha
+author: hm
+api: [1.4.1]
+
+permissions:
+ infinite:
+  default: op
