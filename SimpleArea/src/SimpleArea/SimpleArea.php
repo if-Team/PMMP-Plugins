@@ -67,7 +67,7 @@ class SimpleArea extends PluginBase implements Listener {
 				"enable-setarea" => true ] );
 		$this->config_Data = $this->config->getAll ();
 		
-		$signTemplate = new Config ( $this->getDataFolder () . "settings.yml", Config::YAML, [ 
+		$signTemplate = new Config ( $this->getDataFolder () . "signTemplate.yml", Config::YAML, [ 
 				"signTemplate" => [ 
 						"0" => "----------",
 						"1" => "X",
