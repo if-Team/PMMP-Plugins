@@ -1,0 +1,24 @@
+# IF YOU NEED A SOME OTHER LANGUAGE SETTINGS #
+# YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
+
+#PLEASE SET HERE TO YOUR LANGUAGE PREFIX
+default-language: ko
+m_version: 1
+
+#(EN) ENGLISH
+
+#(KO) KOREAN
+ko-default-prefix: "[ 서버 ]"
+
+ko-commands-spawn: "spawn"
+ko-commands-setspawn: "setspawn"
+ko-commands-spawnclear: "spawnclear"
+
+ko-only-in-game: "인게임 내에서만 가능합니다"
+ko-spawn-teleport-complete: "스폰지점으로 이동했습니다"
+ko-setspawn-complete: "스폰설정이 완료되었습니다 ( * 계속 추가가능 )"
+ko-spawnclear-complete: "스폰설정 초기화가 완료되었습니다"
+ko-spawn-list-not-exist: "스폰설정이 되어있지 않습니다 !"
+
+# AND YOU CAN PROVIDE YOUR TRANSLATION       #
+# https://github.com/if-Team/PMMP-Plugins/blob/master/GoodSPAWN/resources/messages.yml

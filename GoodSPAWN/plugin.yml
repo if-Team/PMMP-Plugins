@@ -1,0 +1,13 @@
+name: GoodSPAWN
+main: GoodSPAWN\GoodSPAWN
+version: 0.1-alpha
+author: hm
+api: [1.4.1]
+
+permissions:
+ goodspawn.spawn:
+  default: true
+ goodspawn.setspawn:
+  default: op
+ goodspawn.spawnclear:
+  default: op
