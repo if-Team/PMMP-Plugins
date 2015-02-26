@@ -57,8 +57,16 @@ class SimpleArea_Database {
 		return isset ( $this->yml [$id] ) ? $this->yml [$id] : false;
 	}
 	public function makeHomeList() {
-		foreach ( $this->yml as $area )
-			if (isset ( $area ["is-home"] ) and $area ["is-home"] == true and $area ["resident"] [0] == null) $this->homelist [$area ["ID"]] = null;
+		foreach ( $this->yml as $area ) {
+			if (isset ( $area ["is-home"] ) and $area ["is-home"] == true) {
+				if (! isset ( $area ["resident"] [0] )) {
+					$this->yml [$area ["ID"]] ["resident"] = [ 
+							null ];
+				} else {
+					if ($area ["resident"] [0] == null) $this->homelist [$area ["ID"]] = null;
+				}
+			}
+		}
 	}
 	public function getHomeList() {
 		return $this->homelist;

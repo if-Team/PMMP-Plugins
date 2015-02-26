@@ -114,8 +114,10 @@ class SimpleArea extends PluginBase implements Listener {
 		return static::$instance;
 	}
 	public function autoSave() {
-		foreach ( $this->getServer ()->getLevels () as $level )
+		foreach ( $this->getServer ()->getLevels () as $level ) {
+			if (! isset ( $this->db [$level->getFolderName ()] )) $this->db [$level->getFolderName ()] = new SimpleArea_Database ( $this->getServer ()->getDataPath () . "worlds/" . $level->getFolderName () . "/", $level, $this->config_Data ["default-wall-type"] );
 			$this->db [$level->getFolderName ()]->save ();
+		}
 	}
 	public function initMessage() {
 		$this->saveResource ( "messages.yml", false );
