@@ -81,12 +81,12 @@ var list = [];
 var tick = 0;
 
 function updateList(){
-	if(!CustomPacket){
+	if(typeof CustomPacket === "undefined"){
 		clientMessage("You must construct additional pylons!");
 		return;
 	}
 	
-	CustomPacket.get(Server.getAddress(), "#Waypoint", function(str){
+	CustomPacket.get(Server.getAddress(), "#Waypoint get", function(str){
 		if(str === null){
 			return;
 		}
