@@ -30,6 +30,7 @@ use pocketmine\event\player\PlayerRespawnEvent;
 use pocketmine\level\Position;
 use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\event\block\BlockBreakEvent;
+use pocketmine\entity\Arrow;
 
 class HungerGames extends PluginBase implements Listener {
 	public $config, $config_data;
@@ -143,10 +144,12 @@ class HungerGames extends PluginBase implements Listener {
 		}
 	}
 	public function checkArrow(ProjectileLaunchEvent $event) {
-		if ($event->getEntity () instanceof Arrow) $this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
-				$this,
-				"removeArrow" ], [ 
-				$event ] ), 20 );
+		if ($event->getEntity () instanceof Arrow) {
+			$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
+					$this,
+					"removeArrow" ], [ 
+					$event ] ), 20 );
+		}
 	}
 	public function checkLogin(PlayerLoginEvent $event) {
 		$player = $event->getPlayer ();
@@ -176,6 +179,11 @@ class HungerGames extends PluginBase implements Listener {
 		
 		if (($block->getID () == Item::NETHER_REACTOR or $block->getID () == Item::DIAMOND_BLOCK) and isset ( $this->users [$player->getName ()] )) {
 			$this->users [$player->getName ()]->TouchCheck ( $player, $block->getX (), $block->getY (), $block->getZ (), 1 );
+			$event->setCancelled ();
+			return;
+		}
+		if ($block->getID () == Block::CAKE_BLOCK and isset ( $this->users [$player->getName ()] )) {
+			$this->users [$player->getName ()]->TouchCheck ( $player, $block->getX (), $block->getY (), $block->getZ (), 2 );
 			$event->setCancelled ();
 			return;
 		}
@@ -268,8 +276,8 @@ class HungerGames extends PluginBase implements Listener {
 		}
 	}
 	public function removeArrow($event) {
-		$arrow = $event->getProjectile ();
-		$murder = $event->getEntity ();
+		$arrow = $event->getEntity ();
+		$murder = $event->getEntity ()->shootingEntity;
 		$this->ShockWave ( $arrow->x, $arrow->y, $arrow->z, 5, 5, $murder );
 		$reflection_class = new \ReflectionClass ( $arrow );
 		$property = $reflection_class->getProperty ( 'age' );

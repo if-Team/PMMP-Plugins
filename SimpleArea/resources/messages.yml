@@ -50,6 +50,7 @@ ko-commands-sa-setarea: "setarea"
 ko-commands-sa-help: "help"
 ko-commands-sa-changemode: "changemode"
 ko-commands-sa-yap: "yap"
+ko-commands-sa-invensave: "invensave"
 ko-commands-sa-fence: "fence"
 ko-commands-sa-fence-help: "/sa fence <종류> - 인생맵의 울타리의 종류를 설정합니다 !"
 ko-commands-sa-hourtax: "hourtax"
@@ -92,7 +93,7 @@ ko-arealimit-changed: "로 최대 보유가능 영역 개수를 설정했습니�
 ko-target-is-offline: "대상이 오프라인 상태입니다 ! 처리 불가능 !"
 ko-need-to-online-people: "해당 회원님이 로그인 하면 다시시도해보세요 !"
 ko-area-doesent-exist: "현재 위치에서 영역을 찾을 수 없습니다."
-ko-need-area: "영역 안에서만 양도 명령어 사용이 가능합니다."
+ko-need-area: "영역 안에서만 해당 명령어 사용이 가능합니다."
 ko-need-area-to-allowblock: "영역 안에서만 수정허용 블럭 설정이 가능 !"
 ko-need-area-to-forbidblock: "영역 안에서만 수정금지 블럭 설정이 가능 !"
 ko-need-area-to-protect: "영역 안에서만 지형수정 허용유무 설정이 가능 !"
@@ -254,6 +255,8 @@ ko-setarea-disabled: "자동영역 설정을 비활성화 했습니다 ( 다시 
 ko-setarea-enabled: "자동영역 설정을 활성화 했습니다 ( 다시 입력시 비활성화 ! )"
 ko-changemode-to-protect-area: "지역보호 영역으로 영역 상태가 변경되었습니다"
 ko-changemode-to-lifegame-area: "인생게임 영역으로 영역 상태가 변경되었습니다"
+ko-invensave-enabled: "해당영역에 인벤세이브가 활성화 되었습니다"
+ko-invensave-disabled: "해당영역에 인벤세이브가 비활성화 되었습니다"
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/tree/master/SimpleArea/resources/message.yml

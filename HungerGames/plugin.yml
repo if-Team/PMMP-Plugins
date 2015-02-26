@@ -1,6 +1,6 @@
 name: HungerGames
 main: HungerGames\HungerGames
-version: "1.1"
+version: "1.2"
 author: hm
 api: [1.4.1]
 
@@ -8,7 +8,7 @@ commands:
  hunger:
   permission: HungerGames.commands.hunger
   description: HungerGames commands
-  usage: /hunger <protect> <pos1|pos2>
+  usage: /hunger <spawn> <add|clear>
 
 permissions:
  HungerGames.commands.*:

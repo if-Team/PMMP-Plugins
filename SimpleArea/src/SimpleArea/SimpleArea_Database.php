@@ -15,7 +15,7 @@ use pocketmine\block\Block;
 
 class SimpleArea_Database {
 	private $path, $level, $fence_type;
-	public $yml, $index, $homelist = [ ];
+	public $yml, $option, $index, $homelist = [ ];
 	public function __construct($path, Level $level, $fence_type = 139) {
 		$this->path = &$path;
 		$this->level = &$level;
@@ -24,9 +24,12 @@ class SimpleArea_Database {
 				"whiteworld" => false,
 				"user-property" => [ ] ] ))->getAll ();
 		$this->option = (new Config ( $this->path . "options.yml", Config::YAML, [ 
-				"white-option" => [ ],
+				"white-allow-option" => [ ],
+				"white-forbid-option" => [ ],
 				"white-pvp-allow" => true,
-				"white-welcome" => "" ] ))->getAll ();
+				"white-protect" => true,
+				"white-welcome" => "",
+				"white-invensave" => false ] ))->getAll ();
 		$this->index = count ( $this->yml ) - 1;
 		$this->makeHomeList ();
 	}
@@ -45,7 +48,7 @@ class SimpleArea_Database {
 	public function getArea($x, $z) {
 		foreach ( $this->yml as $area )
 			if (isset ( $area ["startX"] )) if ($area ["startX"] <= $x and $area ["endX"] >= $x and $area ["startZ"] <= $z and $area ["endZ"] >= $z) return $area;
-		return false;
+		return null;
 	}
 	public function changeWall($wall) {
 		$this->fence_type = $wall;
@@ -118,7 +121,8 @@ class SimpleArea_Database {
 				"forbid-option" => $forbidOption,
 				"rent-allow" => $rent_allow,
 				"welcome" => "",
-				"pvp-allow" => true ];
+				"pvp-allow" => true,
+				"invensave" => true ];
 		if ($ishome == true and $resident == null) $this->addHomeList ( $this->index );
 		return $this->index ++;
 	}
@@ -247,13 +251,51 @@ class SimpleArea_Database {
 		}
 		return false;
 	}
+	public function isWhiteWorldAllowOption($option) {
+		$io = explode ( ":", $option );
+		if (! isset ( $this->option ["white-allow-option"] )) $this->option ["white-allow-option"] = [ ];
+		foreach ( $this->option ["white-allow-option"] as $getoption ) {
+			$go = explode ( ":", $getoption );
+			if ($io [0] == $go [0]) {
+				if (! isset ( $io [1] ) or ! isset ( $go [1] )) return true;
+				if ($io [1] == $go [1]) return true;
+			}
+		}
+		return false;
+	}
+	public function isWhiteWorldForbidOption($option) {
+		$io = explode ( ":", $option );
+		if (! isset ( $this->option ["white-forbid-option"] )) $this->option ["white-forbid-option"] = [ ];
+		foreach ( $this->option ["white-forbid-option"] as $getoption ) {
+			$go = explode ( ":", $getoption );
+			if ($io [0] == $go [0]) {
+				if (! isset ( $io [1] ) or ! isset ( $go [1] )) return true;
+				if ($io [1] == $go [1]) return true;
+			}
+		}
+		return false;
+	}
 	public function isPvpAllow($id) {
 		return ( bool ) $this->yml [$id] ["pvp-allow"];
+	}
+	public function isWhiteWorldPvpAllow() {
+		return ( bool ) $this->option ["pvp-allow"];
+	}
+	public function isInvenSave($id) {
+		if (! isset ( $this->yml [$id] ["invensave"] )) $this->yml [$id] ["invensave"] = true;
+		if ($this->yml [$id] ["invensave"]) return true;
+		return false;
+	}
+	public function setInvenSave($id, $bool) {
+		if (! isset ( $this->yml [$id] ["invensave"] )) $this->yml [$id] ["invensave"] = true;
+		$this->yml [$id] ["invensave"] = $bool;
+		return false;
 	}
 	public function setResident($id, Array $resident) {
 		$this->yml [$id] ["resident"] = $resident;
 		
-		if ($resident [0] == null) {
+		// if ($resident [0] == null) {
+		if (empty ( $resident [0] )) {
 			$this->addHomeList ( $id );
 		} else {
 			$this->removeHomeList ( $id );
@@ -306,6 +348,32 @@ class SimpleArea_Database {
 			}
 		}
 		$this->yml [$id] ["forbid-option"] [] = $option;
+		return true;
+	}
+	public function addWhiteWorldAllowOption($option) {
+		$io = explode ( ":", $option );
+		if (! isset ( $this->option ["white-allow-option"] )) $this->option ["white-allow-option"] = [ ];
+		foreach ( $this->option ["white-allow-option"] as $getoption ) {
+			$go = explode ( ":", $getoption );
+			if ($io [0] == $go [0]) {
+				if (! isset ( $io [1] )) return false;
+				if ($io [1] == $go [1]) return false;
+			}
+		}
+		$this->option ["white-allow-option"] [] = $option;
+		return true;
+	}
+	public function addWhiteWorldForbidOption($option) {
+		$io = explode ( ":", $option );
+		if (! isset ( $this->option ["white-forbid-option"] )) $this->option ["white-forbid-option"] = [ ];
+		foreach ( $this->option ["white-forbid-option"] as $getoption ) {
+			$go = explode ( ":", $getoption );
+			if ($io [0] == $go [0]) {
+				if (! isset ( $io [1] )) return false;
+				if ($io [1] == $go [1]) return false;
+			}
+		}
+		$this->option ["white-forbid-option"] [] = $option;
 		return true;
 	}
 	public function addResident($id, $resident) {
