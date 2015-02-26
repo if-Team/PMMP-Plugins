@@ -30,6 +30,8 @@ use pocketmine\event\level\LevelLoadEvent;
 use pocketmine\event\level\LevelUnloadEvent;
 use pocketmine\command\PluginCommand;
 use pocketmine\event\player\PlayerDeathEvent;
+use pocketmine\tile\Sign;
+use pocketmine\event\block\SignChangeEvent;
 
 class SimpleArea extends PluginBase implements Listener {
 	private static $instance = null;
@@ -41,11 +43,14 @@ class SimpleArea extends PluginBase implements Listener {
 	public $player_pos = [ ];
 	public $checkMove = [ ];
 	public $economyAPI = null;
+	public $signTemplate = null;
+	public $m_version = 1;
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		if (self::$instance == null) self::$instance = $this;
 		
 		$this->initMessage ();
+		$this->messagesUpdate ();
 		
 		$this->config = new Config ( $this->getDataFolder () . "settings.yml", Config::YAML, [ 
 				"default-home-size" => 20,
@@ -61,6 +66,14 @@ class SimpleArea extends PluginBase implements Listener {
 				"default-wall-type" => 139,
 				"enable-setarea" => true ] );
 		$this->config_Data = $this->config->getAll ();
+		
+		$signTemplate = new Config ( $this->getDataFolder () . "settings.yml", Config::YAML, [ 
+				"signTemplate" => [ 
+						"0" => "----------",
+						"1" => "X",
+						"2" => "ECONOMY LAND",
+						"3" => "----------" ] ] );
+		$this->signTemplate = $signTemplate->getAll ();
 		
 		foreach ( $this->getServer ()->getLevels () as $level )
 			$this->db [$level->getFolderName ()] = new SimpleArea_Database ( $this->getServer ()->getDataPath () . "worlds/" . $level->getFolderName () . "/", $level, $this->config_Data ["default-wall-type"] );
@@ -110,6 +123,17 @@ class SimpleArea extends PluginBase implements Listener {
 	}
 	public function get($var) {
 		return $this->messages [$this->messages ["default-language"] . "-" . $var];
+	}
+	public function messagesUpdate() {
+		if (! isset ( $this->messages ["default-language"] ["m_version"] )) {
+			$this->saveResource ( "messages.yml", true );
+			$this->messages = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
+		} else {
+			if ($this->messages ["default-language"] ["m_version"] < $this->m_version) {
+				$this->saveResource ( "messages.yml", true );
+				$this->messages = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
+			}
+		}
 	}
 	public function registerCommand($name, $permission, $description = "", $usage = "") {
 		$commandMap = $this->getServer ()->getCommandMap ();
@@ -211,6 +235,42 @@ class SimpleArea extends PluginBase implements Listener {
 				$this->message ( $event->getPlayer (), $this->get ( "complete-pos-msg1" ) );
 				$this->message ( $event->getPlayer (), $this->get ( "complete-pos-msg2" ) );
 				return;
+			}
+		}
+		if ($event->getBlock ()->getID () == 323 or $event->getBlock ()->getID () == 63 or $event->getBlock ()->getID () == 68) {
+			$sign = $event->getPlayer ()->getLevel ()->getTile ( $event->getBlock () );
+			if ($sign instanceof Sign) {
+				$lines = $sign->getText ();
+				if ($lines [0] == $this->signTemplate ["signTemplate"] [0] and isset ( explode ( $this->signTemplate ["signTemplate"] [1], $lines [1] )[1] )) {
+					if ($lines [2] == $this->signTemplate ["signTemplate"] [2] and $lines [3] == $this->signTemplate ["signTemplate"] [3]) {
+						$size = explode ( $this->signTemplate ["signTemplate"] [1], $lines [1] );
+						if (! is_numeric ( $size [0] ) or ! is_numeric ( $size [1] )) return;
+						
+						$startX = $event->getBlock ()->x + 1;
+						$startZ = $event->getBlock ()->z + 1;
+						
+						$endX = $event->getBlock ()->x + $size [1] - 1;
+						$endZ = $event->getBlock ()->z + $size [0] - 1;
+						
+						$player = $event->getPlayer ();
+						
+						$area_id = $this->db [$player->level->getFolderName ()]->addArea ( $player->getName (), $startX, $endX, $startZ, $endZ, false );
+						if ($area_id == false) {
+							$this->message ( $player, $this->get ( "failed-buyarea-area-is-overlap" ) );
+						} else {
+							$this->db [$player->level->getFolderName ()]->yml [$area_id] ["is-home"] = true;
+							$this->message ( $player, $this->get ( "areaset-success" ) );
+						}
+					}
+				}
+			}
+		}
+	}
+	public function onSign(SignChangeEvent $event) {
+		if ($event->getPlayer ()->isOp ()) return;
+		if ($event->getLine ( 0 ) == $this->signTemplate ["signTemplate"] [0]) if (isset ( explode ( $this->signTemplate ["signTemplate"] [1], $event->getLine ( 1 ) )[1] )) {
+			if ($event->getLine ( 2 ) == $this->signTemplate ["signTemplate"] [2]) {
+				if ($event->getLine ( 2 ) == $this->signTemplate ["signTemplate"] [2]) $event->setCancelled ();
 			}
 		}
 	}

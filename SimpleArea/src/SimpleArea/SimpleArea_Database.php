@@ -204,7 +204,7 @@ class SimpleArea_Database {
 	}
 	public function checkOverlap($startX, $endX, $startZ, $endZ) {
 		foreach ( $this->yml as $area ) {
-			if (isset ( $area ["startX"] )) if ((($area ["startX"] < $startX and $area ["endX"] > $startX) or ($area ["startX"] < $endX and $area ["endX"] > $endX)) and (($area ["startZ"] < $startZ and $area ["endZ"] > $startZ) or ($area ["endZ"] < $endZ and $area ["endZ"] > $endZ))) return $area;
+			if (isset ( $area ["startX"] )) if ((($area ["startX"] <= $startX and $area ["endX"] >= $startX) or ($area ["startX"] <= $endX and $area ["endX"] >= $endX)) and (($area ["startZ"] <= $startZ and $area ["endZ"] >= $startZ) or ($area ["endZ"] <= $endZ and $area ["endZ"] >= $endZ))) return $area;
 		}
 		return false;
 	}
