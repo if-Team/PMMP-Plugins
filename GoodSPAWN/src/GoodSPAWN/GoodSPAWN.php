@@ -21,6 +21,7 @@ use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
+use pocketmine\event\entity\ProjectileLaunchEvent;
 
 class GoodSPAWN extends PluginBase implements Listener {
 	public $config, $config_Data;
@@ -83,7 +84,7 @@ class GoodSPAWN extends PluginBase implements Listener {
 	public function onRespawn(PlayerRespawnEvent $event) {
 		if (isset ( $this->death_queue [$event->getPlayer ()->getName ()] )) {
 			$pos = $this->getSpawn ( $event->getPlayer () );
-			if ($pos != null) $event->setRespawnPosition ( $pos [0], $pos [1], $pos [2] );
+			if ($pos != null) $event->setRespawnPosition ( $pos [0] );
 			unset ( $this->death_queue [$event->getPlayer ()->getName ()] );
 		}
 	}
@@ -170,6 +171,19 @@ class GoodSPAWN extends PluginBase implements Listener {
 					$this->message ( $event->getDamager (), $this->get ( "cannot-spawn-pvp" ) );
 					$event->setCancelled ();
 				}
+			} else {
+				if ($this->checkSpawn ( $event->getDamager (), 5 )) {
+					$event->setCancelled ();
+				}
+			}
+		}
+	}
+	public function onLaunch(ProjectileLaunchEvent $event) {
+		$shooter = $event->getEntity ()->shootingEntity;
+		if ($shooter instanceof Player) {
+			if ($this->checkSpawn ( $shooter, 5 )) {
+				$this->message ( $shooter, $this->get ( "cannot-spawn-pvp" ) );
+				$event->setCancelled ();
 			}
 		}
 	}
