@@ -74,8 +74,8 @@ class GoodSPAWN extends PluginBase implements Listener {
 		$command->setUsage ( $usage );
 		$commandMap->register ( $name, $command );
 	}
-	public function onLogin(PlayerLoginEvent $event){
-	if (! isset ( $this->spawn_queue [$event->getPlayer ()->getName ()] )) {
+	public function onLogin(PlayerLoginEvent $event) {
+		if (! isset ( $this->spawn_queue [$event->getPlayer ()->getName ()] )) {
 			$this->spawn_queue [$event->getPlayer ()->getName ()] = 1;
 			$pos = $this->getSpawn ( $event->getPlayer () );
 			if ($pos != null) $event->getPlayer ()->teleport ( $pos [0], $pos [1], $pos [2] );
@@ -89,7 +89,7 @@ class GoodSPAWN extends PluginBase implements Listener {
 		}
 	}
 	public function onDeath(PlayerDeathEvent $event) {
-		if (! isset ( $this->death_queue )) $this->death_queue [$event->getEntity ()->getName ()] = 1;
+		if (! isset ( $this->death_queue [$event->getEntity ()->getName ()] )) $this->death_queue [$event->getEntity ()->getName ()] = 1;
 	}
 	public function getSpawn(Player $player) {
 		if (! isset ( $this->config_Data ["spawns"] ) or count ( $this->config_Data ["spawns"] ) == 0) return null;
