@@ -9,6 +9,7 @@ use pocketmine\math\Vector3;
 use pocketmine\Player;
 use pocketmine\utils\TextFormat;
 use pocketmine\event\entity\EntityDamageEvent;
+use pocketmine\event\player\PlayerKickEvent;
 
 class Trampoline extends PluginBase implements Listener {
 	public $fallen = [ ];
@@ -116,7 +117,11 @@ class Trampoline extends PluginBase implements Listener {
 			}
 		}
 	}
-	public function check() {}
+	public function preventFlyKick(PlayerKickEvent $event) {
+		if (isset ( $this->fallen [$event->getPlayer ()->getName ()] )) {
+			if ($event->getReason () == "Flying is not enabled on this server") $event->setCancelled ();
+		}
+	}
 	public function fallenQueue(Player $player) {
 		if ($player == null) return;
 		if (isset ( $this->fallen [$player->getName ()] )) {
