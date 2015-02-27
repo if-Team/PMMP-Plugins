@@ -4,7 +4,6 @@ namespace GoodSPAWN;
 
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
-use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\utils\Config;
 use pocketmine\command\PluginCommand;
 use pocketmine\event\player\PlayerRespawnEvent;
@@ -22,6 +21,7 @@ use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\ProjectileLaunchEvent;
+use pocketmine\event\player\PlayerLoginEvent;
 
 class GoodSPAWN extends PluginBase implements Listener {
 	public $config, $config_Data;
@@ -74,8 +74,8 @@ class GoodSPAWN extends PluginBase implements Listener {
 		$command->setUsage ( $usage );
 		$commandMap->register ( $name, $command );
 	}
-	public function onJoin(PlayerJoinEvent $event) {
-		if (! isset ( $this->spawn_queue [$event->getPlayer ()->getName ()] )) {
+	public function onLogin(PlayerLoginEvent $event){
+	if (! isset ( $this->spawn_queue [$event->getPlayer ()->getName ()] )) {
 			$this->spawn_queue [$event->getPlayer ()->getName ()] = 1;
 			$pos = $this->getSpawn ( $event->getPlayer () );
 			if ($pos != null) $event->getPlayer ()->teleport ( $pos [0], $pos [1], $pos [2] );
