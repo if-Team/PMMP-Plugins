@@ -23,10 +23,12 @@ class InfiniteBlock extends PluginBase implements Listener {
 	public $make_Queue = [ ];
 	public $messages;
 	public $mineFile, $mineSettings;
+	public $m_version = 1;
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		
 		$this->initMessage ();
+		$this->messagesUpdate();
 		
 		$this->config = new Config ( $this->getDataFolder () . "blocks-data.yml", Config::YAML );
 		$this->config_Data = $this->config->getAll ();
@@ -228,6 +230,17 @@ class InfiniteBlock extends PluginBase implements Listener {
 	}
 	public function get($var) {
 		return $this->messages [$this->messages ["default-language"] . "-" . $var];
+	}
+	public function messagesUpdate() {
+		if (! isset ( $this->messages ["default-language"] ["m_version"] )) {
+			$this->saveResource ( "messages.yml", true );
+			$this->messages = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
+		} else {
+			if ($this->messages ["default-language"] ["m_version"] < $this->m_version) {
+				$this->saveResource ( "messages.yml", true );
+				$this->messages = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
+			}
+		}
 	}
 	public function registerCommand($name, $fallback = "", $description = "", $usage = "", $permission) {
 		$commandMap = $this->getServer ()->getCommandMap ();
