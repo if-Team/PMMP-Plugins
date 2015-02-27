@@ -142,21 +142,21 @@ class GoodSPAWN extends PluginBase implements Listener {
 	public function onPlace(BlockPlaceEvent $event) {
 		if ($event->getPlayer ()->isOp ()) return;
 		if ($this->checkSpawn ( $event->getBlock (), 5 )) {
-			$this->message ( $player, $this->get ( "cannot-spawn-modify" ) );
+			$this->message ( $event->getPlayer (), $this->get ( "cannot-spawn-modify" ) );
 			$event->setCancelled ();
 		}
 	}
 	public function onBreak(BlockBreakEvent $event) {
 		if ($event->getPlayer ()->isOp ()) return;
 		if ($this->checkSpawn ( $event->getBlock (), 5 )) {
-			$this->message ( $player, $this->get ( "cannot-spawn-modify" ) );
+			$this->message ( $event->getPlayer (), $this->get ( "cannot-spawn-modify" ) );
 			$event->setCancelled ();
 		}
 	}
 	public function onTouch(PlayerInteractEvent $event) {
 		if ($event->getPlayer ()->isOp ()) return;
 		if ($this->checkSpawn ( $event->getBlock (), 5 )) {
-			$this->message ( $player, $this->get ( "cannot-spawn-modify" ) );
+			$this->message ( $event->getPlayer (), $this->get ( "cannot-spawn-modify" ) );
 			$event->setCancelled ();
 		}
 	}
@@ -167,7 +167,7 @@ class GoodSPAWN extends PluginBase implements Listener {
 			}
 			if ($event->getDamager () instanceof Player) {
 				if ($this->checkSpawn ( $event->getDamager (), 5 )) {
-					$this->message ( $player, $this->get ( "cannot-spawn-pvp" ) );
+					$this->message ( $event->getDamager (), $this->get ( "cannot-spawn-pvp" ) );
 					$event->setCancelled ();
 				}
 			}
