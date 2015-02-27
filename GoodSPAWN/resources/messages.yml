@@ -20,5 +20,8 @@ ko-setspawn-complete: "스폰설정이 완료되었습니다 ( * 계속 추가�
 ko-spawnclear-complete: "스폰설정 초기화가 완료되었습니다"
 ko-spawn-list-not-exist: "스폰설정이 되어있지 않습니다 !"
 
+ko-cannot-spawn-modify: "스폰지역을 수정할 수 없습니다 ! ( 권한부족 )"
+ko-cannot-spawn-pvp: "스폰지역에서의 PVP는 허용되지 않습니다"
+
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/blob/master/GoodSPAWN/resources/messages.yml

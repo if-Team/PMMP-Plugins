@@ -15,10 +15,16 @@ use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
 use pocketmine\Player;
 use pocketmine\event\player\PlayerDeathEvent;
+use pocketmine\event\block\BlockPlaceEvent;
+use pocketmine\math\Vector3;
+use pocketmine\event\block\BlockBreakEvent;
+use pocketmine\event\player\PlayerInteractEvent;
+use pocketmine\event\entity\EntityDamageEvent;
+use pocketmine\event\entity\EntityDamageByEntityEvent;
 
 class GoodSPAWN extends PluginBase implements Listener {
 	public $config, $config_Data;
-	public $m_version = 1;
+	public $m_version = 2;
 	public $spawn_queue = [ ];
 	public $death_queue = [ ];
 	public function onEnable() {
@@ -107,7 +113,7 @@ class GoodSPAWN extends PluginBase implements Listener {
 					$player->teleport ( $pos [0], $pos [1], $pos [2] );
 					$this->message ( $player, $this->get ( "spawn-teleport-complete" ) );
 				} else {
-					$this->alert($player, $this->get("spawn-list-not-exist"));
+					$this->alert ( $player, $this->get ( "spawn-list-not-exist" ) );
 				}
 				break;
 			case $this->get ( "commands-setspawn" ) :
@@ -120,6 +126,52 @@ class GoodSPAWN extends PluginBase implements Listener {
 				break;
 		}
 		return true;
+	}
+	public function checkSpawn(Vector3 $tpos, $range = 3) {
+		foreach ( $this->config_Data ["spawns"] as $index => $item ) {
+			$epos = explode ( ":", $this->config_Data ["spawns"] [$index] );
+			
+			$dx = ( int ) abs ( $tpos->x - $epos [0] );
+			$dy = ( int ) abs ( $tpos->y - $epos [1] );
+			$dz = ( int ) abs ( $tpos->z - $epos [2] );
+			
+			if ($dx <= $range and $dy <= $range and $dz <= $range) return true;
+		}
+		return false;
+	}
+	public function onPlace(BlockPlaceEvent $event) {
+		if ($event->getPlayer ()->isOp ()) return;
+		if ($this->checkSpawn ( $event->getBlock (), 5 )) {
+			$this->message ( $player, $this->get ( "cannot-spawn-modify" ) );
+			$event->setCancelled ();
+		}
+	}
+	public function onBreak(BlockBreakEvent $event) {
+		if ($event->getPlayer ()->isOp ()) return;
+		if ($this->checkSpawn ( $event->getBlock (), 5 )) {
+			$this->message ( $player, $this->get ( "cannot-spawn-modify" ) );
+			$event->setCancelled ();
+		}
+	}
+	public function onTouch(PlayerInteractEvent $event) {
+		if ($event->getPlayer ()->isOp ()) return;
+		if ($this->checkSpawn ( $event->getBlock (), 5 )) {
+			$this->message ( $player, $this->get ( "cannot-spawn-modify" ) );
+			$event->setCancelled ();
+		}
+	}
+	public function onDamage(EntityDamageEvent $event) {
+		if ($event instanceof EntityDamageByEntityEvent) {
+			if ($event->getEntity () instanceof Player) {
+				if ($this->checkSpawn ( $event->getEntity (), 5 )) $event->setCancelled ();
+			}
+			if ($event->getDamager () instanceof Player) {
+				if ($this->checkSpawn ( $event->getDamager (), 5 )) {
+					$this->message ( $player, $this->get ( "cannot-spawn-pvp" ) );
+					$event->setCancelled ();
+				}
+			}
+		}
 	}
 	public function message($player, $text = "", $mark = null) {
 		if ($mark == null) $mark = $this->get ( "default-prefix" );
