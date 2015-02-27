@@ -3,7 +3,7 @@
 
 #PLEASE SET HERE TO YOUR LANGUAGE PREFIX
 default-language: ko
-
+m_version: 1
 
 #(EN) ENGLISH
 en-infinite: "infinite"
@@ -47,6 +47,10 @@ ko-help-page-mine: "/무제한 광산 - 블럭들이 광물을 무한히 생성"
 ko-help-page-del: "/무제한 삭제 - 생성한 무제한블럭 영역을 삭제"
 ko-help-page-list: "/무제한 목록 - 생성한 무제한블럭 영역목록 확인"
 ko-help-page-clear: "/무제한 초기화 - 생성한 무제한블럭 영역 초기화"
+ko-help-page-mine-add: "/무제한 광물추가 - 광산에 리젠되는 광물을 추가"
+ko-help-page-mine-del: "/무제한 광물삭제 - 광산에 리젠되는 광물을 삭제"
+ko-help-page-mine-list: "/무제한 광물목록 - 광산에 리젠되는 광물목록 확인"
+
 
 ko-default-prefix: "[ 서버 ]"
 ko-complete-pos1: "pos1이 선택되었습니다"
@@ -73,6 +77,18 @@ ko-there-is-no-list: "해당하는 목록이 없습니다 !"
 ko-area-delete-complete: "영역 삭제를 완료했습니다!"
 ko-can-not-find-area: "영역을 찾을 수 없습니다"
 ko-only-in-game: "인게임 내에서만 사용가능 합니다"
+ko-is-must-numeric: '해당 옵션은 숫자여야 합니다 !'
+
+
+ko-infinite-mine-option-add: "광물추가"
+ko-mine-option-add-help: "/무제한 광물추가 <블럭번호> <1/100 같은 확률>"
+ko-mine-option-add-complete: "광물추가가 완료되었습니다"
+ko-infinite-mine-option-del: "광물삭제"
+ko-mine-option-del-help: "/무제한 광물삭제 <블럭번호>"
+ko-mine-option-del-complete: "광물삭제가 완료되었습니다"
+ko-infinite-mine-option-list: "광물목록"
+ko-mine-option-item-desc: "번 블럭 , 확률 : "
+
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
-# https://github.com/if-Team/Personal/tree/master/HmHmmHm/AnnouncePro/resources/message.yml
+# https://github.com/if-Team/PMMP-Plugins/blob/master/InfiniteBlock/resources/messages.yml

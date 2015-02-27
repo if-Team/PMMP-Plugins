@@ -15,12 +15,14 @@ use pocketmine\utils\Config;
 use pocketmine\level\Position;
 use pocketmine\item\Item;
 use pocketmine\block\Block;
+use pocketmine\item\Tool;
+use pocketmine\entity\Entity;
 
 class InfiniteBlock extends PluginBase implements Listener {
 	public $config, $config_Data, $index;
 	public $make_Queue = [ ];
 	public $messages;
-	public $mineSettings;
+	public $mineFile, $mineSettings;
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		
@@ -60,6 +62,9 @@ class InfiniteBlock extends PluginBase implements Listener {
 	public function onDisable() {
 		$this->config->setAll ( $this->config_Data );
 		$this->config->save ();
+		
+		$this->mineFile->setAll ( $this->mineSettings );
+		$this->mineFile->save ();
 	}
 	public function onTouch(PlayerInteractEvent $event) {
 		if (isset ( $this->make_Queue [$event->getPlayer ()->getName ()] )) {
@@ -99,7 +104,7 @@ class InfiniteBlock extends PluginBase implements Listener {
 			
 			$pos = $this->areaPosCast ( $this->make_Queue [$player->getName ()] ["pos1"], $this->make_Queue [$player->getName ()] ["pos2"] );
 			
-			$checkOverapArea = $this->checkOverlap ( $pos [0], $pos [1], $pos [2], $pos [3], $pos [4], $pos [5]);
+			$checkOverapArea = $this->checkOverlap ( $pos [0], $pos [1], $pos [2], $pos [3], $pos [4], $pos [5] );
 			
 			if ($checkOverapArea != false) {
 				if (! isset ( $this->make_Queue [$player->getName ()] ["overrap"] )) {
@@ -110,7 +115,7 @@ class InfiniteBlock extends PluginBase implements Listener {
 					return;
 				} else {
 					while ( 1 ) {
-						$checkOverapArea = $this->checkOverlap ( $pos [0], $pos [1], $pos [2], $pos [3], $pos [4], $pos [5]);
+						$checkOverapArea = $this->checkOverlap ( $pos [0], $pos [1], $pos [2], $pos [3], $pos [4], $pos [5] );
 						if ($checkOverapArea == false) break;
 						
 						$this->removeAreaById ( $checkOverapArea ["ID"] );
@@ -138,15 +143,54 @@ class InfiniteBlock extends PluginBase implements Listener {
 				$event->setCancelled ();
 				$drops = $event->getBlock ()->getDrops ( $event->getItem () );
 				foreach ( $drops as $drop )
-					//if ($drop [2] > 0) $event->getPlayer ()->getInventory ()->addItem ( Item::get (...$drop));
+					// if ($drop [2] > 0) $event->getPlayer ()->getInventory ()->addItem ( Item::get (...$drop));
 					if ($drop [2] > 0) $event->getPlayer ()->getInventory ()->addItem ( Item::get (...$drop));
 				$event->getBlock ()->getLevel ()->setBlock ( $event->getBlock (), Block::get ( $this->randomMine () ) );
+				
+				if($event->getItem() instanceof Tool){
+					$reflection_class = new \ReflectionClass ( $event->getItem() );
+					$property = $reflection_class->getProperty ( 'meta' );
+					$property->setAccessible ( true );
+					
+					$meta = $property->getValue ( $event->getItem() );
+					
+					if($event->getItem()->isHoe()){
+						if(($event->getBlock () instanceof Block) and ($event->getBlock ()->getId() === Block::GRASS or $event->getBlock ()->getId() === Block::DIRT)){
+							$meta++;
+						}
+					}elseif(($event->getBlock () instanceof Entity) and ! $event->getItem()->isSword()){
+						$meta += 2;
+					}else{
+						$meta++;
+					}
+					
+					$property->setValue ( $event->getItem(), $meta );
+				}
 			} else {
 				$event->setCancelled ();
 				$drops = $event->getBlock ()->getDrops ( $event->getItem () );
 				foreach ( $drops as $drop )
-					//if ($drop [2] > 0) $event->getPlayer ()->getInventory ()->addItem ( Item::get (...$drop));
+					// if ($drop [2] > 0) $event->getPlayer ()->getInventory ()->addItem ( Item::get (...$drop));
 					if ($drop [2] > 0) $event->getPlayer ()->getInventory ()->addItem ( Item::get (...$drop));
+				if($event->getItem() instanceof Tool){
+					$reflection_class = new \ReflectionClass ( $event->getItem() );
+					$property = $reflection_class->getProperty ( 'meta' );
+					$property->setAccessible ( true );
+						
+					$meta = $property->getValue ( $event->getItem() );
+						
+					if($event->getItem()->isHoe()){
+						if(($event->getBlock () instanceof Block) and ($event->getBlock ()->getId() === Block::GRASS or $event->getBlock ()->getId() === Block::DIRT)){
+							$meta++;
+						}
+					}elseif(($event->getBlock () instanceof Entity) and ! $event->getItem()->isSword()){
+						$meta += 2;
+					}else{
+						$meta++;
+					}
+						
+					$property->setValue ( $event->getItem(), $meta );
+				}
 			}
 		}
 	}
@@ -179,7 +223,8 @@ class InfiniteBlock extends PluginBase implements Listener {
 		$this->saveResource ( "messages.yml", false );
 		$this->saveResource ( "mine-settings.yml", false );
 		$this->messages = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
-		$this->mineSettings = (new Config ( $this->getDataFolder () . "mine-settings.yml", Config::YAML ))->getAll ();
+		$this->mineFile = new Config ( $this->getDataFolder () . "mine-settings.yml", Config::YAML );
+		$this->mineSettings = $this->mineFile->getAll ();
 	}
 	public function get($var) {
 		return $this->messages [$this->messages ["default-language"] . "-" . $var];
@@ -201,6 +246,9 @@ class InfiniteBlock extends PluginBase implements Listener {
 			$this->message ( $player, $this->get ( "help-page-del" ) );
 			$this->message ( $player, $this->get ( "help-page-list" ) );
 			$this->message ( $player, $this->get ( "help-page-clear" ) );
+			$this->message ( $player, $this->get ( "help-page-mine-add" ) );
+			$this->message ( $player, $this->get ( "help-page-mine-del" ) );
+			$this->message ( $player, $this->get ( "help-page-mine-list" ) );
 			return true;
 		}
 		switch ($args [0]) {
@@ -251,12 +299,48 @@ class InfiniteBlock extends PluginBase implements Listener {
 				$this->config_Data = [ ];
 				$this->message ( $player, $this->get ( "infinite-cleared" ) );
 				break;
+			case $this->get ( "infinite-mine-option-add" ) :
+				if (! isset ( $args [1] ) or ! is_numeric ( $args [1] )) {
+					$this->message ( $player, $this->get ( "mine-option-add-help" ) );
+					$this->message ( $player, $this->get ( "is-must-numeric" ) );
+					return;
+				}
+				if (! isset ( $args [2] )) {
+					$this->message ( $player, $this->get ( "mine-option-add-help" ) );
+					return;
+				}
+				$probability = explode ( "/", $args [2] );
+				if (! isset ( $probability [1] )) {
+					$this->message ( $player, $this->get ( "mine-option-add-help" ) );
+					return;
+				}
+				$this->mineSettings ["mine-probability"] [( int ) $args [1]] = ( int ) round ( $probability [1] / $probability [0] );
+				$this->message ( $player, $this->get ( "mine-option-add-complete" ) );
+				break;
+			case $this->get ( "infinite-mine-option-del" ) :
+				if (! isset ( $args [1] ) or ! is_numeric ( $args [1] )) {
+					$this->message ( $player, $this->get ( "mine-option-del-help" ) );
+					$this->message ( $player, $this->get ( "is-must-numeric" ) );
+					return;
+				}
+				unset ( $this->mineSettings ["mine-probability"] );
+				$this->message ( $player, $this->get ( "mine-option-del-complete" ) );
+				break;
+			case $this->get ( "infinite-mine-option-list" ) :
+				$list = "";
+				foreach ( $this->mineSettings ["mine-probability"] as $index => $item )
+					$list .= "[ " . $index . $this->get ( "mine-option-item-desc" ) . $item . " ] ";
+				$this->message ( $player, $list );
+				break;
 			default :
 				$this->message ( $player, $this->get ( "help-page-add" ) );
 				$this->message ( $player, $this->get ( "help-page-mine" ) );
 				$this->message ( $player, $this->get ( "help-page-del" ) );
 				$this->message ( $player, $this->get ( "help-page-list" ) );
 				$this->message ( $player, $this->get ( "help-page-clear" ) );
+				$this->message ( $player, $this->get ( "help-page-mine-add" ) );
+				$this->message ( $player, $this->get ( "help-page-mine-del" ) );
+				$this->message ( $player, $this->get ( "help-page-mine-list" ) );
 				break;
 		}
 		return true;
@@ -293,7 +377,7 @@ class InfiniteBlock extends PluginBase implements Listener {
 	}
 	public function checkOverlap($startX, $endX, $startY, $endY, $startZ, $endZ) {
 		foreach ( $this->config_Data as $area ) {
-			if (isset ( $area ["startX"] )) if ((($area ["startX"] < $startX and $area ["endX"] > $startX) or ($area ["startX"] < $endX and $area ["endX"] > $endX)) and (($area ["startY"] < $startY and $area ["endY"] > $startY) or ($area ["startY"] < $endY and $area ["endY"] > $endY)) and (($area ["startZ"] < $startZ and $area ["endZ"] > $startZ) or ($area ["endZ"] < $endZ and $area ["endZ"] > $endZ))) return $area;
+			if (isset ( $area ["startX"] )) if ((($area ["startX"] <= $startX and $area ["endX"] >= $startX) or ($area ["startX"] <= $endX and $area ["endX"] >= $endX)) and (($area ["startY"] < $startY and $area ["endY"] >= $startY) or ($area ["startY"] < $endY and $area ["endY"] > $endY)) and (($area ["startZ"] < $startZ and $area ["endZ"] > $startZ) or ($area ["endZ"] < $endZ and $area ["endZ"] > $endZ))) return $area;
 		}
 		return false;
 	}
