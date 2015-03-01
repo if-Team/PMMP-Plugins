@@ -1,6 +1,6 @@
 name: CreativeEconomy
 main: CreativeEconomy\CreativeEconomy
-version: 1.0-non-alpha
+version: 0.1-Alpha
 author: hm
 api: [1.4.1]
 
@@ -8,8 +8,6 @@ permissions:
  creativeeconomy.commands.buy:
   default: true
  creativeeconomy.commands.sell:
-  default: true
- creativeeconomy.commands.buylist:
   default: true
  creativeeconomy.commands.ce:
   default: OP
