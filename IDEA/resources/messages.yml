@@ -1,0 +1,49 @@
+# IF YOU NEED A SOME OTHER LANGUAGE SETTINGS #
+# YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
+
+#PLEASE SET HERE TO YOUR LANGUAGE PREFIX
+default-language: ko
+m_version: 1
+
+#(EN) ENGLISH
+en-default-prefix: "[ Server ]"
+
+en-idea: "idea"
+en-synchro: "synchro"
+en-shift: "shift"
+ko-cancel: "cancel"
+
+en-all-queue-cancelled: "ALL QUEUE IS CANCELLED"
+en-synchro-sequence-start: "START IDEA SYNCHRO SEQUENCE"
+en-shift-sequence-start: "START IDEA SHIFT SEQUENCE"
+en-please-make-dicision: "TOUCH THE DESIRED POSITION (OR /IDEA CANCEL)"
+en-idea-doesnt-exist: "IDEA DOESN'T EXIST! SYNCHRONIZE FAILED!"
+en-idea-is-breakdown: "IDEA CHUNK IS BREAKDOWN, SYNCHRONIZE FAILED!"
+en-idea-instance-synchro-100: "IDEA = INSTANCE 100% SYNCHRONIZED"
+
+en-help-synchro: "/IDEA SYNCHRO - CHANGE THIS CHUNK TO IDEA"
+en-help-shift: "/IDEA SHIFT - CHANGE IDEA TO THIS CHUNK"
+en-help-cancel: "/IDEA CANCEL - ALL QUEUE CANCEL"
+
+#(KO) KOREAN
+ko-default-prefix: "[ 서버 ]"
+
+ko-idea: "이데아"
+ko-synchro: "동조"
+ko-shift: "교체"
+ko-cancel: "중단"
+
+ko-all-queue-cancelled: "모든 큐가 취소되었습니다"
+ko-synchro-sequence-start: "이데아 청크 동조를 시작합니다"
+ko-shift-sequence-start: "이데아 청크 교체를 시작합니다"
+ko-please-make-dicision: "원하는 위치를 터치하거나 '/이데아 중단'으로 중단가능"
+ko-idea-doesnt-exist: "이데아가 존재하지 않습니다 ! 동조실패 !"
+ko-idea-is-breakdown: "이데아청크가 불러와지지 않습니다 ! 동조실패 !"
+ko-idea-instance-synchro-100: "이데아와 인스턴스가 100% 동조 되었습니다 !"
+
+ko-help-synchro: "/이데아 동조 - 해당 청크를 이데아 청크화"
+ko-help-shift: "/이데아 교체 - 이데아청크를 해당 청크로 교체"
+ko-help-cancel: "/이데아 중단 - 동조또는 교체의 선택을 중지"
+
+# AND YOU CAN PROVIDE YOUR TRANSLATION       #
+# https://github.com/if-Team/PMMP-Plugins/tree/master/IDEA/resources/message.yml

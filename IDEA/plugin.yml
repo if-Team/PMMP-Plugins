@@ -1,0 +1,9 @@
+name: IDEA
+main: IDEA\IDEA
+version: 0.1-Alpha
+author: hm
+api: [1.4.1]
+
+permissions:
+ idea.synchro:
+  default: OP
