@@ -29,6 +29,7 @@ ko-ur-not-use-market: "상점을 이용할 권한이 없습니다 !"
 ko-you-can-buy-or-sell: "해당아이템을 구매또는 판매 하시겠습니까?"
 ko-buy-or-sell-help-command: " /구매 <수량> 또는 /판매 <수량>"
 ko-market-completely-destroyed: "상점이 성공적으로 파괴되었습니다 !"
+ko-please-choose-item: "먼저 상점에서 아이템을 선택해주세요 !"
 
 ko-commands-ce-help1: "/창조경제 생성 <아이디:값>"
 ko-commands-ce-help2: "/창조경제 자동생성"

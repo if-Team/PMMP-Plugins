@@ -17,7 +17,7 @@ use pocketmine\block\Block;
 
 class CreativeEconomy extends PluginBase implements Listener {
 	private static $instance = null;
-	public $messages, $db;
+	public $messages, $db, $marketCount;
 	public $economyAPI = null;
 	public $purchaseQueue = [ ];
 	public function onEnable() {
@@ -25,16 +25,16 @@ class CreativeEconomy extends PluginBase implements Listener {
 		
 		$this->initMessage ();
 		
-		$this->saveResource ( "config.yml", false );
 		$this->saveResource ( "marketPrice.yml", false );
+		$this->saveResource ( "marketCount.yml", false );
 		$this->saveResource ( "en_item_data.yml", false );
-		
 		if ($this->messages ["default-language"] != "en") $this->saveResource ( $this->messages ["default-language"] . "_item_data.yml", false );
 		
 		$this->saveDefaultConfig ();
 		$this->reloadConfig ();
 		
 		$this->db = (new Config ( $this->getDataFolder () . "marketDB.yml", Config::YAML ))->getAll ();
+		$this->marketCount = (new Config ( $this->getDataFolder () . "marketCount.yml", Config::YAML ))->getAll ();
 		
 		if ($this->checkEconomyAPI ()) {
 			$this->economyAPI = \onebone\economyapi\EconomyAPI::getInstance ();
@@ -53,6 +53,10 @@ class CreativeEconomy extends PluginBase implements Listener {
 	public function onDisable() {
 		$save = new Config ( $this->getDataFolder () . "marketDB.yml", Config::YAML );
 		$save->setAll ( $this->db );
+		$save->save ();
+		
+		$save = new Config ( $this->getDataFolder () . "marketCount.yml", Config::YAML );
+		$save->setAll ( $this->marketCount );
 		$save->save ();
 	}
 	public static function getInstance() {
@@ -108,7 +112,7 @@ class CreativeEconomy extends PluginBase implements Listener {
 						(isset ( $args [1] )) ? $this->CreativeEconomy ( $player, $args [1] ) : $this->CreativeEconomy ( $player );
 						break;
 					case $this->get ( "sub-commands-autocreate" ) :
-						(isset ( $args [1] )) ? $this->CreativeEconomy ( $player, $args [1] ) : $this->CreativeEconomy ( $player );
+						$this->CEAutoSet ( $player );
 						break;
 					case $this->get ( "sub-commands-change" ) :
 						(isset ( $args [1] )) ? $this->ChangeMarketPrice ( $player, $args [1] ) : $this->ChangeMarketPrice ( $player );
@@ -127,14 +131,29 @@ class CreativeEconomy extends PluginBase implements Listener {
 		}
 		return true;
 	}
-	public function CEBuyCommand(Player $player, $item = null) {
-		// TODO 명령받는 아이템에 따라 구매처리
+	public function CEBuyCommand(Player $player, $count = 1) {
+		if (! isset ( $this->purchaseQueue [$player->getName ()] )) {
+			$this->message ( $player, $this->get ( "please-choose-item" ) );
+			return;
+		} else {
+			// TODO 아이템에 따라 구매처리
+			return;
+		}
 	}
-	public function CESellCommand(Player $player, $item = null) {
-		// TODO 명령받는 아이템에 따라 판매처리
+	public function CESellCommand(Player $player, $count = 1) {
+		if (! isset ( $this->purchaseQueue [$player->getName ()] )) {
+			$this->message ( $player, $this->get ( "please-choose-item" ) );
+			return;
+		} else {
+			// TODO 아이템에 따라 판매처리
+			return;
+		}
 	}
 	public function CreativeEconomy(Player $player, $item = null) {
 		// TODO 터치한 위치에 자동 쇼케이스 작업기능
+	}
+	public function CEAutoSet() {
+		// TODO 1줄 전자동 상점설치
 	}
 	public function ChangeMarketPrice(Player $player, $item = null) {
 		// TODO 기본가격시세를 입력된 값으로 설정
