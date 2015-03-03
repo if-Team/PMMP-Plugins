@@ -1,0 +1,11 @@
+name: ExchangeItem
+version: "1.0"
+author: onebone
+api: [1.9.0]
+main: onebone\exchangeitem\ExchangeItem
+
+commands:
+  exchange: 
+    description: Allows player to exchange items
+    permission: exchangeitem.command.exchangeitem
+    usage: /exchange <player>
