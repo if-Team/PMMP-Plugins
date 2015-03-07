@@ -1,6 +1,6 @@
 name: InfiniteBlock
 main: InfiniteBlock\InfiniteBlock
-version: 0.2-alpha
+version: 0.3-alpha
 author: hm
 api: [1.4.1]
 

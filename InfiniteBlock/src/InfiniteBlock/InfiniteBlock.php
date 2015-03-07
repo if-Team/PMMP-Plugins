@@ -17,10 +17,14 @@ use pocketmine\item\Item;
 use pocketmine\block\Block;
 use pocketmine\item\Tool;
 use pocketmine\entity\Entity;
+use pocketmine\event\block\BlockUpdateEvent;
+use pocketmine\event\entity\ItemSpawnEvent;
 
 class InfiniteBlock extends PluginBase implements Listener {
 	public $config, $config_Data, $index;
 	public $make_Queue = [ ];
+	public $breakQueue = [ ];
+	public $itemQueue = [ ];
 	public $messages;
 	public $mineFile, $mineSettings;
 	public $m_version = 1;
@@ -141,57 +145,49 @@ class InfiniteBlock extends PluginBase implements Listener {
 	public function onBreak(BlockBreakEvent $event) {
 		$area = $this->getArea ( $event->getBlock ()->x, $event->getBlock ()->y, $event->getBlock ()->z );
 		if ($area != false) {
+			$block = $event->getBlock ();
+			$x = $block->x + 0.5;
+			$y = $block->y + 0.5;
+			$z = $block->z + 0.5;
 			if ($area ["is-mine"] == true) {
-				$event->setCancelled ();
 				$drops = $event->getBlock ()->getDrops ( $event->getItem () );
 				foreach ( $drops as $drop )
 					// if ($drop [2] > 0) $event->getPlayer ()->getInventory ()->addItem ( Item::get (...$drop));
 					if ($drop [2] > 0) $event->getPlayer ()->getInventory ()->addItem ( Item::get (...$drop));
-				$event->getBlock ()->getLevel ()->setBlock ( $event->getBlock (), Block::get ( $this->randomMine () ) );
-				
-				if($event->getItem() instanceof Tool){
-					$reflection_class = new \ReflectionClass ( $event->getItem() );
-					$property = $reflection_class->getProperty ( 'meta' );
-					$property->setAccessible ( true );
-					
-					$meta = $property->getValue ( $event->getItem() );
-					
-					if($event->getItem()->isHoe()){
-						if(($event->getBlock () instanceof Block) and ($event->getBlock ()->getId() === Block::GRASS or $event->getBlock ()->getId() === Block::DIRT)){
-							$meta++;
-						}
-					}elseif(($event->getBlock () instanceof Entity) and ! $event->getItem()->isSword()){
-						$meta += 2;
-					}else{
-						$meta++;
-					}
-					
-					$property->setValue ( $event->getItem(), $meta );
-				}
+				$this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"] = Block::get ( $this->randomMine () );
+				$this->itemQueue ["{$x}:{$y}:{$z}"] = $drops;
 			} else {
-				$event->setCancelled ();
 				$drops = $event->getBlock ()->getDrops ( $event->getItem () );
 				foreach ( $drops as $drop )
 					// if ($drop [2] > 0) $event->getPlayer ()->getInventory ()->addItem ( Item::get (...$drop));
 					if ($drop [2] > 0) $event->getPlayer ()->getInventory ()->addItem ( Item::get (...$drop));
-				if($event->getItem() instanceof Tool){
-					$reflection_class = new \ReflectionClass ( $event->getItem() );
-					$property = $reflection_class->getProperty ( 'meta' );
+				$this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"] = $block;
+				$this->itemQueue ["{$x}:{$y}:{$z}"] = $drops;
+			}
+		}
+	}
+	public function onAir(BlockUpdateEvent $event) {
+		$block = $event->getBlock ();
+		if (isset ( $this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"] ))
+			if ($block->getId () == Block::AIR){
+				$event->getBlock ()->getLevel ()->setBlock ( $block, $this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"], false, true );
+				unset($this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"]);
+		}
+	}
+	public function onDrops(ItemSpawnEvent $event) {
+		$e = $event->getEntity ();
+		$vec = "{$e->x}:{$e->y}:{$e->z}";
+		if (isset ( $this->itemQueue [$vec] )) {
+			unset ( $this->itemQueue [$vec] );
+				
+			$reflection_class = new \ReflectionClass ( $e );
+				
+			foreach ($reflection_class->getProperties() as $properties){
+				if($properties->getName() == 'age'){
+					$property = $reflection_class->getProperty ( 'age' );
 					$property->setAccessible ( true );
-						
-					$meta = $property->getValue ( $event->getItem() );
-						
-					if($event->getItem()->isHoe()){
-						if(($event->getBlock () instanceof Block) and ($event->getBlock ()->getId() === Block::GRASS or $event->getBlock ()->getId() === Block::DIRT)){
-							$meta++;
-						}
-					}elseif(($event->getBlock () instanceof Entity) and ! $event->getItem()->isSword()){
-						$meta += 2;
-					}else{
-						$meta++;
-					}
-						
-					$property->setValue ( $event->getItem(), $meta );
+					if($property->getValue($event->getEntity ()) == 0)
+						$property->setValue ( $event->getEntity (), 7000 );
 				}
 			}
 		}
@@ -283,7 +279,7 @@ class InfiniteBlock extends PluginBase implements Listener {
 				if (isset ( $args [1] )) {
 					$this->deleteArea ( $player, $args [1] );
 				} else {
-					$this->message ( $player, $this->get ( "infinite-del-help" ) );
+					$this->deleteArea ( $player );
 				}
 				break;
 			case $this->get ( "infinite-list" ) :
@@ -408,11 +404,13 @@ class InfiniteBlock extends PluginBase implements Listener {
 				"endZ" => $endZ ];
 		return $this->index ++;
 	}
-	public function deleteArea(Player $player, $areanumber) {
-		if ($this->getAreaById ( $id ) != false) {
-			$this->removeAreaById ( $id );
-			$this->message ( $player, $this->get ( "area-delete-complete" ) );
-			return true;
+	public function deleteArea(Player $player, $id = null) {
+		if($id != null){
+			if ($this->getAreaById ( $id ) != false) {
+				$this->removeAreaById ( $id );
+				$this->message ( $player, $this->get ( "area-delete-complete" ) );
+				return true;
+			}
 		}
 		$area = $this->getArea ( $player->x, $player->y, $player->z );
 		if ($area == false) {
