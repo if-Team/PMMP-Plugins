@@ -28,6 +28,7 @@ class GoodSPAWN extends PluginBase implements Listener {
 	public $m_version = 2;
 	public $spawn_queue = [ ];
 	public $death_queue = [ ];
+	public $unprotect_queue = [ ];
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		
@@ -90,6 +91,7 @@ class GoodSPAWN extends PluginBase implements Listener {
 	}
 	public function onDeath(PlayerDeathEvent $event) {
 		if (! isset ( $this->death_queue [$event->getEntity ()->getName ()] )) $this->death_queue [$event->getEntity ()->getName ()] = 1;
+		if (isset ( $this->unprotect_queue [$event->getEntity ()->getName ()] )) unset ( $this->unprotect_queue [$event->getEntity ()->getName ()] );
 	}
 	public function getSpawn(Player $player) {
 		if (! isset ( $this->config_Data ["spawns"] ) or count ( $this->config_Data ["spawns"] ) == 0) return null;
@@ -164,16 +166,20 @@ class GoodSPAWN extends PluginBase implements Listener {
 	public function onDamage(EntityDamageEvent $event) {
 		if ($event instanceof EntityDamageByEntityEvent) {
 			if ($event->getEntity () instanceof Player) {
-				if ($this->checkSpawn ( $event->getEntity (), 5 )) $event->setCancelled ();
+				if (! isset ( $this->unprotect_queue [$event->getEntity ()->getName ()] )) {
+					if ($this->checkSpawn ( $event->getEntity (), 5 )) $event->setCancelled ();
+				}
 			}
 			if ($event->getDamager () instanceof Player) {
+				$this->unprotect_queue [$event->getDamager ()->getName ()] = 1;
 				if ($this->checkSpawn ( $event->getDamager (), 5 )) {
-					$this->message ( $event->getDamager (), $this->get ( "cannot-spawn-pvp" ) );
 					$event->setCancelled ();
+					return;
 				}
 			} else {
 				if ($this->checkSpawn ( $event->getDamager (), 5 )) {
 					$event->setCancelled ();
+					return;
 				}
 			}
 		}
