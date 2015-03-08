@@ -39,8 +39,10 @@ badwords:
 - 샷업
 - 샫업
 - 지랄
+- g랄
+- 지ral
 - 랄지
-- Z랄
+- z랄
 - 염병
 - 엠병
 - 옘병
@@ -69,6 +71,7 @@ badwords:
 - 꼬봉
 - 염창
 - 엠창
+- 앰창
 - 엄창
 - 씨부랄
 - 빠큐
@@ -628,6 +631,9 @@ badwords:
 - 쉐끼
 - 쇅끼
 - 쇡끼
+- 개가튼넘
+- 개같네
+- 개처럼
 - fuck
 - shutup
 - shit
@@ -636,7 +642,6 @@ badwords:
 - suck
 - ass
 - damm
-- xx
 - bitch
 - jazi
 - jaji
@@ -647,7 +652,5 @@ badwords:
 - jot
 - ssiba
 - sipal
-- nimi
 - zot
-- G랄
 ...

@@ -6,7 +6,10 @@ default-language: ko
 
 #(EN) ENGLISH
 #(KO) KOREAN
-
-
+ko-some-badwords-found: "[ 서버 ] 특정 비속어가 감지되었습니다 !"
+ko-badwords-nickname: "부적절한 닉네임"
+ko-too-much-use-badwords: "비속어 과다사용"
+ko-be-careful-about-badwords: "[ 서버 ] 유사 비속어 필터에 주의해주세요 (상당히 민감 !)"
+ko-if-point-over-3-to-ban: "[ 서버 ] 비속어를 3회이상 사용시 30분간 밴처리 됩니다 주의 !"
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/tree/master/Gentleman/resources/messages.yml
