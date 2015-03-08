@@ -12,24 +12,34 @@ use pocketmine\command\Command;
 use pocketmine\event\player\PlayerGameModeChangeEvent;
 use pocketmine\nbt\tag\Int;
 use pocketmine\scheduler\CallbackTask;
+use pocketmine\event\player\PlayerCommandPreprocessEvent;
 
 class GameModeKick extends PluginBase implements Listener {
 	public function onEnable() {
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
-	// ex: gamemode 1 hm
-	public function ServerCommand(ServerCommandEvent $event) {
+	public function userCommand(PlayerCommandPreprocessEvent $event) {
+		$command = $event->getMessage ();
+		$sender = $event->getPlayer ();
+		
+		$command = explode ( ' ', $command );
+		if ($command [0] != 'gamemode') return;
+		
+		$event->setCancelled ();
+		$this->gameModeChange ( $command, $sender );
+	}
+	public function serverCommand(ServerCommandEvent $event) {
 		$command = $event->getCommand ();
 		$sender = $event->getSender ();
 		
 		$command = explode ( ' ', $command );
+		if ($command [0] != 'gamemode') return;
 		
-		if ($command [0] != 'gamemode')
-			return;
-		
+		$event->setCancelled ();
+		$this->gameModeChange ( $command, $sender );
+	}
+	public function gameModeChange($command, $sender) {
 		if (isset ( $command [1] ) and isset ( $command [2] )) {
-			$event->setCancelled ();
-			
 			$gameMode = Server::getGamemodeFromString ( $command [1] );
 			
 			if ($gameMode === - 1) {
@@ -38,7 +48,6 @@ class GameModeKick extends PluginBase implements Listener {
 			
 			$target = $sender;
 			if (isset ( $command [2] )) {
-				// $target = $sender->getServer ()->getPlayerExact ( $command [2] )->getPlayer ();
 				$target = $sender->getServer ()->getPlayerExact ( $command [2] );
 				
 				if ($target === null) {
@@ -75,14 +84,10 @@ class GameModeKick extends PluginBase implements Listener {
 		}
 	}
 	public function setGamemode(Player $player, $gm) {
-		if ($gm < 0 or $gm > 3 or $player->gamemode === $gm) {
-			return\false;
-		}
+		if ($gm < 0 or $gm > 3 or $player->gamemode === $gm) {return \false;}
 		
 		$player->getServer ()->getPluginManager ()->callEvent ( $ev = new PlayerGameModeChangeEvent ( $player, ( int ) $gm ) );
-		if ($ev->isCancelled ()) {
-			return false;
-		}
+		if ($ev->isCancelled ()) {return false;}
 		if (($player->gamemode & 0x01) === ($gm & 0x01)) {
 			$player->gamemode = $gm;
 			$player->sendMessage ( TextFormat::DARK_AQUA . "게임모드가 변경되었습니다, " . Server::getGamemodeString ( $player->getGamemode () ) . ".\n" );
@@ -98,13 +103,8 @@ class GameModeKick extends PluginBase implements Listener {
 		
 		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
 				$this,
-				"Kick" 
-		], [ 
-				$player 
-		] ), 50 );
-		/*
-		 * $spawnPosition = $player->getSpawn (); $pk = new StartGamePacket (); $pk->seed = $player->level->getSeed (); $pk->x = $player->x; $pk->y = $player->y + $player->getEyeHeight (); $pk->z = $player->z; $pk->spawnX = ( int ) $spawnPosition->x; $pk->spawnY = ( int ) $spawnPosition->y; $pk->spawnZ = ( int ) $spawnPosition->z; $pk->generator = 1; // 0 old, 1 infinite, 2 flat $pk->gamemode = $player->gamemode & 0x01; $pk->eid = 0; // Always use EntityID as zero for the actual player $player->dataPacket ( $pk ); $player->sendSettings ();
-		 */
+				"Kick" ], [ 
+				$player ] ), 50 );
 		return true;
 	}
 	public function Kick(Player $player) {
