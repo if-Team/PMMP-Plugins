@@ -1,0 +1,5 @@
+name: Gentleman
+main: Gentleman\Gentleman
+version: 0.1-Alpha
+author: hm
+api: [1.4.1]
