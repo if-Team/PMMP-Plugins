@@ -158,6 +158,7 @@ class GoodSPAWN extends PluginBase implements Listener {
 	}
 	public function onTouch(PlayerInteractEvent $event) {
 		if ($event->getPlayer ()->isOp ()) return;
+		$this->unprotect_queue [$event->getDamager ()->getName ()] = 1;
 		if ($this->checkSpawn ( $event->getBlock (), 5 )) {
 			$this->message ( $event->getPlayer (), $this->get ( "cannot-spawn-modify" ) );
 			$event->setCancelled ();
