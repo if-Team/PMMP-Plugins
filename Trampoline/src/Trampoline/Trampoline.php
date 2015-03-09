@@ -10,6 +10,7 @@ use pocketmine\Player;
 use pocketmine\utils\TextFormat;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\player\PlayerKickEvent;
+use pocketmine\block\Block;
 
 class Trampoline extends PluginBase implements Listener {
 	public $fallen = [ ];
@@ -36,10 +37,17 @@ class Trampoline extends PluginBase implements Listener {
 		} else if ($id == 35 and $data == 4) {
 			$this->fallenQueue ( $player );
 			$player->addEntityMotion ( 0, 0, 1, 0 );
-		} else if ($id and $data == 10) {
+		} else if ($id == 35 and $data == 10) {
 			$this->fallenQueue ( $player );
 			$player->addEntityMotion ( 0, 0, 20, 0 );
+		} else if ($id == Block::DIAMOND_BLOCK) {
+			$x = - \sin ( $player->yaw / 180 * M_PI ) *\cos ( $player->pitch / 180 * M_PI );
+			$y = - \sin ( $player->pitch / 180 * M_PI );
+			$z =\cos ( $player->yaw / 180 * M_PI ) *\cos ( $player->pitch / 180 * M_PI );
+			$this->fallenQueue ( $player );
+			$player->addEntityMotion ( 0, $x * 4, $y * 4, $z * 4 );
 		} else {
+			
 			// right
 			$x = ( int ) round ( $player->x - 1.5 );
 			$y = ( int ) round ( $player->y );
@@ -54,7 +62,7 @@ class Trampoline extends PluginBase implements Listener {
 			} else if ($id == 35 and $data == 4) {
 				$this->fallenQueue ( $player );
 				$player->addEntityMotion ( 0, + 1, 0, 0 );
-			} else if ($id and $data == 10) {
+			} else if ($id == 35 and $data == 10) {
 				$this->fallenQueue ( $player );
 				$player->addEntityMotion ( 0, + 20, 0, 0 );
 			} else {
@@ -72,7 +80,7 @@ class Trampoline extends PluginBase implements Listener {
 				} else if ($id == 35 and $data == 4) {
 					$this->fallenQueue ( $player );
 					$player->addEntityMotion ( 0, - 1, 0, 0 );
-				} else if ($id and $data == 10) {
+				} else if ($id == 35 and $data == 10) {
 					$this->fallenQueue ( $player );
 					$player->addEntityMotion ( 0, - 20, 0, 0 );
 				} else {
@@ -90,7 +98,7 @@ class Trampoline extends PluginBase implements Listener {
 					} else if ($id == 35 and $data == 4) {
 						$this->fallenQueue ( $player );
 						$player->addEntityMotion ( 0, 0, 0, + 1 );
-					} else if ($id and $data == 10) {
+					} else if ($id == 35 and $data == 10) {
 						$this->fallenQueue ( $player );
 						$player->addEntityMotion ( 0, 0, 0, + 20 );
 					} else {
@@ -108,7 +116,7 @@ class Trampoline extends PluginBase implements Listener {
 						} else if ($id == 35 and $data == 4) {
 							$this->fallenQueue ( $player );
 							$player->addEntityMotion ( 0, 0, 0, - 1 );
-						} else if ($id and $data == 10) {
+						} else if ($id == 35 and $data == 10) {
 							$this->fallenQueue ( $player );
 							$player->addEntityMotion ( 0, 0, 0, - 20 );
 						}
