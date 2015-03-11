@@ -11,5 +11,23 @@ m_version: 1
 #(KO) KOREAN
 ko-default-prefix: "[ 서버 ]"
 
+ko-already-touched: "이미 아이템을 얻은 상자입니다 !"
+ko-successfully-get-item: "아이템을 얻었습니다 !"
+
+ko-item-iron-sword: "철칼"
+ko-item-wooden-sword: "나무칼"
+ko-item-stone-sword: "돌칼"
+ko-item-diamond-sword: "다이아몬드칼"
+ko-item-gold-sword: "금칼"
+ko-item-wooden-axe: "나무도끼"
+ko-item-stone-axe: "돌도끼"
+ko-item-diamond-axe: "다이아몬드도끼"
+ko-item-gold-axe: "금도끼"
+ko-item-arrow: "화살"
+ko-item-bow: "활"
+ko-item-apple: "사과"
+ko-item-cooked_porkchop: "구워진돼지고기"
+ko-item-cooked_chicken: "치킨"
+
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/tree/master/HungerGames/resources/message.yml
