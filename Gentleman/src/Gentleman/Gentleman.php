@@ -9,6 +9,7 @@ use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\utils\TextFormat;
 use pocketmine\event\player\PlayerCommandPreprocessEvent;
 use pocketmine\event\player\PlayerLoginEvent;
+use pocketmine\Player;
 
 class Gentleman extends PluginBase implements Listener {
 	public $list, $messages;
@@ -26,7 +27,7 @@ class Gentleman extends PluginBase implements Listener {
 		if ($find != null) {
 			$event->getPlayer ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "some-badwords-found" ) . ": " . $find );
 			$event->setCancelled ();
-			$this->updatePoint ( $event->getPlayer ()->getAddress () );
+			$this->cautionNotice ( $event->getPlayer (), $find );
 			return;
 		}
 		if (isset ( $oldChat )) {
@@ -34,7 +35,7 @@ class Gentleman extends PluginBase implements Listener {
 			if ($find != null) {
 				$event->getPlayer ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "some-badwords-found" ) . ": " . $find );
 				$event->setCancelled ();
-				$this->updatePoint ( $event->getPlayer ()->getAddress () );
+				$this->cautionNotice ( $event->getPlayer (), $find );
 				return;
 			}
 		}
@@ -45,7 +46,8 @@ class Gentleman extends PluginBase implements Listener {
 		if ($find != null) {
 			$event->getPlayer ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "some-badwords-found" ) . ": " . $find );
 			$event->setCancelled ();
-			$this->updatePoint ( $event->getPlayer ()->getAddress () );
+			$this->cautionNotice ( $event->getPlayer (), $find );
+			// $this->updatePoint ( $event->getPlayer ()->getAddress () );
 		}
 	}
 	public function onLogin(PlayerLoginEvent $event) {
@@ -56,13 +58,22 @@ class Gentleman extends PluginBase implements Listener {
 			$this->updatePoint ( $event->getPlayer ()->getAddress () );
 		}
 	}
+	public function cautionNotice(Player $player, $word) {
+		$this->getServer ()->getLogger ()->alert ( $this->get ( "some-badwords-found" ) );
+		$this->getServer ()->getLogger ()->alert ( $player->getName () . "> " . $word );
+		foreach ( $this->getServer ()->getOnlinePlayers () as $online ) {
+			if (! $online->isOp ()) continue;
+			$player->sendMessage ( TextFormat::RED . $this->get ( "some-badwords-found" ) );
+			$player->sendMessage ( TextFormat::RED . $player->getName () . "> " . $word );
+		}
+	}
 	public function updatePoint($address) {
 		if (isset ( $this->banPoint [$address] )) {
 			$this->banPoint [$address] ++;
-			if ($this->banPoint [$address] >= 3) {
+			if ($this->banPoint [$address] >= 4) {
 				foreach ( $this->getServer ()->getOnlinePlayers () as $player )
 					$player->kick ( $this->get ( "too-much-use-badwords" ) );
-				$this->getServer ()->blockAddress ( $address, 1800 );
+				$this->getServer ()->blockAddress ( $address, 600 );
 				unset ( $this->banPoint [$address] );
 				return;
 			}
