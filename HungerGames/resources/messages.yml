@@ -1,0 +1,15 @@
+# IF YOU NEED A SOME OTHER LANGUAGE SETTINGS #
+# YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
+
+#PLEASE SET HERE TO YOUR LANGUAGE PREFIX
+default-language: ko
+m_version: 1
+
+#(EN) ENGLISH
+//NOT YET
+
+#(KO) KOREAN
+ko-default-prefix: "[ 서버 ]"
+
+# AND YOU CAN PROVIDE YOUR TRANSLATION       #
+# https://github.com/if-Team/PMMP-Plugins/tree/master/HungerGames/resources/message.yml
