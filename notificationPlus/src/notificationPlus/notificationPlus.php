@@ -55,6 +55,7 @@ class notificationPlus extends PluginBase implements Listener {
 			if ($line != null) $message .= " (" . $index . " : " . $line . ") ";
 		if ($message == null) return;
 		$message = $this->get ( "sign-set" ) . " : " . $event->getPlayer ()->getName () . "  : " . $message;
+		$message = $message . " (X:" . $event->getBlock ()->x . " Y:" . $event->getBlock ()->y . " Z: " . $event->getBlock ()->z . ")";
 		$this->getServer ()->getLogger ()->info ( $message );
 		foreach ( $this->getServer ()->getOnlinePlayers () as $player )
 			if ($player->isOp ()) $this->message ( $player, $message );
