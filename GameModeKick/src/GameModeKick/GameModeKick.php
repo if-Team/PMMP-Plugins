@@ -22,8 +22,9 @@ class GameModeKick extends PluginBase implements Listener {
 		$command = $event->getMessage ();
 		$sender = $event->getPlayer ();
 		
+		echo $command;
 		$command = explode ( ' ', $command );
-		if ($command [0] != 'gamemode') return;
+		if ($command [0] != '/gamemode') return;
 		
 		$event->setCancelled ();
 		$this->gameModeChange ( $command, $sender );
@@ -66,25 +67,28 @@ class GameModeKick extends PluginBase implements Listener {
 				$sender->sendMessage ( TextFormat::RED . "사용방법 : /gamemode <모드번호> [유저명]" );
 			}
 		}
-		
-		if ($gameMode !== $target->getGamemode ()) {
-			// $target->setGamemode ( $gameMode ); // set
-			$this->setGamemode ( $target, $gameMode ); // set
+		if (isset ( $command [1] )) {
+			$target = $sender;
+			$gameMode = Server::getGamemodeFromString ( $command [1] );
 			if ($gameMode !== $target->getGamemode ()) {
-				$sender->sendMessage ( TextFormat::RED . "게임모드 전환에 실패했습니다," . $target->getName () );
-			} else {
-				if ($target === $sender) {
-					Command::broadcastCommandMessage ( $sender, "게임모드를 전환합니다, " . strtolower ( Server::getGamemodeString ( $gameMode ) ) . " mode" );
+				// $target->setGamemode ( $gameMode ); // set
+				$this->setGamemode ( $target, $gameMode ); // set
+				if ($gameMode !== $target->getGamemode ()) {
+					$sender->sendMessage ( TextFormat::RED . "게임모드 전환에 실패했습니다," . $target->getName () );
 				} else {
-					Command::broadcastCommandMessage ( $sender, $target->getName () . "님의 게임모드를 " . strtolower ( Server::getGamemodeString ( $gameMode ) ) . " 로 변경했습니다." );
+					if ($target === $sender) {
+						Command::broadcastCommandMessage ( $sender, "게임모드를 전환합니다, " . strtolower ( Server::getGamemodeString ( $gameMode ) ) . " mode" );
+					} else {
+						Command::broadcastCommandMessage ( $sender, $target->getName () . "님의 게임모드를 " . strtolower ( Server::getGamemodeString ( $gameMode ) ) . " 로 변경했습니다." );
+					}
 				}
+			} else {
+				$sender->sendMessage ( $target->getName () . "님은 이미 " . strtolower ( Server::getGamemodeString ( $gameMode ) . " 모드입니다." ) );
 			}
-		} else {
-			$sender->sendMessage ( $target->getName () . "님은 이미 " . strtolower ( Server::getGamemodeString ( $gameMode ) . " 모드입니다." ) );
 		}
 	}
 	public function setGamemode(Player $player, $gm) {
-		if ($gm < 0 or $gm > 3 or $player->gamemode === $gm) {return \false;}
+		if ($gm < 0 or $gm > 3 or $player->gamemode === $gm) {return\false;}
 		
 		$player->getServer ()->getPluginManager ()->callEvent ( $ev = new PlayerGameModeChangeEvent ( $player, ( int ) $gm ) );
 		if ($ev->isCancelled ()) {return false;}

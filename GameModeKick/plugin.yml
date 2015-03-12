@@ -1,6 +1,6 @@
 name: GameModeKick
 main: GameModeKick\GameModeKick
-version: 1.1-alpha
+version: 1.2-alpha
 author: hm
 api: [1.4.1]
 load: STARTUP
