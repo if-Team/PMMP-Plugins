@@ -48,8 +48,6 @@ class notificationPlus extends PluginBase implements Listener {
 		
 		if (! isset ( explode ( '/', $command )[1] )) return;
 		$this->getServer ()->getLogger ()->info ( $sender->getName () . " : " . $command );
-		foreach ( $this->getServer ()->getOnlinePlayers () as $player )
-			if ($player->isOp ()) $this->message ( $player, $sender->getName () . " : " . $command );
 	}
 	public function signChange(SignChangeEvent $event) {
 		$message = "";
