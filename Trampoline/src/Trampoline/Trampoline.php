@@ -11,6 +11,7 @@ use pocketmine\utils\TextFormat;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\player\PlayerKickEvent;
 use pocketmine\block\Block;
+use pocketmine\scheduler\CallbackTask;
 
 class Trampoline extends PluginBase implements Listener {
 	public $fallen = [ ];
@@ -137,6 +138,13 @@ class Trampoline extends PluginBase implements Listener {
 		} else {
 			$this->fallen [$player->getName ()] = 1;
 		}
+		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
+				$this,
+				"fallenTimeOut" ], [ 
+				$player->getName () ] ), 20 * 10 );
+	}
+	public function fallenTimeOut($name) {
+		if (isset ( $this->fallen [$name] )) unset ( $this->fallen [$name] );
 	}
 	public function fallenDamagePrevent(EntityDamageEvent $event) {
 		if ($event->getCause () == EntityDamageEvent::CAUSE_FALL) {
