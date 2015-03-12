@@ -44,7 +44,7 @@ class SimpleArea extends PluginBase implements Listener {
 	public $checkMove = [ ];
 	public $economyAPI = null;
 	public $signTemplate = null;
-	public $m_version = 1;
+	public $m_version = 2;
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		if (self::$instance == null) self::$instance = $this;
@@ -295,13 +295,14 @@ class SimpleArea extends PluginBase implements Listener {
 					} else {
 						if ($this->checkMove [$event->getPlayer ()->getName ()] == $area ["ID"]) return;
 					}
+					$this->checkMove [$event->getPlayer ()->getName ()] = $area ["ID"];
 					if (isset ( $area ["resident"] [0] )) {
 						if ($this->getServer ()->getOfflinePlayer ( $area ["resident"] [0] ) == null) return;
 						if ($area ["resident"] [0] == $player->getName ()) {
 							if ($this->db [$player->getLevel ()->getFolderName ()]->isHome ( $area ["ID"] )) {
 								$this->message ( $player, $this->get ( "welcome-area-sir" ) );
 							} else {
-								if ($this->config_Data ["show-opland-message"] == true) $this->message ( $player, $this->get ( "welcome-area-master" ) );
+								if ($this->checkShowPreventMessage ()) $this->message ( $player, $this->get ( "welcome-area-master" ) );
 							}
 							$welcome = $this->db [$player->getLevel ()->getFolderName ()]->getWelcome ( $area ["ID"] );
 							if ($welcome != null) {
@@ -312,18 +313,15 @@ class SimpleArea extends PluginBase implements Listener {
 							return;
 						}
 						if ($this->getServer ()->getOfflinePlayer ( $area ["resident"] [0] )->isOp ()) {
-							if ($this->config_Data ["show-opland-message"] == true) $this->message ( $player, $this->get ( "here-is-op-land" ) . $area ["resident"] [0] );
+							if ($this->checkShowPreventMessage ()) $this->message ( $player, $this->get ( "here-is-op-land" ) . $area ["resident"] [0] );
 						} else {
-							$this->message ( $player, $this->get ( "here-is" ) . $area ["resident"] [0] . $this->get ( "his-land" ) );
+							if ($this->checkShowPreventMessage ()) $this->message ( $player, $this->get ( "here-is" ) . $area ["resident"] [0] . $this->get ( "his-land" ) );
 						}
 						$welcome = $this->db [$player->getLevel ()->getFolderName ()]->getWelcome ( $area ["ID"] );
-						if ($welcome != null) $this->message ( $player, $welcome, $this->config_Data ["welcome-prefix"] );
+						if ($welcome != null) if ($this->checkShowPreventMessage ()) $this->message ( $player, $welcome, $this->config_Data ["welcome-prefix"] );
 					} else {
-						$this->message ( $player, $this->get ( "you-can-buy-here" ) . $this->config_Data ["economy-home-price"] . " " . $this->get ( "show-buy-command" ) );
+						if ($this->checkShowPreventMessage ()) $this->message ( $player, $this->get ( "you-can-buy-here" ) . $this->config_Data ["economy-home-price"] . " " . $this->get ( "show-buy-command" ) );
 					}
-					return;
-				} else {
-					if (isset ( $this->checkMove [$event->getPlayer ()->getName ()] )) unset ( $this->checkMove [$event->getPlayer ()->getName ()] );
 					return;
 				}
 			}
@@ -443,12 +441,15 @@ class SimpleArea extends PluginBase implements Listener {
 				}
 				switch (strtolower ( $args [0] )) {
 					case $this->get ( "commands-sa-whiteworld" ) :
+						if (! $player->isOp ()) return false;
 						$this->whiteWorld ( $player );
 						break;
 					case $this->get ( "commands-sa-make" ) :
+						if (! $player->isOp ()) return false;
 						$this->protectArea ( $player );
 						break;
 					case $this->get ( "commands-sa-cancel" ) :
+						if (! $player->isOp ()) return false;
 						if (isset ( $this->make_Queue [$player->getName ()] )) {
 							unset ( $this->make_Queue [$player->getName ()] );
 							$this->message ( $player, $this->get ( "commands-sa-cancel-help" ) );
@@ -459,15 +460,19 @@ class SimpleArea extends PluginBase implements Listener {
 						}
 						break;
 					case $this->get ( "commands-sa-delete" ) :
+						// TODO extremperm
 						$this->deleteHome ( $player );
 						break;
 					case $this->get ( "commands-sa-protect" ) :
+						// TODO extremperm
 						$this->protect ( $player );
 						break;
 					case $this->get ( "commands-sa-pvp" ) :
+						// TODO extremperm
 						$this->pvp ( $player );
 						break;
 					case $this->get ( "commands-sa-allow" ) :
+						// TODO extremperm
 						if (isset ( $args [1] )) {
 							$this->allowBlock ( $player, $args [1] );
 						} else {
@@ -475,6 +480,7 @@ class SimpleArea extends PluginBase implements Listener {
 						}
 						break;
 					case $this->get ( "commands-sa-forbid" ) :
+						// TODO extremperm
 						if (isset ( $args [1] )) {
 							$this->forbidBlock ( $player, $args [1] );
 						} else {
@@ -482,6 +488,7 @@ class SimpleArea extends PluginBase implements Listener {
 						}
 						break;
 					case $this->get ( "commands-sa-arealimit" ) :
+						if (! $player->isOp ()) return false;
 						if (isset ( $args [1] )) {
 							$this->homelimit ( $player, $args [1] );
 						} else {
@@ -489,9 +496,11 @@ class SimpleArea extends PluginBase implements Listener {
 						}
 						break;
 					case $this->get ( "commands-sa-economy" ) :
+						if (! $player->isOp ()) return false;
 						$this->enableEonomy ( $player );
 						break;
 					case $this->get ( "commands-sa-areaprice" ) :
+						if (! $player->isOp ()) return false;
 						if (isset ( $args [1] )) {
 							$this->homeprice ( $player, $args [1] );
 						} else {
@@ -499,6 +508,7 @@ class SimpleArea extends PluginBase implements Listener {
 						}
 						break;
 					case $this->get ( "commands-sa-hourtax" ) :
+						if (! $player->isOp ()) return false;
 						if (isset ( $args [1] )) {
 							$this->setHourTax ( $player, $args [1] );
 						} else {
@@ -506,6 +516,7 @@ class SimpleArea extends PluginBase implements Listener {
 						}
 						break;
 					case $this->get ( "commands-sa-fence" ) :
+						if (! $player->isOp ()) return false;
 						if (isset ( $args [1] )) {
 							$this->setFenceType ( $player, $args [1] );
 						} else {
@@ -513,9 +524,11 @@ class SimpleArea extends PluginBase implements Listener {
 						}
 						break;
 					case $this->get ( "commands-sa-message" ) :
+						if (! $player->isOp ()) return false;
 						$this->IhatePreventMessage ( $player );
 						break;
 					case $this->get ( "commands-sa-setarea" ) :
+						if (! $player->isOp ()) return false;
 						$this->IhateSetMake ( $player );
 						break;
 					case $this->get ( "commands-sa-help" ) :
@@ -526,9 +539,11 @@ class SimpleArea extends PluginBase implements Listener {
 						}
 						break;
 					case $this->get ( "commands-sa-changemode" ) :
+						if (! $player->isOp ()) return false;
 						$this->changeMode ( $player );
 						break;
 					case $this->get ( "commands-sa-invensave" ) :
+						if (! $player->isOp ()) return false;
 						$this->setInvenSave ( $player );
 						break;
 					default :
