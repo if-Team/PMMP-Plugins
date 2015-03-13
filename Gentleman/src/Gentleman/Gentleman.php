@@ -13,8 +13,10 @@ use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\scheduler\CallbackTask;
 use pocketmine\event\player\PlayerMoveEvent;
+use pocketmine\event\block\SignChangeEvent;
 
 class Gentleman extends PluginBase implements Listener {
+	private static $instance = null;
 	public $list, $messages;
 	public $badQueue = [ ];
 	public $preventQueue = [ ];
@@ -25,8 +27,14 @@ class Gentleman extends PluginBase implements Listener {
 		@mkdir ( $this->getDataFolder () );
 		$this->initMessage ();
 		$this->messagesUpdate ();
+		
+		if (self::$instance == null) self::$instance = $this;
+		
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 		// $this->parseXE_DB_to_YML (); //*CONVERT ONLY*
+	}
+	public static function getInstance() {
+		return static::$instance;
 	}
 	public function onChat(PlayerChatEvent $event) {
 		$find = $this->checkSwearWord ( $event->getMessage () );
@@ -47,7 +55,21 @@ class Gentleman extends PluginBase implements Listener {
 		}
 		$this->oldChat [$event->getPlayer ()->getName ()] = $event->getMessage ();
 	}
+	public function signPlace(SignChangeEvent $event) {
+		if ($event->getPlayer ()->isOp ()) return;
+		$message = "";
+		foreach ( $event->getLines () as $line )
+			$message .= $line;
+		$find = $this->checkSwearWord ( $message );
+		if ($find != null) {
+			$event->getPlayer ()->sendMessage ( TextFormat::RED . $this->get ( "some-badwords-found" ) . ": " . $find );
+			$event->getPlayer ()->sendMessage ( TextFormat::RED . $this->get ( "you-need-to-change-your-name" ) );
+			$event->setCancelled ();
+			$this->cautionNotice ( $event->getPlayer (), $find );
+		}
+	}
 	public function userCommand(PlayerCommandPreprocessEvent $event) {
+		if ($event->getPlayer ()->isOp ()) return;
 		if (isset ( $this->preventQueue [$event->getPlayer ()->getName ()] )) {
 			$event->setCancelled ();
 			return;
@@ -63,6 +85,7 @@ class Gentleman extends PluginBase implements Listener {
 		}
 	}
 	public function onJoin(PlayerJoinEvent $event) {
+		if ($event->getPlayer ()->isOp ()) return;
 		$find = $this->checkSwearWord ( $event->getPlayer ()->getName () );
 		if ($find != null) {
 			$event->setJoinMessage ( "" );

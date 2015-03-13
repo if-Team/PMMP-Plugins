@@ -22,7 +22,6 @@ class GameModeKick extends PluginBase implements Listener {
 		$command = $event->getMessage ();
 		$sender = $event->getPlayer ();
 		
-		echo $command;
 		$command = explode ( ' ', $command );
 		if ($command [0] != '/gamemode') return;
 		
