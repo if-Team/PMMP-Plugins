@@ -8,17 +8,23 @@ use pocketmine\utils\Config;
 use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\utils\TextFormat;
 use pocketmine\event\player\PlayerCommandPreprocessEvent;
-use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\Player;
+use pocketmine\event\player\PlayerJoinEvent;
+use pocketmine\event\player\PlayerQuitEvent;
+use pocketmine\scheduler\CallbackTask;
+use pocketmine\event\player\PlayerMoveEvent;
 
 class Gentleman extends PluginBase implements Listener {
 	public $list, $messages;
-	public $badqueue = [ ];
+	public $badQueue = [ ];
+	public $preventQueue = [ ];
 	public $oldChat = [ ];
 	public $banPoint;
+	public $m_version = 1;
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		$this->initMessage ();
+		$this->messagesUpdate ();
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 		// $this->parseXE_DB_to_YML (); //*CONVERT ONLY*
 	}
@@ -42,21 +48,44 @@ class Gentleman extends PluginBase implements Listener {
 		$this->oldChat [$event->getPlayer ()->getName ()] = $event->getMessage ();
 	}
 	public function userCommand(PlayerCommandPreprocessEvent $event) {
-		$find = $this->checkSwearWord ( $event->getMessage () );
-		if ($find != null) {
-			$event->getPlayer ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "some-badwords-found" ) . ": " . $find );
+		if (isset ( $this->preventQueue [$event->getPlayer ()->getName ()] )) {
 			$event->setCancelled ();
-			$this->cautionNotice ( $event->getPlayer (), $find );
-			// $this->updatePoint ( $event->getPlayer ()->getAddress () );
+			return;
+		}
+		$command = explode ( ' ', $command );
+		if ($command [0] = "/me" or $command [0] = "/tell") {
+			$find = $this->checkSwearWord ( $event->getMessage () );
+			if ($find != null) {
+				$event->getPlayer ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "some-badwords-found" ) . ": " . $find );
+				$event->setCancelled ();
+				$this->cautionNotice ( $event->getPlayer (), $find );
+			}
 		}
 	}
-	public function onLogin(PlayerLoginEvent $event) {
+	public function onJoin(PlayerJoinEvent $event) {
 		$find = $this->checkSwearWord ( $event->getPlayer ()->getName () );
 		if ($find != null) {
-			$event->setCancelled ();
-			$event->setKickMessage ( $this->get ( "badwords-nickname" ) );
-			$this->updatePoint ( $event->getPlayer ()->getAddress () );
+			$event->setJoinMessage ( "" );
+			$event->getPlayer ()->sendMessage ( TextFormat::RED . $this->get ( "some-badwords-found" ) . ": " . $find );
+			$event->getPlayer ()->sendMessage ( TextFormat::RED . $this->get ( "you-need-to-change-your-name" ) );
+			$this->preventQueue [$event->getPlayer ()->getName ()] = $find;
+			$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
+					$this,
+					"executeKick" ], [ 
+					$event->getPlayer () ] ), 140 );
 		}
+	}
+	public function executeKick($player) {
+		if ($player instanceof Player) $player->close ( "Gentleman-Plugin", "Gentleman-Plugin" );
+	}
+	public function onQuit(PlayerQuitEvent $event) {
+		if (isset ( $this->preventQueue [$event->getPlayer ()->getName ()] )) {
+			$event->setQuitMessage ( "" );
+			unset ( $this->preventQueue [$event->getPlayer ()->getName ()] );
+		}
+	}
+	public function onMove(PlayerMoveEvent $event) {
+		if (isset ( $this->preventQueue [$event->getPlayer ()->getName ()] )) $event->setCancelled ();
 	}
 	public function cautionNotice(Player $player, $word) {
 		$this->getServer ()->getLogger ()->alert ( $this->get ( "some-badwords-found" ) );
@@ -65,28 +94,6 @@ class Gentleman extends PluginBase implements Listener {
 			if (! $online->isOp ()) continue;
 			$player->sendMessage ( TextFormat::RED . $this->get ( "some-badwords-found" ) );
 			$player->sendMessage ( TextFormat::RED . $player->getName () . "> " . $word );
-		}
-	}
-	public function updatePoint($address) {
-		if (isset ( $this->banPoint [$address] )) {
-			$this->banPoint [$address] ++;
-			if ($this->banPoint [$address] >= 4) {
-				foreach ( $this->getServer ()->getOnlinePlayers () as $player )
-					$player->kick ( $this->get ( "too-much-use-badwords" ) );
-				$this->getServer ()->blockAddress ( $address, 600 );
-				unset ( $this->banPoint [$address] );
-				return;
-			}
-			foreach ( $this->getServer ()->getOnlinePlayers () as $player ) {
-				$player->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "be-careful-about-badwords" ) );
-				$player->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "if-point-over-3-to-ban" ) );
-			}
-		} else {
-			$this->banPoint [$address] = 1;
-			foreach ( $this->getServer ()->getOnlinePlayers () as $player ) {
-				$player->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "be-careful-about-badwords" ) );
-				$player->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "if-point-over-3-to-ban" ) );
-			}
 		}
 	}
 	public function initMessage() {
@@ -104,7 +111,7 @@ class Gentleman extends PluginBase implements Listener {
 	}
 	public function makeQueue() {
 		foreach ( $this->list ["badwords"] as $badword )
-			$this->badqueue [] = $this->cutWords ( $badword );
+			$this->badQueue [] = $this->cutWords ( $badword );
 	}
 	public function cutWords($str) {
 		$cut_array = array ();
@@ -114,6 +121,17 @@ class Gentleman extends PluginBase implements Listener {
 	}
 	public function get($var) {
 		return $this->messages [$this->messages ["default-language"] . "-" . $var];
+	}
+	public function messagesUpdate() {
+		if (! isset ( $this->messages ["default-language"] ["m_version"] )) {
+			$this->saveResource ( "messages.yml", true );
+			$this->messages = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
+		} else {
+			if ($this->messages ["default-language"] ["m_version"] < $this->m_version) {
+				$this->saveResource ( "messages.yml", true );
+				$this->messages = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
+			}
+		}
 	}
 	public function parseXE_DB_to_YML() {
 		$parseBadwords = file_get_contents ( $this->getDataFolder () . "badwords.txt" );
@@ -130,7 +148,7 @@ class Gentleman extends PluginBase implements Listener {
 	}
 	public function checkSwearWord($word) {
 		$word = $this->cutWords ( $word );
-		foreach ( $this->badqueue as $queue ) { // 비속어단어별 [바,보]
+		foreach ( $this->badQueue as $queue ) { // 비속어단어별 [바,보]
 			$wordLength = count ( $queue );
 			$find_count = [ ];
 			foreach ( $queue as $match_alpha ) { // 비속어글자별 [바], [보]
