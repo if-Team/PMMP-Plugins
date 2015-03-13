@@ -32,6 +32,7 @@ use pocketmine\command\PluginCommand;
 use pocketmine\event\player\PlayerDeathEvent;
 use pocketmine\tile\Sign;
 use pocketmine\event\block\SignChangeEvent;
+use SimpleArea\Event\AreaModifyEvent;
 
 class SimpleArea extends PluginBase implements Listener {
 	private static $instance = null;
@@ -164,11 +165,15 @@ class SimpleArea extends PluginBase implements Listener {
 			if ($this->db [$block->getLevel ()->getFolderName ()]->checkResident ( $area ["ID"], $player->getName () )) return;
 			if ($this->db [$block->getLevel ()->getFolderName ()]->isProtected ( $area ["ID"] )) {
 				if ($this->db [$block->getLevel ()->getFolderName ()]->isAllowOption ( $area ["ID"], $block->getID () . ":" . $block->getDamage () )) return;
+				$this->getServer ()->getPluginManager ()->callEvent ( $ev = new AreaModifyEvent ( $player, $block, AreaModifyEvent::PLACE_PROTECT_AREA ) );
+				if ($ev->isCancelled ()) return;
 				if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "block-change-denied" ) );
 				$event->setCancelled ();
 				return;
 			} else {
 				if ($this->db [$block->getLevel ()->getFolderName ()]->isForbidOption ( $area ["ID"], $block->getID () . ":" . $block->getDamage () )) {
+					$this->getServer ()->getPluginManager ()->callEvent ( $ev = new AreaModifyEvent( $player, $block, AreaModifyEvent::PLACE_FORBID ) );
+					if ($ev->isCancelled ()) return;
 					if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "block-active-denied" ) );
 					$event->setCancelled ();
 				}
@@ -177,10 +182,14 @@ class SimpleArea extends PluginBase implements Listener {
 			if ($this->db [$block->getLevel ()->getFolderName ()]->isWhiteWorld ()) {
 				if ($this->db [$block->getLevel ()->getFolderName ()]->option ["white-protect"] == true) {
 					if ($this->db [$block->getLevel ()->getFolderName ()]->isWhiteWorldAllowOption ( $block->getID () . ":" . $block->getDamage () )) return;
+					$this->getServer ()->getPluginManager ()->callEvent ( $ev = new AreaModifyEvent ( $player, $block, AreaModifyEvent::PLACE_WHITE ) );
+					if ($ev->isCancelled ()) return;
 					if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "whiteworld-change-denied" ) );
 					$event->setCancelled ();
 				} else {
 					if ($this->db [$block->getLevel ()->getFolderName ()]->isWhiteWorldForbidOption ( $block->getID () . ":" . $block->getDamage () )) return;
+					$this->getServer ()->getPluginManager ()->callEvent ( $ev = new AreaModifyEvent ( $player, $block, AreaModifyEvent::PLACE_WHITE_FORBID ) );
+					if ($ev->isCancelled ()) return;
 					if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "block-active-denied" ) );
 					$event->setCancelled ();
 				}
@@ -200,10 +209,14 @@ class SimpleArea extends PluginBase implements Listener {
 			if (isset ( $area ["resident"] [0] )) if ($this->db [$block->getLevel ()->getFolderName ()]->checkResident ( $area ["ID"], $player->getName () )) return;
 			if ($this->db [$block->getLevel ()->getFolderName ()]->isProtected ( $area ["ID"] ) == true) {
 				if ($this->db [$block->getLevel ()->getFolderName ()]->isAllowOption ( $area ["ID"], $block->getID () . ":" . $block->getDamage () )) return;
+				$this->getServer ()->getPluginManager ()->callEvent ( $ev = new AreaModifyEvent ( $player, $block, AreaModifyEvent::BREAK_PROTECT_AREA ) );
+				if ($ev->isCancelled ()) return;
 				if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "block-change-denied" ) );
 				$event->setCancelled ();
 			} else {
 				if ($this->db [$block->getLevel ()->getFolderName ()]->isForbidOption ( $area ["ID"], $block->getID () . ":" . $block->getDamage () )) {
+					$this->getServer ()->getPluginManager ()->callEvent ( $ev = new AreaModifyEvent ( $player, $block, AreaModifyEvent::BREAK_FORBID ) );
+					if ($ev->isCancelled ()) return;
 					if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "block-active-denied" ) );
 					$event->setCancelled ();
 				}
@@ -213,10 +226,14 @@ class SimpleArea extends PluginBase implements Listener {
 		if ($this->db [$block->getLevel ()->getFolderName ()]->isWhiteWorld ()) {
 			if ($this->db [$block->getLevel ()->getFolderName ()]->option ["white-protect"] == true) {
 				if ($this->db [$block->getLevel ()->getFolderName ()]->isWhiteWorldAllowOption ( $block->getID () . ":" . $block->getDamage () )) return;
+				$this->getServer ()->getPluginManager ()->callEvent ( $ev = new AreaModifyEvent ( $player, $block, AreaModifyEvent::BREAK_WHITE ) );
+				if ($ev->isCancelled ()) return;
 				if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "whiteworld-change-denied" ) );
 				$event->setCancelled ();
 			} else {
 				if ($this->db [$block->getLevel ()->getFolderName ()]->isWhiteWorldForbidOption ( $block->getID () . ":" . $block->getDamage () )) return;
+				$this->getServer ()->getPluginManager ()->callEvent ( $ev = new AreaModifyEvent ( $player, $block, AreaModifyEvent::BREAK_WHITE_FORBID ) );
+				if ($ev->isCancelled ()) return;
 				if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "block-active-denied" ) );
 				$event->setCancelled ();
 			}

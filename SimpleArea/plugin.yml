@@ -1,8 +1,9 @@
 name: SimpleArea
 main: SimpleArea\SimpleArea
-version: 0.15.2-alpha
+version: 0.15.3-alpha
 author: hm
 api: [1.4.1]
+load: STARTUP
 
 permissions:
  simplearea.commands.area:

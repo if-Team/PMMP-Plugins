@@ -26,13 +26,13 @@ class InfiniteBlock extends PluginBase implements Listener {
 	public $breakQueue = [ ];
 	public $itemQueue = [ ];
 	public $messages;
-	public $mineFile, $mineSettings;
+	public $mineFile, $mineSettings, $sortedSettings;
 	public $m_version = 1;
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		
 		$this->initMessage ();
-		$this->messagesUpdate();
+		$this->messagesUpdate ();
 		
 		$this->config = new Config ( $this->getDataFolder () . "blocks-data.yml", Config::YAML );
 		$this->config_Data = $this->config->getAll ();
@@ -42,6 +42,8 @@ class InfiniteBlock extends PluginBase implements Listener {
 		
 		$this->registerCommand ( $this->get ( "infinite" ), "InfiniteBlock", $this->get ( "infinite-desc" ), $this->get ( "infinite-help" ), $this->messages ["en-infinite"] );
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
+		
+		new OutEventListner ( $this );
 	}
 	public function mineSort() {
 		$index = array_keys ( $this->mineSettings ["mine-probability"] );
@@ -55,12 +57,12 @@ class InfiniteBlock extends PluginBase implements Listener {
 			$sortedIndex [$item] = ( int ) round ( $exploded [1] / $exploded [0] );
 		}
 		ksort ( $sortedIndex ); // 확률이 낮은 순서부터 오름차 정렬
-		$this->mineSettings ["mine-probability"] = $sortedIndex;
+		$this->sortedSettings = $sortedIndex;
 	}
 	public function randomMine() {
-		$index = array_keys ( $this->mineSettings ["mine-probability"] );
+		$index = array_keys ( $this->sortedSettings );
 		foreach ( $index as $item ) {
-			$rand = rand ( 1, $this->mineSettings ["mine-probability"] [$item] );
+			$rand = rand ( 1, $this->sortedSettings [$item] );
 			if ($rand == 1) {return $item;}
 		}
 		return 1;
@@ -168,10 +170,9 @@ class InfiniteBlock extends PluginBase implements Listener {
 	}
 	public function onAir(BlockUpdateEvent $event) {
 		$block = $event->getBlock ();
-		if (isset ( $this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"] ))
-			if ($block->getId () == Block::AIR){
-				$event->getBlock ()->getLevel ()->setBlock ( $block, $this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"], false, true );
-				unset($this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"]);
+		if (isset ( $this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"] )) if ($block->getId () == Block::AIR) {
+			$event->getBlock ()->getLevel ()->setBlock ( $block, $this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"], false, true );
+			unset ( $this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"] );
 		}
 	}
 	public function onDrops(ItemSpawnEvent $event) {
@@ -179,15 +180,14 @@ class InfiniteBlock extends PluginBase implements Listener {
 		$vec = "{$e->x}:{$e->y}:{$e->z}";
 		if (isset ( $this->itemQueue [$vec] )) {
 			unset ( $this->itemQueue [$vec] );
-				
+			
 			$reflection_class = new \ReflectionClass ( $e );
-				
-			foreach ($reflection_class->getProperties() as $properties){
-				if($properties->getName() == 'age'){
+			
+			foreach ( $reflection_class->getProperties () as $properties ) {
+				if ($properties->getName () == 'age') {
 					$property = $reflection_class->getProperty ( 'age' );
 					$property->setAccessible ( true );
-					if($property->getValue($event->getEntity ()) == 0)
-						$property->setValue ( $event->getEntity (), 7000 );
+					if ($property->getValue ( $event->getEntity () ) == 0) $property->setValue ( $event->getEntity (), 7000 );
 				}
 			}
 		}
@@ -324,6 +324,7 @@ class InfiniteBlock extends PluginBase implements Listener {
 					return;
 				}
 				$this->mineSettings ["mine-probability"] [( int ) $args [1]] = ( int ) round ( $probability [1] / $probability [0] );
+				$this->mineSort ();
 				$this->message ( $player, $this->get ( "mine-option-add-complete" ) );
 				break;
 			case $this->get ( "infinite-mine-option-del" ) :
@@ -333,6 +334,7 @@ class InfiniteBlock extends PluginBase implements Listener {
 					return;
 				}
 				unset ( $this->mineSettings ["mine-probability"] );
+				$this->mineSort ();
 				$this->message ( $player, $this->get ( "mine-option-del-complete" ) );
 				break;
 			case $this->get ( "infinite-mine-option-list" ) :
@@ -405,7 +407,7 @@ class InfiniteBlock extends PluginBase implements Listener {
 		return $this->index ++;
 	}
 	public function deleteArea(Player $player, $id = null) {
-		if($id != null){
+		if ($id != null) {
 			if ($this->getAreaById ( $id ) != false) {
 				$this->removeAreaById ( $id );
 				$this->message ( $player, $this->get ( "area-delete-complete" ) );
