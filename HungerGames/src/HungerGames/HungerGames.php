@@ -25,6 +25,7 @@ use pocketmine\level\Explosion;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageByChildEntityEvent;
+use pocketmine\event\player\PlayerMoveEvent;
 
 class HungerGames extends PluginBase implements Listener {
 	public $settings, $score;
@@ -44,7 +45,7 @@ class HungerGames extends PluginBase implements Listener {
 		$this->messagesUpdate ();
 		
 		$this->settings = (new Config ( $this->getDataFolder () . "settings.yml", Config::YAML, [ ] ))->getAll ();
-		$this->score = new Config ( $this->getDataFolder () . "hunger_data.yml", Config::YAML );
+		$this->score = (new Config ( $this->getDataFolder () . "hunger_data.yml", Config::YAML ))->getAll ();
 		
 		$this->updatePk = new UpdateBlockPacket ();
 		$this->updatePk->meta = 0;
@@ -78,7 +79,15 @@ class HungerGames extends PluginBase implements Listener {
 						Block::GLOWING_OBSIDIAN ] ), 2 );
 				return;
 			}
-			$index = rand ( 0, count ( $this->hungerItem ) - 1 );
+			$rand = mt_rand ( 1, 100 );
+			if ($rand >= 1 and $rand <= 20) {
+				$index = mt_rand ( 0, 8 );
+			} else if ($rand >= 21 and $rand <= 50) {
+				$index = 9;
+			} else if ($rand >= 51 and $rand <= 100) {
+				$index = mt_rand ( 11, 13 );
+			}
+			
 			$this->touchedQueue [$player->getName ()] [$blockPos] = 0;
 			$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
 					$this,
@@ -93,16 +102,29 @@ class HungerGames extends PluginBase implements Listener {
 			if ($armorRand == 1) {
 				$armorContents = $player->getInventory ()->getArmorContents ();
 				if ($armorContents [0] == Item::get ( Item::AIR )) {
-					$armorRand = rand ( 0, 4 );
+					$armorRand = mt_rand ( 0, 4 );
 					$player->getInventory ()->setArmorContents ( $this->armorItem [$armorRand] );
 					$player->getInventory ()->sendArmorContents ( $player );
 					$this->message ( $player, $this->get ( "successfully-get-armor" ) . " : " . $this->armorItemName [$armorRand] );
 					return;
 				}
 			}
-			
-			$player->getInventory ()->addItem ( $this->hungerItem [$index] );
-			$this->message ( $player, $this->get ( "successfully-get-item" ) . " [ " . $this->hungerItemName [$index] . " ]" );
+			if ($index == 9) {
+				foreach ( $player->getInventory ()->getContents () as $inven ) {
+					if ($inven->getID () == Item::BOW) {
+						$player->getInventory ()->addItem ( $this->hungerItem [9] );
+						$this->message ( $player, $this->get ( "successfully-get-item" ) . " [ " . $this->hungerItemName [9] . " ]" );
+						return;
+					}
+				}
+				$player->getInventory ()->addItem ( $this->hungerItem [9] );
+				$this->message ( $player, $this->get ( "successfully-get-item" ) . " [ " . $this->hungerItemName [9] . " ]" );
+				$player->getInventory ()->addItem ( $this->hungerItem [10] );
+				$this->message ( $player, $this->get ( "successfully-get-item" ) . " [ " . $this->hungerItemName [10] . " ]" );
+			} else {
+				$player->getInventory ()->addItem ( $this->hungerItem [$index] );
+				$this->message ( $player, $this->get ( "successfully-get-item" ) . " [ " . $this->hungerItemName [$index] . " ]" );
+			}
 		}
 		
 		if ($block->getID () == Item::CAKE_BLOCK) {
@@ -117,9 +139,7 @@ class HungerGames extends PluginBase implements Listener {
 		foreach ( $this->hungerItem as $index => $hungerItem ) {
 			if ($index > 8) break;
 			if ($event->getItem ()->getId () == $hungerItem->getId ()) {
-				$block = $block->getSide ( 0 );
-				$this->fireblock [$blockPos] ["id"] = $block->getId ();
-				$this->fireblock [$blockPos] ["damage"] = $block->getDamage ();
+				$block = $block->getSide ( 1 );
 				
 				if (! isset ( $this->fireblock [$blockPos] )) {
 					foreach ( $this->getServer ()->getOnlinePlayers () as $player )
@@ -140,9 +160,15 @@ class HungerGames extends PluginBase implements Listener {
 				} else {
 					$this->restoreBlock ( $block->x, $block->y, $block->z );
 				}
+				$this->fireblock [$blockPos] ["id"] = $block->getId ();
+				$this->fireblock [$blockPos] ["damage"] = $block->getDamage ();
 				break;
 			}
 		}
+	}
+	public function onMove(PlayerMoveEvent $event) {
+		$blockPos = round ( $event->getPlayer ()->x ) . "." . round ( $event->getPlayer ()->y - 1 ) . "." . round ( $event->getPlayer ()->z );
+		if (isset ( $this->fireblock [$blockPos] )) $event->getPlayer ()->setOnFire ( 5 );
 	}
 	public function checkArrow(ProjectileLaunchEvent $event) {
 		if ($event->getEntity () instanceof Arrow) {
@@ -196,6 +222,10 @@ class HungerGames extends PluginBase implements Listener {
 				$air,
 				$air ] );
 		$player->getInventory ()->sendArmorContents ( $player );
+		
+		if (isset ( $this->touchedQueue [$event->getPlayer ()->getName ()] )) {
+			unset ( $this->touchedQueue [$event->getPlayer ()->getName ()] );
+		}
 	}
 	public function onAttack(EntityDamageEvent $event) {
 		if ($event instanceof EntityDamageByEntityEvent or $event instanceof EntityDamageByChildEntityEvent) {
@@ -209,10 +239,7 @@ class HungerGames extends PluginBase implements Listener {
 		if (isset ( $this->touchedQueue [$event->getEntity ()->getName ()] )) {
 			if (count ( $this->touchedQueue [$event->getEntity ()->getName ()] ) <= 25) foreach ( $this->touchedQueue [$event->getEntity ()->getName ()] as $pos ) {
 				$pos = explode ( ".", $pos );
-				if (! isset ( $pos [2] )) {
-					echo $pos [0];
-					return;
-				}
+				if (! isset ( $pos [2] )) continue;
 				$this->setBlockPacket ( $event->getEntity (), $pos [0], $pos [1], $pos [2], Block::DIAMOND_BLOCK );
 			}
 			unset ( $this->touchedQueue [$event->getEntity ()->getName ()] );
