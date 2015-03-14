@@ -44,21 +44,16 @@ class HungerGames extends PluginBase implements Listener {
 		$this->initMessage ();
 		$this->messagesUpdate ();
 		
-		$this->settings = (new Config ( $this->getDataFolder () . "settings.yml", Config::YAML, [ ] ))->getAll ();
-		$this->score = (new Config ( $this->getDataFolder () . "hunger_data.yml", Config::YAML ))->getAll ();
+		$this->settings = new Config ( $this->getDataFolder () . "settings.yml", Config::YAML );
+		$this->score = new Config ( $this->getDataFolder () . "hunger_data.yml", Config::YAML );
 		
 		$this->updatePk = new UpdateBlockPacket ();
 		$this->updatePk->meta = 0;
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
 	public function onDisable() {
-		$this->save = new Config ( $this->getDataFolder () . "settings.yml", Config::YAML );
-		$this->save->setAll ( $this->settings );
-		$this->save->save ();
-		
-		$this->save = new Config ( $this->getDataFolder () . "hunger_data.yml", Config::YAML );
-		$this->save->setAll ( $this->score );
-		$this->save->save ();
+		$this->settings->save ();
+		$this->score->save ();
 	}
 	public function onTouch(PlayerInteractEvent $event) {
 		$block = $event->getBlock ();
