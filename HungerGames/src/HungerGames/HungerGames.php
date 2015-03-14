@@ -35,9 +35,8 @@ class HungerGames extends PluginBase implements Listener {
 	public $attackQueue = [ ];
 	public $updatePk;
 	
-	//Dynamic update for Ranking Page feature
+	// Dynamic update for Ranking Page feature
 	const DYNAMIC_UPDATE = true;
-	
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		
@@ -69,11 +68,26 @@ class HungerGames extends PluginBase implements Listener {
 			$event->setCancelled ();
 			if (isset ( $this->touchedQueue [$player->getName ()] [$blockPos] )) {
 				$this->alert ( $player, $this->get ( "already-touched" ) );
+				$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
+						$this,
+						"setBlockPacket" ], [ 
+						$player,
+						$block->x,
+						$block->y,
+						$block->z,
+						Block::GLOWING_OBSIDIAN ] ), 2 );
 				return;
 			}
 			$index = rand ( 0, count ( $this->hungerItem ) - 1 );
 			$this->touchedQueue [$player->getName ()] [$blockPos] = 0;
-			$this->setBlockPacket ( $player, $block->x, $block->y, $block->z, Block::GLOWING_OBSIDIAN );
+			$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
+					$this,
+					"setBlockPacket" ], [ 
+					$player,
+					$block->x,
+					$block->y,
+					$block->z,
+					Block::GLOWING_OBSIDIAN ] ), 2 );
 			
 			$armorRand = rand ( 1, 5 );
 			if ($armorRand == 1) {
@@ -109,7 +123,14 @@ class HungerGames extends PluginBase implements Listener {
 				
 				if (! isset ( $this->fireblock [$blockPos] )) {
 					foreach ( $this->getServer ()->getOnlinePlayers () as $player )
-						$this->setBlockPacket ( $player, $block->x, $block->y, $block->z, Block::FIRE );
+						$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
+								$this,
+								"setBlockPacket" ], [ 
+								$player,
+								$block->x,
+								$block->y,
+								$block->z,
+								Block::FIRE ] ), 2 );
 					$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
 							$this,
 							"restoreBlock" ], [ 
@@ -160,7 +181,7 @@ class HungerGames extends PluginBase implements Listener {
 		$this->updatePk->z = $z;
 		$this->updatePk->block = $block;
 		$this->updatePk->meta = $meta;
-		$player->dataPacket ( $this->updatePk );
+		$player->directDataPacket ( $this->updatePk );
 	}
 	public function onRespawn(PlayerRespawnEvent $event) {
 		$player = $event->getPlayer ();
@@ -204,17 +225,20 @@ class HungerGames extends PluginBase implements Listener {
 		}
 	}
 	public function KillUpdate($murder, $victim) {
-		$md = $this->score->get($murder->getName(), ["kill" => 0, "death" => 0]);
-		$vd = $this->score->get($victim->getName(), ["kill" => 0, "death" => 0]);
+		$md = $this->score->get ( $murder->getName (), [ 
+				"kill" => 0,
+				"death" => 0 ] );
+		$vd = $this->score->get ( $victim->getName (), [ 
+				"kill" => 0,
+				"death" => 0 ] );
 		if ($victim instanceof Player and $murder instanceof Player) {
-			$mi = "[K" . $md ["kill"]++ . "+1/D" . $md ["death"] . "]";
-			$vi = "[K" . $vd ["kill"] . "/D" . $vd ["death"]++ . "+1]";
+			$mi = "[K" . $md ["kill"] ++ . "+1/D" . $md ["death"] . "]";
+			$vi = "[K" . $vd ["kill"] . "/D" . $vd ["death"] ++ . "+1]";
 			$this->getServer ()->broadcastMessage ( TextFormat::RED . $murder->getName () . $mi . " " . $victim->getName () . $vi );
 			
-			$this->score->set($murder->getName(), $md);
-			$this->score->set($victim->getName(), $vd);
-			if (self::DYNAMIC_UPDATE)
-				$this->score->save();
+			$this->score->set ( $murder->getName (), $md );
+			$this->score->set ( $victim->getName (), $vd );
+			if (self::DYNAMIC_UPDATE) $this->score->save ();
 		}
 	}
 	public function initMessage() {
