@@ -69,13 +69,16 @@ class Gentleman extends PluginBase implements Listener {
 		}
 	}
 	public function userCommand(PlayerCommandPreprocessEvent $event) {
+		$command = $event->getMessage ();
+		$sender = $event->getPlayer ();
+		
 		if ($event->getPlayer ()->isOp ()) return;
 		if (isset ( $this->preventQueue [$event->getPlayer ()->getName ()] )) {
 			$event->setCancelled ();
 			return;
 		}
 		$command = explode ( ' ', $command );
-		if ($command [0] = "/me" or $command [0] = "/tell") {
+		if ($command [0] == "/me" or $command [0] == "/tell") {
 			$find = $this->checkSwearWord ( $event->getMessage () );
 			if ($find != null) {
 				$event->getPlayer ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "some-badwords-found" ) . ": " . $find );
