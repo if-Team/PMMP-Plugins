@@ -34,6 +34,10 @@ class HungerGames extends PluginBase implements Listener {
 	public $touchedQueue = [ ], $fireQueue = [ ];
 	public $attackQueue = [ ];
 	public $updatePk;
+	
+	//Dynamic update for Ranking Page feature
+	const DYNAMIC_UPDATE = true;
+	
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		
@@ -41,7 +45,7 @@ class HungerGames extends PluginBase implements Listener {
 		$this->messagesUpdate ();
 		
 		$this->settings = (new Config ( $this->getDataFolder () . "settings.yml", Config::YAML, [ ] ))->getAll ();
-		$this->score = (new Config ( $this->getDataFolder () . "hunger_data.yml", Config::YAML ))->getAll ();
+		$this->score = new Config ( $this->getDataFolder () . "hunger_data.yml", Config::YAML );
 		
 		$this->updatePk = new UpdateBlockPacket ();
 		$this->updatePk->meta = 0;
@@ -200,13 +204,17 @@ class HungerGames extends PluginBase implements Listener {
 		}
 	}
 	public function KillUpdate($murder, $victim) {
+		$md = $this->score->get($murder->getName(), ["kill" => 0, "death" => 0]);
+		$vd = $this->score->get($victim->getName(), ["kill" => 0, "death" => 0]);
 		if ($victim instanceof Player and $murder instanceof Player) {
-			$mi = "[K" . $this->score [$murder->getName ()] ["kill"] . "+1/D" . $this->score [$murder->getName ()] ["death"] . "]";
-			$vi = "[K" . $this->score [$victim->getName ()] ["kill"] . "/D" . $this->score [$victim->getName ()] ["death"] . "+1]";
+			$mi = "[K" . $md ["kill"]++ . "+1/D" . $md ["death"] . "]";
+			$vi = "[K" . $vd ["kill"] . "/D" . $vd ["death"]++ . "+1]";
 			$this->getServer ()->broadcastMessage ( TextFormat::RED . $murder->getName () . $mi . " " . $victim->getName () . $vi );
 			
-			$this->score [$murder->getName ()] ["kill"] ++;
-			$this->score [$victim->getName ()] ["death"] ++;
+			$this->score->set($murder->getName(), $md);
+			$this->score->set($victim->getName(), $vd);
+			if (self::DYNAMIC_UPDATE)
+				$this->score->save();
 		}
 	}
 	public function initMessage() {
