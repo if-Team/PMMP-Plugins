@@ -22,6 +22,8 @@ class GameModeKick extends PluginBase implements Listener {
 		$command = $event->getMessage ();
 		$sender = $event->getPlayer ();
 		
+		if (! $sender->isOp ()) return;
+		
 		$command = explode ( ' ', $command );
 		if ($command [0] != '/gamemode') return;
 		
@@ -87,7 +89,7 @@ class GameModeKick extends PluginBase implements Listener {
 		}
 	}
 	public function setGamemode(Player $player, $gm) {
-		if ($gm < 0 or $gm > 3 or $player->gamemode === $gm) {return\false;}
+		if ($gm < 0 or $gm > 3 or $player->gamemode === $gm) {return \false;}
 		
 		$player->getServer ()->getPluginManager ()->callEvent ( $ev = new PlayerGameModeChangeEvent ( $player, ( int ) $gm ) );
 		if ($ev->isCancelled ()) {return false;}
