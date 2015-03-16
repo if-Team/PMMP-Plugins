@@ -135,6 +135,7 @@ class HungerGames extends PluginBase implements Listener {
 			if ($index > 8) break;
 			if ($event->getItem ()->getId () == $hungerItem->getId ()) {
 				$block = $block->getSide ( 1 );
+				$blockPos = "{$block->x}.{$block->y}.{$block->z}";
 				
 				if (! isset ( $this->fireblock [$blockPos] )) {
 					foreach ( $this->getServer ()->getOnlinePlayers () as $player )
@@ -162,7 +163,7 @@ class HungerGames extends PluginBase implements Listener {
 		}
 	}
 	public function onMove(PlayerMoveEvent $event) {
-		$blockPos = round ( $event->getPlayer ()->x ) . "." . round ( $event->getPlayer ()->y - 1 ) . "." . round ( $event->getPlayer ()->z );
+		$blockPos = round ( $event->getPlayer ()->x ) . "." . round ( $event->getPlayer ()->y ) . "." . round ( $event->getPlayer ()->z );
 		if (isset ( $this->fireblock [$blockPos] )) $event->getPlayer ()->setOnFire ( 5 );
 	}
 	public function checkArrow(ProjectileLaunchEvent $event) {
