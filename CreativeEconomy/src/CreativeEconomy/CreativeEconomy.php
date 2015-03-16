@@ -430,10 +430,12 @@ class CreativeEconomy extends PluginBase implements Listener {
 				$player->level->setBlock ( $pos, Block::get ( Item::GLASS ), true );
 				$this->marketCount [$item] ++;
 				// 각 부분마다 위 주석코드 실행
-				if (++ $min > $max) return; // 모든 블럭에 배치가 끝나면 리턴
+				if (++ $min > $max) {
+					unset ( $this->autoCreateQueue [$player->getName ()] );
+					$this->message ( $player, $this->get ( "market-completely-created" ) );
+					return; // 모든 블럭에 배치가 끝나면 리턴
+				}
 			}
-			unset ( $this->autoCreateQueue [$player->getName ()] );
-			$this->message ( $player, $this->get ( "market-completely-created" ) );
 		}
 	}
 	public function ChangeMarketPrice(Player $player, $item = null, $price = null) {
