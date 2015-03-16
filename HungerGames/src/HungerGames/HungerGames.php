@@ -193,8 +193,8 @@ class HungerGames extends PluginBase implements Listener {
 	public function restoreBlock($x, $y, $z) {
 		if (! isset ( $this->fireblock ["{$x}.{$y}.{$z}"] )) return;
 		foreach ( $this->getServer ()->getOnlinePlayers () as $player )
-			$this->setBlockPacket ( $player, $x, $y, $z, $this->fireblock ["{$x}.{$y}.{z}"] ["id"], $this->fireblock ["{$x}.{$y}.{z}"] ["damage"] );
-		unset ( $this->fireblock ["{$x}.{$y}.{z}"] );
+			$this->setBlockPacket ( $player, $x, $y, $z, $this->fireblock ["{$x}.{$y}.{$z}"] ["id"], $this->fireblock ["{$x}.{$y}.{$z}"] ["damage"] );
+		unset ( $this->fireblock ["{$x}.{$y}.{$z}"] );
 	}
 	public function setBlockPacket(Player $player, $x, $y, $z, $block, $meta = 0) {
 		$this->updatePk->x = $x;
