@@ -13,7 +13,5 @@ permissions:
   default: OP
  creativeeconomy.shop.use:
   default: true
- creativeeconomy.shop.create:
-  default: OP
  creativeeconomy.shop.break:
   default: OP
