@@ -15,18 +15,23 @@ use pocketmine\Player;
 use pocketmine\utils\TextFormat;
 use pocketmine\block\Block;
 use pocketmine\network\protocol\AddItemEntityPacket;
-use pocketmine\network\protocol\MoveEntityPacket;
 use pocketmine\entity\Entity;
 use pocketmine\level\Position;
 use pocketmine\item\Item;
+use pocketmine\scheduler\CallbackTask;
+use pocketmine\network\protocol\RemoveEntityPacket;
+use pocketmine\event\player\PlayerQuitEvent;
 
 class CreativeEconomy extends PluginBase implements Listener {
 	private static $instance = null;
 	public $messages, $db;
 	public $marketCount, $marketPrice, $itemName;
 	public $economyAPI = null;
-	public $purchaseQueue = [ ];
-	public $createQueue = [ ];
+	public $purchaseQueue = [ ]; // 상점결제 큐
+	public $createQueue = [ ]; // 상점제작시 POS백업큐
+	public $autoCreateQueue = [ ]; // 자동 상점제작시 POS백업큐
+	public $packetQueue = [ ]; // 아이템 패킷 큐
+	public $packet = [ ]; // 전역 패킷 변수
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		
@@ -54,7 +59,19 @@ class CreativeEconomy extends PluginBase implements Listener {
 		$this->registerCommand ( $this->get ( "commands-ce" ), "ce", "creativeeconomy.commands.ce", $this->get ( "commands-ce-usage" ) );
 		
 		if (self::$instance == null) self::$instance = $this;
+		
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
+		
+		$this->packet ["AddItemEntityPacket"] = new AddItemEntityPacket ();
+		$this->packet ["AddItemEntityPacket"]->yaw = 0;
+		$this->packet ["AddItemEntityPacket"]->pitch = 0;
+		$this->packet ["AddItemEntityPacket"]->roll = 0;
+		
+		$this->packet ["RemoveEntityPacket"] = new RemoveEntityPacket ();
+		
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
+				$this,
+				"CreativeEconomy" ] ), 20 * 5 );
 	}
 	public function onDisable() {
 		$save = new Config ( $this->getDataFolder () . "marketDB.yml", Config::YAML );
@@ -86,12 +103,26 @@ class CreativeEconomy extends PluginBase implements Listener {
 		}
 		if (isset ( $this->createQueue [$event->getPlayer ()->getName ()] )) {
 			$event->setCancelled ();
-			$pos = $block->getSide ( 0 );
+			$pos = $block->getSide ( 1 );
 			$item = $this->createQueue [$event->getPlayer ()->getName ()];
 			$this->db ["signMarket"] ["{$pos->x}:{$pos->y}:{$pos->z}"] = $item;
 			$block->getLevel ()->setBlock ( $pos, Block::get ( Item::GLASS ), true );
 			unset ( $this->createQueue [$event->getPlayer ()->getName ()] );
 			$this->message ( $player, $this->get ( "market-completely-created" ) );
+		}
+		if (isset ( $this->autoCreateQueue [$player->getName ()] ["pos1"] ) and $this->autoCreateQueue [$player->getName ()] ["pos1"] == null) {
+			$event->setCancelled ();
+			$this->autoCreateQueue [$player->getName ()] ["pos1"] = $block->getSide ( 1 );
+			// POS1 지정완료
+			$this->message ( $player, $this->get ( "pos1-is-selected" ) );
+		}
+		if (isset ( $this->autoCreateQueue [$player->getName ()] ["pos2"] ) and $this->autoCreateQueue [$player->getName ()] ["pos2"] == null) {
+			$event->setCancelled ();
+			$this->autoCreateQueue [$player->getName ()] ["pos2"] = $block->getSide ( 1 );
+			// POS2 지정완료
+			$this->message ( $player, $this->get ( "pos2-is-selected" ) );
+			$this->message ( $player, $this->get ( "are-you-want-continue" ) );
+			$this->message ( $player, $this->get ( "you-can-possible-to-cancel" ) );
 		}
 	}
 	public function onBreak(BlockBreakEvent $event) {
@@ -102,9 +133,20 @@ class CreativeEconomy extends PluginBase implements Listener {
 				$this->alert ( $player, $this->get ( "ko-market-cannot-break" ) );
 				$event->setCancelled ();
 			}
+			if (isset ( $this->marketCount [$this->db ["signMarket"] ["{$block->x}:{$block->y}:{$block->z}"]] )) {
+				if ($this->marketCount [$this->db ["signMarket"] ["{$block->x}:{$block->y}:{$block->z}"]] > 0) {
+					$this->marketCount [$this->db ["signMarket"] ["{$block->x}:{$block->y}:{$block->z}"]] --;
+				}
+			}
 			unset ( $this->db ["signMarket"] ["{$block->x}:{$block->y}:{$block->z}"] );
 			$this->message ( $player, "ko-market-completely-destroyed" );
 		}
+	}
+	public function onQuit(PlayerQuitEvent $event) {
+		if (isset ( $this->purchaseQueue [$event->getPlayer ()->getName ()] )) unset ( $this->purchaseQueue [$event->getPlayer ()->getName ()] );
+		if (isset ( $this->createQueue [$event->getPlayer ()->getName ()] )) unset ( $this->createQueue [$event->getPlayer ()->getName ()] );
+		if (isset ( $this->autoCreateQueue [$event->getPlayer ()->getName ()] )) unset ( $this->autoCreateQueue [$event->getPlayer ()->getName ()] );
+		if (isset ( $this->packetQueue [$event->getPlayer ()->getName ()] )) unset ( $this->packetQueue [$event->getPlayer ()->getName ()] );
 	}
 	public function onCommand(CommandSender $sender, Command $command, $label, $args) {
 		if (! $sender instanceof Player) {
@@ -134,7 +176,15 @@ class CreativeEconomy extends PluginBase implements Listener {
 						$this->CEAutoSet ( $player );
 						break;
 					case $this->get ( "sub-commands-change" ) :
-						(isset ( $args [1] )) ? $this->ChangeMarketPrice ( $player, $args [1] ) : $this->ChangeMarketPrice ( $player );
+						(isset ( $args [1] ) and isset ( $args [2] )) ? $this->ChangeMarketPrice ( $player, $args [1], $args [2] ) : $this->ChangeMarketPrice ( $player );
+						break;
+					case $this->get ( "sub-commands-cancel" ) :
+						// ( 모든 큐를 초기화 )
+						if (isset ( $this->purchaseQueue [$event->getPlayer ()->getName ()] )) unset ( $this->purchaseQueue [$event->getPlayer ()->getName ()] );
+						if (isset ( $this->createQueue [$event->getPlayer ()->getName ()] )) unset ( $this->createQueue [$event->getPlayer ()->getName ()] );
+						if (isset ( $this->autoCreateQueue [$event->getPlayer ()->getName ()] )) unset ( $this->autoCreateQueue [$event->getPlayer ()->getName ()] );
+						
+						$this->message ( $player, "all-processing-is-stopped" );
 						break;
 					case $this->get ( "sub-commands-lock" ) :
 						$this->AllFreezeMarket ( $player );
@@ -164,13 +214,23 @@ class CreativeEconomy extends PluginBase implements Listener {
 				$this->alert ( $player, $this->get ( "not-found-item-data" ) );
 				return;
 			}
-			$price = $this->marketPrice [$item] * $count;
 			$check = explode ( ".", $item );
+			// 가격시세가 있는지 체크, 없다면 데미지0번 시세가 있는지 체크후 있으면 따르고 없으면 리턴
+			if (isset ( $this->marketPrice [$item] )) {
+				$price = $this->marketPrice [$item] * $count;
+			} else {
+				if (isset ( $this->marketPrice [$check [0] . ".0"] )) {
+					$price = $this->marketPrice [$check [0] . ".0"] * $count;
+				} else {
+					$this->alert ( $player, $this->get ( "not-found-item-data" ) );
+					return;
+				}
+			}
 			if (! is_numeric ( $count ) and ! isset ( $check [1] )) {
 				$this->alert ( $player, $this->get ( "buy-or-sell-help-command" ) );
 				return;
 			}
-			if (! isset ( $check [1] )) $check [1] = 0;
+			if (! isset ( $check [1] )) $check [1] = 0; // 데미지값이 없으면 0으로
 			$money = $this->economyAPI->myMoney ( $player );
 			if ($money < $price) {
 				$this->alert ( $player, $this->get ( "not-enough-money-to-purchase" ) );
@@ -198,18 +258,28 @@ class CreativeEconomy extends PluginBase implements Listener {
 				$this->alert ( $player, $this->get ( "not-found-item-data" ) );
 				return;
 			}
-			$price = $this->marketPrice [$item] * $count;
 			$check = explode ( ".", $item );
+			// 가격시세가 있는지 체크, 없다면 데미지0번 시세가 있는지 체크후 있으면 따르고 없으면 리턴
+			if (isset ( $this->marketPrice [$item] )) {
+				$price = $this->marketPrice [$item] * $count;
+			} else {
+				if (isset ( $this->marketPrice [$check [0] . ".0"] )) {
+					$price = $this->marketPrice [$check [0] . ".0"] * $count;
+				} else {
+					$this->alert ( $player, $this->get ( "not-found-item-data" ) );
+					return;
+				}
+			}
 			if (! is_numeric ( $count ) and ! isset ( $check [1] )) {
 				$this->alert ( $player, $this->get ( "buy-or-sell-help-command" ) );
 				return;
 			}
-			if (! isset ( $check [1] )) $check [1] = 0;
+			if (! isset ( $check [1] )) $check [1] = 0; // 데미지값이 없으면 0으로
 			$haveItem = 0;
 			foreach ( $player->getInventory ()->getContents () as $inven ) {
 				if (! $inven instanceof Item) return;
 				if ($inven->getID () == $check [0] and $inven->getDamage () == $check [1]) {
-					$haveItem = $inven->getCount ();
+					$haveItem = $inven->getCount (); // 가진아이템 수 확인
 				}
 			}
 			if ($haveItem < $count) {
@@ -234,17 +304,119 @@ class CreativeEconomy extends PluginBase implements Listener {
 	}
 	public function CreativeEconomy() {
 		// 스케쥴로 매번 위치확인하면서 생성작업시작
-		// 아예 별도로 생성확인변수도 만들어서
-		// 위치에 맞게 생성패킷을 보냈는지 체크 후
-		// 생성되지않았을경우(새로생기거나 유저가 이동했거나)
-		// 해당 생성패킷을 보내고 =1 처리하도록 처리
-		// 만약에 멀어진 경우 생성해제 패킷을 보내고 =0처리
+		foreach ( $this->getServer ()->getOnlinePlayers () as $player ) {
+			foreach ( $this->db ["signMarket"] as $marketPos ) {
+				$explode = explode ( ".", $marketPos );
+				if (! isset ( $explode [2] )) return; // 좌표가 아닐경우 리턴
+				
+				$dx = abs ( $explode [0] - $player->x );
+				$dy = abs ( $explode [1] - $player->y );
+				$dz = abs ( $explode [2] - $player->z ); // XYZ 좌표차이 계산
+				                                         
+				// 반경 25블럭을 넘거갔을경우 생성해제 패킷 전송후 생성패킷큐를 제거
+				if (! ($dx <= 25 and $dy <= 25 and $dz <= 2)) {
+					if (! isset ( $this->packetQueue [$player->getName ()] [$marketPos] )) return;
+					
+					$this->packet ["RemoveEntityPacket"]->eid = $this->packetQueue [$player->getName ()] [$marketPos];
+					$player->dataPacket ( $this->packet ["RemoveEntityPacket"] ); // 제거패킷 전송
+					unset ( $this->packetQueue [$player->getName ()] [$marketPos] );
+					continue;
+				} else {
+					if (isset ( $this->packetQueue [$player->getName ()] [$marketPos] )) continue;
+					
+					// 반경 25블럭 내일경우 생성패킷 전송 후 생성패킷큐에 추가
+					$this->packetQueue [$player->getName ()] [$marketPos] = Entity::$entityCount ++;
+					$this->packet ["AddItemEntityPacket"]->$this->packetQueue [$player->getName ()] [$marketPos];
+					$this->packet ["AddItemEntityPacket"]->item = $this->db ["signMarket"] [$marketPos] ["id"];
+					$this->packet ["AddItemEntityPacket"]->x = $explode [0];
+					$this->packet ["AddItemEntityPacket"]->y = $explode [1];
+					$this->packet ["AddItemEntityPacket"]->z = $explode [2];
+					$player->dataPacket ( $this->packet ["AddItemEntityPacket"] );
+				}
+			}
+		}
 	}
-	public function CEAutoSet() {
-		// TODO 1줄 전자동 상점설치
+	public function CEAutoSet(Player $player) {
+		// 1줄 전자동 상점설치
+		if (! isset ( $this->autoCreateQueue [$player->getName ()] )) {
+			$this->autoCreateQueue [$player->getName ()] ["pos1"] = null;
+			$this->autoCreateQueue [$player->getName ()] ["pos2"] = null;
+			$this->message ( $player, $this->get ( "which-you-want-place-choose-pos" ) );
+		} else {
+			// POS 지정 완료 후 전자동 생성시작
+			$pos1 = $this->autoCreateQueue [$player->getName ()] ["pos1"];
+			$pos2 = $this->autoCreateQueue [$player->getName ()] ["pos2"];
+			
+			// 한줄이 아닐경우 리턴
+			$dx = $pos1->x - $pos2->x;
+			$dy = $pos1->y - $pos2->y;
+			$dz = $pos1->z - $pos2->z;
+			if (($dx != 0 and $dz != 0) or $dy != 0) {
+				$this->alert ( $player, "must-be-a-one-line" );
+				return;
+			}
+			
+			// 대상 어레이 정리 부분
+			// 한줄이 아닌 값을 X Z중에서 찾아 선택
+			// 한줄이 아닌 값 중에서 가장작은값을 소트
+			if ($dz == 0) {
+				// x가 대상일때
+				if ($pos1->x > $pos2->x) {
+					$max = $pos1->x;
+					$min = $pos2->x;
+				} else {
+					$max = $pos2->x;
+					$min = $pos1->x;
+				}
+			} else {
+				// z가 대상일때
+				if ($pos1->z > $pos2->z) {
+					$max = $pos1->z;
+					$min = $pos2->z;
+				} else {
+					$max = $pos2->z;
+					$min = $pos1->z;
+				}
+			}
+			
+			// 마켓카운트에서 존재하지않는 마켓 불러오기
+			foreach ( $this->marketCount as $item => $marketCount ) {
+				if ($marketCount != 0) continue;
+				if ($dz == 0) {
+					// x가 대상일때
+					$pos = new Position ( $min, $pos1->y, $pos1->z );
+				} else {
+					// z가 대상일때
+					$pos = new Position ( $pos1->x, $pos1->y, $min );
+				}
+				$this->db ["signMarket"] ["{$pos->x}:{$pos->y}:{$pos->z}"] = $item;
+				$block->getLevel ()->setBlock ( $pos, Block::get ( Item::GLASS ), true );
+				
+				// 각 부분마다 위 주석코드 실행
+				if (++ $min > $max) return; // 모든 블럭에 배치가 끝나면 리턴
+			}
+		}
 	}
-	public function ChangeMarketPrice(Player $player, $item = null) {
-		// TODO 기본가격시세를 입력된 값으로 설정
+	public function ChangeMarketPrice(Player $player, $item = null, $pirce = null) {
+		// 기본가격시세를 입력된 값으로 설정
+		if ($item == null or ! is_numeric ( $item )) {
+			$this->alert ( $player, $this->get ( "commands-ce-help3" ) );
+			return;
+		}
+		if ($price == null or ! is_numeric ( $price )) {
+			$this->alert ( $player, $this->get ( "commands-ce-help3" ) );
+			return;
+		}
+		if (! isset ( $this->marketPrice [$item] )) {
+			$this->alert ( $player, $this->get ( "not-found-item-data" ) );
+			return;
+		}
+		$this->marketPrice [$item] = $price;
+		$this->message ( $player, $this->get ( "successfully-changed-price" ) );
+		
+		$save = new Config ( $this->getDataFolder () . "marketPrice.yml", Config::YAML );
+		$save->setAll ( $this->marketPrice );
+		$save->save ();
 	}
 	public function AllFreezeMarket() {
 		if ($this->db ["allow-purchase"] == true) {
