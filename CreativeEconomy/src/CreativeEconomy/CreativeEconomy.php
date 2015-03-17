@@ -22,6 +22,8 @@ use pocketmine\scheduler\CallbackTask;
 use pocketmine\network\protocol\RemoveEntityPacket;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\block\BlockUpdateEvent;
+use pocketmine\network\protocol\AddPlayerPacket;
+use pocketmine\network\protocol\RemovePlayerPacket;
 
 class CreativeEconomy extends PluginBase implements Listener {
 	private static $instance = null;
@@ -42,8 +44,7 @@ class CreativeEconomy extends PluginBase implements Listener {
 		$this->saveResource ( "marketCount.yml", false );
 		$this->saveResource ( $this->messages ["default-language"] . "_item_data.yml", false );
 		
-		$this->db = (new Config ( $this->getDataFolder () . "marketDB.yml", Config::YAML, [ 
-				"allow-purchase" => true ] ))->getAll ();
+		$this->db = (new Config ( $this->getDataFolder () . "marketDB.yml", Config::YAML, [ "allow-purchase" => true ] ))->getAll ();
 		$this->marketCount = (new Config ( $this->getDataFolder () . "marketCount.yml", Config::YAML ))->getAll ();
 		$this->marketPrice = (new Config ( $this->getDataFolder () . "marketPrice.yml", Config::YAML ))->getAll ();
 		$this->itemName = (new Config ( $this->getDataFolder () . $this->messages ["default-language"] . "_item_data.yml", Config::YAML ))->getAll ();
@@ -70,9 +71,18 @@ class CreativeEconomy extends PluginBase implements Listener {
 		
 		$this->packet ["RemoveEntityPacket"] = new RemoveEntityPacket ();
 		
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
-				$this,
-				"CreativeEconomy" ] ), 40 );
+		$this->packet ["AddPlayerPacket"] = new AddPlayerPacket ();
+		$this->packet ["AddPlayerPacket"]->clientID = 0;
+		$this->packet ["AddPlayerPacket"]->yaw = 0;
+		$this->packet ["AddPlayerPacket"]->pitch = 0;
+		$this->packet ["AddPlayerPacket"]->item = 0;
+		$this->packet ["AddPlayerPacket"]->meta = 0;
+		$this->packet ["AddPlayerPacket"]->metadata = [ 0 => [ "type" => 0,"value" => 0 ],1 => [ "type" => 1,"value" => 0 ],16 => [ "type" => 0,"value" => 0 ],17 => [ "type" => 6,"value" => [ 0,0,0 ] ] ];
+		
+		$this->packet ["RemovePlayerPacket"] = new RemovePlayerPacket ();
+		$this->packet ["RemovePlayerPacket"]->clientID = 0;
+		
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ $this,"CreativeEconomy" ] ), 20 );
 	}
 	public function onDisable() {
 		$save = new Config ( $this->getDataFolder () . "marketDB.yml", Config::YAML );
@@ -329,17 +339,20 @@ class CreativeEconomy extends PluginBase implements Listener {
 		foreach ( $this->getServer ()->getOnlinePlayers () as $player ) {
 			foreach ( $this->db ["signMarket"] as $marketPos => $item ) {
 				$explode = explode ( ".", $marketPos );
-				if (! isset ( $explode [2] )) return; // 좌표가 아닐경우 리턴
+				if (! isset ( $explode [2] )) continue; // 좌표가 아닐경우 컨티뉴
 				$dx = abs ( $explode [0] - $player->x );
 				$dy = abs ( $explode [1] - $player->y );
 				$dz = abs ( $explode [2] - $player->z ); // XYZ 좌표차이 계산
 				                                         
 				// 반경 25블럭을 넘거갔을경우 생성해제 패킷 전송후 생성패킷큐를 제거
 				if (! ($dx <= 25 and $dy <= 25 and $dz <= 25)) {
-					if (! isset ( $this->packetQueue [$player->getName ()] [$marketPos] )) return;
+					if (! isset ( $this->packetQueue [$player->getName ()] [$marketPos] )) continue;
 					
 					$this->packet ["RemoveEntityPacket"]->eid = $this->packetQueue [$player->getName ()] [$marketPos];
-					$player->dataPacket ( $this->packet ["RemoveEntityPacket"] ); // 제거패킷 전송
+					$player->dataPacket ( $this->packet ["RemoveEntityPacket"] ); // 아이템 제거패킷 전송
+					
+					$this->packet ["RemovePlayerPacket"]->eid = $this->packetQueue [$player->getName ()] ["nametag"] [$marketPos];
+					$player->dataPacket ( $this->packet ["RemovePlayerPacket"] ); // 네임택 제거패킷 전송
 					unset ( $this->packetQueue [$player->getName ()] [$marketPos] );
 					continue;
 				} else {
@@ -347,18 +360,28 @@ class CreativeEconomy extends PluginBase implements Listener {
 					
 					$itemCheck = explode ( ".", $item );
 					if (isset ( $item [1] )) {
-						$item = Item::get ( $itemCheck [0], $itemCheck [1] );
+						$itemClass = Item::get ( $itemCheck [0], $itemCheck [1] );
 					} else {
-						$item = Item::get ( $item );
+						$itemClass = Item::get ( $item );
 					}
 					// 반경 25블럭 내일경우 생성패킷 전송 후 생성패킷큐에 추가
 					$this->packetQueue [$player->getName ()] [$marketPos] = Entity::$entityCount ++;
 					$this->packet ["AddItemEntityPacket"]->eid = $this->packetQueue [$player->getName ()] [$marketPos];
-					$this->packet ["AddItemEntityPacket"]->item = $item;
+					$this->packet ["AddItemEntityPacket"]->item = $itemClass;
 					$this->packet ["AddItemEntityPacket"]->x = $explode [0] + 0.5;
 					$this->packet ["AddItemEntityPacket"]->y = $explode [1];
 					$this->packet ["AddItemEntityPacket"]->z = $explode [2] + 0.5;
 					$player->dataPacket ( $this->packet ["AddItemEntityPacket"] );
+					
+					// 유저 패킷을 상점밑에 보내서 네임택 출력
+					$nameTag = $this->itemName [$item] . "\n" . $this->get ( "price" ) . " : " . $this->marketPrice [$item];
+					$this->packetQueue [$player->getName ()] ["nametag"] [$marketPos] = Entity::$entityCount ++;
+					$this->packet ["AddPlayerPacket"]->eid = $this->packetQueue [$player->getName ()] ["nametag"] [$marketPos];
+					$this->packet ["AddPlayerPacket"]->username = $nameTag;
+					$this->packet ["AddPlayerPacket"]->x = $explode [0] + 0.4;
+					$this->packet ["AddPlayerPacket"]->y = $explode [1] - 3;
+					$this->packet ["AddPlayerPacket"]->z = $explode [2] + 0.4;
+					$player->dataPacket ( $this->packet ["AddPlayerPacket"] );
 				}
 			}
 		}
