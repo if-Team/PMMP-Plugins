@@ -327,8 +327,13 @@ class CreativeEconomy extends PluginBase implements Listener {
 	}
 	public function CECreateQueue(Player $player, $item = null) {
 		if ($item == null or ! is_numeric ( $item )) {
-			$this->alert ( $player, $this->get ( "commands-ce-help1" ) );
-			return;
+			$explode = explode ( ":", $item );
+			if (isset ( $explode [0] ) and isset ( $explode [1] ) and is_numeric ( $explode [0] ) and is_numeric ( $explode [1] )) {
+				$item = $explode [0] . "." . $explode [1];
+			} else {
+				$this->alert ( $player, $this->get ( "commands-ce-help1" ) );
+				return;
+			}
 		}
 		$this->message ( $player, $this->get ( "which-you-want-place-choose-pos" ) );
 		$this->createQueue [$player->getName ()] = $item;
@@ -348,12 +353,16 @@ class CreativeEconomy extends PluginBase implements Listener {
 				if (! ($dx <= 25 and $dy <= 25 and $dz <= 25)) {
 					if (! isset ( $this->packetQueue [$player->getName ()] [$marketPos] )) continue;
 					
-					$this->packet ["RemoveEntityPacket"]->eid = $this->packetQueue [$player->getName ()] [$marketPos];
-					$player->dataPacket ( $this->packet ["RemoveEntityPacket"] ); // 아이템 제거패킷 전송
-					
-					$this->packet ["RemovePlayerPacket"]->eid = $this->packetQueue [$player->getName ()] ["nametag"] [$marketPos];
-					$player->dataPacket ( $this->packet ["RemovePlayerPacket"] ); // 네임택 제거패킷 전송
-					unset ( $this->packetQueue [$player->getName ()] [$marketPos] );
+					if (isset ( $this->packetQueue [$player->getName ()] [$marketPos] )) {
+						$this->packet ["RemoveEntityPacket"]->eid = $this->packetQueue [$player->getName ()] [$marketPos];
+						$player->dataPacket ( $this->packet ["RemoveEntityPacket"] ); // 아이템 제거패킷 전송
+						unset ( $this->packetQueue [$player->getName ()] [$marketPos] );
+					}
+					if (isset ( $this->packetQueue [$player->getName ()] ["nametag"] [$marketPos] )) {
+						$this->packet ["RemovePlayerPacket"]->eid = $this->packetQueue [$player->getName ()] ["nametag"] [$marketPos];
+						$player->dataPacket ( $this->packet ["RemovePlayerPacket"] ); // 네임택 제거패킷 전송
+						unset ( $this->packetQueue [$player->getName ()] ["nametag"] [$marketPos] );
+					}
 					continue;
 				} else {
 					if (isset ( $this->packetQueue [$player->getName ()] [$marketPos] )) continue;
@@ -374,12 +383,13 @@ class CreativeEconomy extends PluginBase implements Listener {
 					$player->dataPacket ( $this->packet ["AddItemEntityPacket"] );
 					
 					// 유저 패킷을 상점밑에 보내서 네임택 출력
+					if (! isset ( $this->itemName [$item] ) or ! isset ( $this->marketPrice [$item] )) continue;
 					$nameTag = $this->itemName [$item] . "\n" . $this->get ( "price" ) . " : " . $this->marketPrice [$item];
 					$this->packetQueue [$player->getName ()] ["nametag"] [$marketPos] = Entity::$entityCount ++;
 					$this->packet ["AddPlayerPacket"]->eid = $this->packetQueue [$player->getName ()] ["nametag"] [$marketPos];
 					$this->packet ["AddPlayerPacket"]->username = $nameTag;
 					$this->packet ["AddPlayerPacket"]->x = $explode [0] + 0.4;
-					$this->packet ["AddPlayerPacket"]->y = $explode [1] - 3;
+					$this->packet ["AddPlayerPacket"]->y = $explode [1] - 3.2;
 					$this->packet ["AddPlayerPacket"]->z = $explode [2] + 0.4;
 					$player->dataPacket ( $this->packet ["AddPlayerPacket"] );
 				}
