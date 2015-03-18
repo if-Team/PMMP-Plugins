@@ -273,7 +273,7 @@ class SimpleArea extends PluginBase implements Listener {
 						
 						$player = $event->getPlayer ();
 						
-						$area_id = $this->db [$player->level->getFolderName ()]->addArea ( $player->getName (), $startX, $endX, $startZ, $endZ, false );
+						$area_id = $this->db [$player->level->getFolderName ()]->addArea ( null, $startX, $endX, $startZ, $endZ, false );
 						if ($area_id == false) {
 							$this->message ( $player, $this->get ( "failed-buyarea-area-is-overlap" ) );
 						} else {
