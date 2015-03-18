@@ -21,13 +21,13 @@ use pocketmine\item\Item;
 use pocketmine\scheduler\CallbackTask;
 use pocketmine\network\protocol\RemoveEntityPacket;
 use pocketmine\event\player\PlayerQuitEvent;
-use pocketmine\event\block\BlockUpdateEvent;
 use pocketmine\network\protocol\AddPlayerPacket;
 use pocketmine\network\protocol\RemovePlayerPacket;
 
 class CreativeEconomy extends PluginBase implements Listener {
 	private static $instance = null;
 	public $messages, $db;
+	public $m_version = 1;
 	public $marketCount, $marketPrice, $itemName;
 	public $economyAPI = null;
 	public $purchaseQueue = [ ]; // 상점결제 큐
@@ -41,12 +41,25 @@ class CreativeEconomy extends PluginBase implements Listener {
 		$this->initMessage ();
 		
 		$this->saveResource ( "marketPrice.yml", false );
+		$this->marketPrice = (new Config ( $this->getDataFolder () . "marketPrice.yml", Config::YAML ))->getAll ();
+		
 		$this->saveResource ( "marketCount.yml", false );
 		$this->saveResource ( $this->messages ["default-language"] . "_item_data.yml", false );
 		
+		$this->messagesUpdate ( "marketPrice.yml" );
+		$marketPrice_new = (new Config ( $this->getDataFolder () . "marketPrice.yml", Config::YAML ))->getAll ();
+		foreach ( $this->marketPrice as $index => $data ) {
+			if ($index == "m_version") continue;
+			if (! isset ( $marketPrice_new [$index] )) continue;
+			$marketPrice_new [$index] = $data;
+			$this->marketPrice = $marketPrice_new;
+		} // IF BLOCK ID OR DAMAGES LIST UPDATED, OLD DATA WILL RESTORED
+		
+		$this->messagesUpdate ( "marketCount.yml" );
+		$this->messagesUpdate ( $this->messages ["default-language"] . "_item_data.yml" );
+		
 		$this->db = (new Config ( $this->getDataFolder () . "marketDB.yml", Config::YAML, [ "allow-purchase" => true ] ))->getAll ();
 		$this->marketCount = (new Config ( $this->getDataFolder () . "marketCount.yml", Config::YAML ))->getAll ();
-		$this->marketPrice = (new Config ( $this->getDataFolder () . "marketPrice.yml", Config::YAML ))->getAll ();
 		$this->itemName = (new Config ( $this->getDataFolder () . $this->messages ["default-language"] . "_item_data.yml", Config::YAML ))->getAll ();
 		
 		if ($this->getServer ()->getPluginManager ()->getPlugin ( "EconomyAPI" ) != null) {
@@ -95,10 +108,6 @@ class CreativeEconomy extends PluginBase implements Listener {
 	}
 	public static function getInstance() {
 		return static::$instance;
-	}
-	public function BlockChange(BlockUpdateEvent $event) {
-		$block = $event->getBlock ();
-		if (isset ( $this->db ["signMarket"] ["{$block->x}.{$block->y}.{$block->z}"] )) $event->setCancelled ();
 	}
 	public function onTouch(PlayerInteractEvent $event) {
 		$block = $event->getBlock ();
@@ -167,7 +176,7 @@ class CreativeEconomy extends PluginBase implements Listener {
 				}
 			}
 			unset ( $this->db ["signMarket"] ["{$block->x}.{$block->y}.{$block->z}"] );
-			$this->packet ["RemoveEntityPacket"]->eid = $this->packetQueue [$player->getName ()] ["{$block->x}.{$block->y}.{$block->z}"];
+			$this->packet ["RemoveEntityPacket"]->eid = $this->packetQueue [$player->getName ()] ["nametag"] ["{$block->x}.{$block->y}.{$block->z}"];
 			$player->dataPacket ( $this->packet ["RemoveEntityPacket"] ); // 제거패킷 전송
 			$this->message ( $player, $this->get ( "market-completely-destroyed" ) );
 		}
@@ -365,10 +374,10 @@ class CreativeEconomy extends PluginBase implements Listener {
 					}
 					continue;
 				} else {
-					if (isset ( $this->packetQueue [$player->getName ()] [$marketPos] )) continue;
+					if (isset ( $this->packetQueue [$player->getName ()] ["nametag"] [$marketPos] )) continue;
 					
 					$itemCheck = explode ( ".", $item );
-					if (isset ( $item [1] )) {
+					if (isset ( $itemCheck [1] )) {
 						$itemClass = Item::get ( $itemCheck [0], $itemCheck [1] );
 					} else {
 						$itemClass = Item::get ( $item );
@@ -509,6 +518,14 @@ class CreativeEconomy extends PluginBase implements Listener {
 	public function initMessage() {
 		$this->saveResource ( "messages.yml", false );
 		$this->messages = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
+	}
+	public function messagesUpdate($targetYmlName) {
+		$targetYml = (new Config ( $this->getDataFolder () . $targetYmlName, Config::YAML ))->getAll ();
+		if (! isset ( $targetYml ["m_version"] )) {
+			$this->saveResource ( $targetYmlName, true );
+		} else if ($targetYml ["m_version"] < $this->m_version) {
+			$this->saveResource ( $targetYmlName, true );
+		}
 	}
 	public function registerCommand($name, $fallback, $permission, $description = "", $usage = "") {
 		$commandMap = $this->getServer ()->getCommandMap ();
