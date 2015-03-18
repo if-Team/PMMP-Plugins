@@ -1,0 +1,16 @@
+# IF YOU NEED A SOME OTHER LANGUAGE SETTINGS #
+# YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
+
+#PLEASE SET HERE TO YOUR LANGUAGE PREFIX
+default-language: ko
+
+#(EN) ENGLISH
+
+#(KO) KOREAN
+ko-default-prefix: "[ 서버 ]"
+ko-TAGBlock-line0: "태그블럭"
+ko-TAGBlock-added: "태그블럭이 추가되었습니다 !"
+ko-TAGBlock-deleted: "태그블럭이 삭제되었습니다 !"
+
+# AND YOU CAN PROVIDE YOUR TRANSLATION       #
+# https://github.com/if-Team/PMMP-Plugins/blob/master/TAGBlock/resources/messages.yml
