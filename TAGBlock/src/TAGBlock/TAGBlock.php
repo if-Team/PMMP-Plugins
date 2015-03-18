@@ -106,7 +106,7 @@ class TAGBlock extends PluginBase implements Listener {
 					$this->packet ["AddPlayerPacket"]->eid = $this->temp [$player->getName ()] ["nametag"] [$tagPos];
 					$this->packet ["AddPlayerPacket"]->username = $message;
 					$this->packet ["AddPlayerPacket"]->x = $explodePos [0] + 0.4;
-					$this->packet ["AddPlayerPacket"]->y = $explodePos [1] - 1.2;
+					$this->packet ["AddPlayerPacket"]->y = $explodePos [1] - 1.6;
 					$this->packet ["AddPlayerPacket"]->z = $explodePos [2] + 0.4;
 					$player->dataPacket ( $this->packet ["AddPlayerPacket"] );
 				}

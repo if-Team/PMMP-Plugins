@@ -3,6 +3,7 @@
 
 #PLEASE SET HERE TO YOUR LANGUAGE PREFIX
 default-language: ko
+m_version: 2
 
 #(EN) ENGLISH
 
@@ -54,6 +55,9 @@ ko-my-money: "보유금액"
 ko-price: "가격"
 ko-old-price: "이전가격"
 ko-new-price: "현재가격"
+ko-nametag: "네임태그"
+ko-nametag-enabled: "상점에 네임태그가 활성화 되었습니다 !"
+ko-nametag-disabled: "상점에 네임태그가 비활성화 되었습니다 !"
 
 ko-commands-ce-help1: "/창조경제 생성 <아이디:값>"
 ko-commands-ce-help2: "/창조경제 자동"

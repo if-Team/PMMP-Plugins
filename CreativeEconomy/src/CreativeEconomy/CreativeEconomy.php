@@ -56,6 +56,7 @@ class CreativeEconomy extends PluginBase implements Listener {
 		} // IF BLOCK ID OR DAMAGES LIST UPDATED, OLD DATA WILL RESTORED
 		
 		$this->messagesUpdate ( "marketCount.yml" );
+		$this->messagesUpdate ( "messages.yml" );
 		$this->messagesUpdate ( $this->messages ["default-language"] . "_item_data.yml" );
 		
 		$this->db = (new Config ( $this->getDataFolder () . "marketDB.yml", Config::YAML, [ "allow-purchase" => true ] ))->getAll ();
@@ -169,6 +170,7 @@ class CreativeEconomy extends PluginBase implements Listener {
 			if (! $player->hasPermission ( "creativeeconomy.shop.break" )) {
 				$this->alert ( $player, $this->get ( "market-cannot-break" ) );
 				$event->setCancelled ();
+				return;
 			}
 			if (isset ( $this->marketCount [$this->db ["signMarket"] ["{$block->x}.{$block->y}.{$block->z}"]] )) {
 				if ($this->marketCount [$this->db ["signMarket"] ["{$block->x}.{$block->y}.{$block->z}"]] > 0) {
@@ -227,6 +229,20 @@ class CreativeEconomy extends PluginBase implements Listener {
 						break;
 					case $this->get ( "sub-commands-lock" ) :
 						$this->AllFreezeMarket ( $player );
+						break;
+					case $this->get ( "nametag" ) :
+						if (isset ( $this->db ["settings"] ["nametagEnable"] )) {
+							if ($this->db ["settings"] ["nametagEnable"]) {
+								$this->db ["settings"] ["nametagEnable"] = false;
+								$this->message ( $player, $this->get ( "nametag-disabled" ) );
+							} else {
+								$this->db ["settings"] ["nametagEnable"] = true;
+								$this->message ( $player, $this->get ( "nametag-enabled" ) );
+							}
+						} else {
+							$this->db ["settings"] ["nametagEnable"] = false;
+							$this->message ( $player, $this->get ( "nametag-disabled" ) );
+						}
 						break;
 					default :
 						$this->message ( $player, $this->get ( "commands-ce-help1" ) );
@@ -374,8 +390,7 @@ class CreativeEconomy extends PluginBase implements Listener {
 					}
 					continue;
 				} else {
-					if (isset ( $this->packetQueue [$player->getName ()] ["nametag"] [$marketPos] )) continue;
-					
+					if (isset ( $this->packetQueue [$player->getName ()] [$marketPos] )) continue;
 					$itemCheck = explode ( ".", $item );
 					if (isset ( $itemCheck [1] )) {
 						$itemClass = Item::get ( $itemCheck [0], $itemCheck [1] );
@@ -390,6 +405,10 @@ class CreativeEconomy extends PluginBase implements Listener {
 					$this->packet ["AddItemEntityPacket"]->y = $explode [1];
 					$this->packet ["AddItemEntityPacket"]->z = $explode [2] + 0.5;
 					$player->dataPacket ( $this->packet ["AddItemEntityPacket"] );
+					
+					// 네임택 비활성화 상태이면 네임택비출력
+					if (isset ( $this->db ["settings"] ["nametagEnable"] )) if (! $this->db ["settings"] ["nametagEnable"]) continue;
+					if (isset ( $this->packetQueue [$player->getName ()] ["nametag"] [$marketPos] )) continue;
 					
 					// 유저 패킷을 상점밑에 보내서 네임택 출력
 					if (! isset ( $this->itemName [$item] ) or ! isset ( $this->marketPrice [$item] )) continue;
