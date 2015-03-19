@@ -757,7 +757,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 				"ko-executed-ban" => "§3대상을 밴처리했습니다.",
 				"ko-warning-ban" => "§c경고,  본 회원분은 밴처리되었습니다.",
 				"ko-broadcast-ban-info" => "§3님이 밴처리되었습니다, 사유",
-				"ko-executed-kick" => "§3대상을 킥처리했습니다, (5초 후 밴처리됩니다)",
+				"ko-executed-kick" => "§3대상을 킥처리했습니다, (5초 후 킥처리됩니다)",
 				"ko-warning-kick" => "§c경고,  본 회원분은 킥처리되었습니다.",
 				"ko-broadcast-kick-info" => "§3님이 킥처리되었습니다, 사유",
 				"ko-user-not-login" => "§3해당 유저가 접속 중이 아닙니다.",
