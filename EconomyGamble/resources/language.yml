@@ -1,12 +1,12 @@
 ---
-setlanguage: en
+setlanguage: ko
 en-mustnumberic: The second line (any amount) is must be numeric
 en-GambleSetupFinish: successful in setting gamble !
 en-ItemGambleSetupFinish: successful in setting item gamble !
 en-LotterySetupFinish: successful in setting lottery !
 en-RandomGambleSetupFinish: successful in setting random gamble !
 en-WrongFormat-Sign: The signs of the wrong type! No Gambling !
-en-LacenfhMoney: Money is not enough ! No Gambling ! Retention amount:0
+en-LacenfhMoney: "Money is not enough ! No Gambling ! Retention amount:0"
 en-SuccessGamble: Gambling was successful ! (≥∀≤)/
 en-SuccessGamble-a: acquisition !
 en-FailGamble: Failed gamble ! (づ_ど)
@@ -29,7 +29,7 @@ en-Gamblehow-b: You can install Gamble signs
 en-Gamblehow-c: With the following command check the form
 en-Gamblehow-d: 1.Please install the Sign
 en-Gamblehow-Gamble-a: 2.Put in the first line [gamble]
-en-Gamblehow-Gamble-b: 3.Put in the first line 'price'
+en-Gamblehow-Gamble-b: "3.Put in the first line price"
 en-Gamblehow-ItemGamble: 2.Put in the first line [itemgamble]
 en-Gamblehow-Lottery: 2.Put in the first line [lottery]
 en-Gamblehow-Random: 2.Put in the first line [randomgamble]
@@ -39,7 +39,7 @@ ko-ItemGambleSetupFinish: 아이템도박기 세팅에 성공했습니다 !
 ko-LotterySetupFinish: 로또기기 세팅에 성공했습니다 !
 ko-RandomGambleSetupFinish: 랜덤도박기 세팅에 성공했습니다 !
 ko-WrongFormat-Sign: 잘못된 형식의 표지판입니다! 도박불가 !
-ko-LackOfhMoney: 돈이 부족합니다 ! 도박불가 ! 보유금액 : 0
+ko-LackOfhMoney: "돈이 부족합니다 ! 도박불가 ! 보유금액 : 0"
 ko-SuccessGamble: 도박에 성공했습니다 ! (≥∀≤)/
 ko-SuccessGamble-a: 획득 !
 ko-FailGamble: 도박에 실패했습니다! (づ_ど)
@@ -72,7 +72,7 @@ jp-ItemGambleSetupFinish: アイテム賭博機設置に成功しました !
 jp-LotterySetupFinish: 宝くじ機器設置に成功しました !
 jp-RandomGambleSetupFinish: ランダム賭博機設置に成功しました !
 jp-WrongFormat-Sign: 誤った形式の表示板です!賭博不可 !
-jp-LacjpfhMoney: お金が不足です ! 賭博不可 ! 保有金額:0
+jp-LacjpfhMoney: "お金が不足です ! 賭博不可 ! 保有金額 : 0"
 jp-SuccessGamble: 賭博に勝ちました ! (≥∀≤)/
 jp-SuccessGamble-a: ゲット !
 jp-FailGamble: 賭博に負けました ! (づ_ど)
@@ -99,6 +99,6 @@ jp-Gamblehow-Gamble-b: 3.2列目に[賭け金の量]を書いてください
 jp-Gamblehow-ItemGamble: 2.最初の行に[アイテム賭博]を書いてください
 jp-Gamblehow-Lottery: 2.最初の行に[復権]を書いてください
 jp-Gamblehow-Random: 2.最初の行に[ランダム賭博]を書いてください
-en-LackOfMoney: Money is not enough ! No Gambling ! Retention amount:0
-jp-LackOfMoney: お金が不足です ! 賭博不可 ! 保有金額:0
+en-LackOfMoney: "Money is not enough ! No Gambling ! Retention amount:0"
+jp-LackOfMoney: "お金が不足です ! 賭博不可 ! 保有金額:0"
 ...
