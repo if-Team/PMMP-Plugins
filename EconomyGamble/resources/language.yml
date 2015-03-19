@@ -39,7 +39,7 @@ ko-ItemGambleSetupFinish: 아이템도박기 세팅에 성공했습니다 !
 ko-LotterySetupFinish: 로또기기 세팅에 성공했습니다 !
 ko-RandomGambleSetupFinish: 랜덤도박기 세팅에 성공했습니다 !
 ko-WrongFormat-Sign: 잘못된 형식의 표지판입니다! 도박불가 !
-ko-LackOfhMoney: 돈이 부족합니다 ! 도박불가 ! 보유금액:0
+ko-LackOfhMoney: 돈이 부족합니다 ! 도박불가 ! 보유금액 : 0
 ko-SuccessGamble: 도박에 성공했습니다 ! (≥∀≤)/
 ko-SuccessGamble-a: 획득 !
 ko-FailGamble: 도박에 실패했습니다! (づ_ど)
@@ -47,10 +47,10 @@ ko-FailGamble-a: 손실 !
 ko-noitem: 원하는 아이템을 들고 터치해주세요 !
 ko-SuccessitemGamble: 도박에 성공했습니다 ! (≥∀≤)/ 아이템 하나 더 획득 !
 ko-FailitemGamble: 도박에 실패했습니다 ! (づ_ど) 아이템 하나 손실 !
-ko-LotteryPayment: '로또를 구매했습니다 ! (≥∀≤)/ 총:'
+ko-LotteryPayment: '로또를 구매했습니다 ! (≥∀≤)/ 총 : '
 ko-LotteryPayment-a: 다음날에 접속하시면 당첨결과를 알려드립니다 !
-ko-AskAgain: '도박을 하시겠습니까? 진행하려면 다시 탭해주세요. [보유금액:'
-ko-LotteryCheck: 지난일 로또 당첨결과를 확인합니다 !
+ko-AskAgain: '도박을 하시겠습니까? 진행하려면 다시 탭해주세요. [ 보유금액 :'
+ko-LotteryCheck: 지난날 로또 당첨결과를 확인합니다 !
 ko-LotteryCheck-a: 로또
 ko-LotteryCheck-b: 개 모두 꽝 ! (づ_ど)
 ko-SuccessLottery: 님이 로또당첨!(≥∀≤)/
@@ -61,11 +61,11 @@ ko-Gamblehow-a: 표지판을 양식에맞춰 설치하면
 ko-Gamblehow-b: 겜블 표지판을 설치할 수 있습니다
 ko-Gamblehow-c: 아래명령어로 양식확인가능
 ko-Gamblehow-d: 1.표지판을 설치하세요
-ko-Gamblehow-Gamble-a: 2.첫번째줄에 [도박] 을 쓰세요
-ko-Gamblehow-Gamble-b: 3.두번째줄에 [판돈] 을 쓰세요
-ko-Gamblehow-ItemGamble: 2.첫번째줄에 [아이템도박] 을 쓰세요
-ko-Gamblehow-Lottery: 2.첫번째줄에 [로또] 를 쓰세요
-ko-Gamblehow-Random: 2.첫번째줄에 [랜덤도박] 을 쓰세요
+ko-Gamblehow-Gamble-a: 2.첫번째줄에 gamble 을 쓰세요
+ko-Gamblehow-Gamble-b: 3.두번째줄에 판돈을 쓰세요
+ko-Gamblehow-ItemGamble: 2.첫번째줄에 itemgamble 을 쓰세요
+ko-Gamblehow-Lottery: 2.첫번째줄에 lottery 를 쓰세요
+ko-Gamblehow-Random: 2.첫번째줄에 randomgamble 을 쓰세요
 jp-mustnumberic: 2番目の列(望む価格)は無条件に数字でなければなりません
 jp-GambleSetupFinish: 賭博機設置に成功しました !
 jp-ItemGambleSetupFinish: アイテム賭博機設置に成功しました !
@@ -99,4 +99,6 @@ jp-Gamblehow-Gamble-b: 3.2列目に[賭け金の量]を書いてください
 jp-Gamblehow-ItemGamble: 2.最初の行に[アイテム賭博]を書いてください
 jp-Gamblehow-Lottery: 2.最初の行に[復権]を書いてください
 jp-Gamblehow-Random: 2.最初の行に[ランダム賭博]を書いてください
+en-LackOfMoney: Money is not enough ! No Gambling ! Retention amount:0
+jp-LackOfMoney: お金が不足です ! 賭博不可 ! 保有金額:0
 ...

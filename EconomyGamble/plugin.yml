@@ -1,6 +1,6 @@
 name: EconomyGamble
 main: hm\EconomyGamble\EconomyGamble
-version: 2.0-alpha
+version: 2.1-alpha
 author: hmm
 api: [1.4.1]
 
