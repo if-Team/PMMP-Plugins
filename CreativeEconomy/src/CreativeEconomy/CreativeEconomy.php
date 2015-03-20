@@ -27,7 +27,7 @@ use pocketmine\network\protocol\RemovePlayerPacket;
 class CreativeEconomy extends PluginBase implements Listener {
 	private static $instance = null;
 	public $messages, $db;
-	public $m_version = 1;
+	public $m_version = 3;
 	public $marketCount, $marketPrice, $itemName;
 	public $economyAPI = null;
 	public $purchaseQueue = [ ]; // 상점결제 큐
@@ -113,7 +113,7 @@ class CreativeEconomy extends PluginBase implements Listener {
 	public function onTouch(PlayerInteractEvent $event) {
 		$block = $event->getBlock ();
 		$player = $event->getPlayer ();
-		if (isset ( $this->db ["signMarket"] ["{$block->x}.{$block->y}.{$block->z}"] )) {
+		if (isset ( $this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"] )) {
 			if (! $player->hasPermission ( "creativeeconomy.shop.use" )) {
 				$this->alert ( $player, $this->get ( "ur-not-use-market" ) );
 				return;
@@ -122,8 +122,8 @@ class CreativeEconomy extends PluginBase implements Listener {
 				$this->alert ( $player, $this->get ( "ur-not-use-market" ) );
 				return;
 			}
-			if (isset ( $this->marketPrice [$this->db ["signMarket"] ["{$block->x}.{$block->y}.{$block->z}"]] )) {
-				$price = $this->marketPrice [$this->db ["signMarket"] ["{$block->x}.{$block->y}.{$block->z}"]];
+			if (isset ( $this->marketPrice [$this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"]] )) {
+				$price = $this->marketPrice [$this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"]];
 			} else {
 				$this->alert ( $player, $this->get ( "not-found-item-data" ) );
 				return;
@@ -132,8 +132,8 @@ class CreativeEconomy extends PluginBase implements Listener {
 				$this->alert ( $player, $this->get ( "this-item-doesnt-sell" ) );
 				return;
 			}
-			$this->purchaseQueue [$player->getName ()] ["id"] = $this->db ["signMarket"] ["{$block->x}.{$block->y}.{$block->z}"];
-			$this->message ( $player, "' " . $this->itemName [$this->db ["signMarket"] ["{$block->x}.{$block->y}.{$block->z}"]] . " '" . $this->get ( "you-can-buy-or-sell" ) );
+			$this->purchaseQueue [$player->getName ()] ["id"] = $this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"];
+			$this->message ( $player, "' " . $this->itemName [$this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"]] . " '" . $this->get ( "you-can-buy-or-sell" ) );
 			$this->message ( $player, $this->get ( "buy-or-sell-help-command" ) . " ( " . $this->get ( "price" ) . " : " . $price . " )" );
 			$event->setCancelled ();
 		}
@@ -141,7 +141,7 @@ class CreativeEconomy extends PluginBase implements Listener {
 			$event->setCancelled ();
 			$pos = $block->getSide ( 1 );
 			$item = $this->createQueue [$player->getName ()];
-			$this->db ["signMarket"] ["{$pos->x}.{$pos->y}.{$pos->z}"] = $item;
+			$this->db ["showCase"] ["{$pos->x}.{$pos->y}.{$pos->z}"] = $item;
 			$block->getLevel ()->setBlock ( $pos, Block::get ( Item::GLASS ), true );
 			unset ( $this->createQueue [$player->getName ()] );
 			$this->message ( $player, $this->get ( "market-completely-created" ) );
@@ -166,20 +166,27 @@ class CreativeEconomy extends PluginBase implements Listener {
 	public function onBreak(BlockBreakEvent $event) {
 		$block = $event->getBlock ();
 		$player = $event->getPlayer ();
-		if (isset ( $this->db ["signMarket"] ["{$block->x}.{$block->y}.{$block->z}"] )) {
+		if (isset ( $this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"] )) {
 			if (! $player->hasPermission ( "creativeeconomy.shop.break" )) {
 				$this->alert ( $player, $this->get ( "market-cannot-break" ) );
 				$event->setCancelled ();
 				return;
 			}
-			if (isset ( $this->marketCount [$this->db ["signMarket"] ["{$block->x}.{$block->y}.{$block->z}"]] )) {
-				if ($this->marketCount [$this->db ["signMarket"] ["{$block->x}.{$block->y}.{$block->z}"]] > 0) {
-					$this->marketCount [$this->db ["signMarket"] ["{$block->x}.{$block->y}.{$block->z}"]] --;
+			if (isset ( $this->marketCount [$this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"]] )) {
+				if ($this->marketCount [$this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"]] > 0) {
+					$this->marketCount [$this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"]] --;
 				}
 			}
-			unset ( $this->db ["signMarket"] ["{$block->x}.{$block->y}.{$block->z}"] );
-			$this->packet ["RemoveEntityPacket"]->eid = $this->packetQueue [$player->getName ()] ["nametag"] ["{$block->x}.{$block->y}.{$block->z}"];
-			$player->dataPacket ( $this->packet ["RemoveEntityPacket"] ); // 제거패킷 전송
+			unset ( $this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"] );
+			if (isset ( $this->packetQueue [$player->getName ()] ["nametag"] ["{$block->x}.{$block->y}.{$block->z}"] )) {
+				$this->packet ["RemovePlayerPacket"]->eid = $this->packetQueue [$player->getName ()] ["nametag"] ["{$block->x}.{$block->y}.{$block->z}"];
+				$player->dataPacket ( $this->packet ["RemovePlayerPacket"] ); // 제거패킷 전송
+			}
+			if (isset ( $this->packetQueue [$player->getName ()] ["{$block->x}.{$block->y}.{$block->z}"] )) {
+				$this->packet ["RemoveEntityPacket"]->eid = $this->packetQueue [$player->getName ()] ["{$block->x}.{$block->y}.{$block->z}"];
+				$player->dataPacket ( $this->packet ["RemoveEntityPacket"] ); // 아이템 제거패킷 전송
+				unset ( $this->packetQueue [$player->getName ()] ["{$block->x}.{$block->y}.{$block->z}"] );
+			}
 			$this->message ( $player, $this->get ( "market-completely-destroyed" ) );
 		}
 	}
@@ -360,21 +367,25 @@ class CreativeEconomy extends PluginBase implements Listener {
 				return;
 			}
 		}
+		if (! isset ( $this->marketPrice [$item] )) {
+			$this->alert ( $player, $this->get ( "not-found-item-data" ) );
+			return;
+		}
 		$this->message ( $player, $this->get ( "which-you-want-place-choose-pos" ) );
 		$this->createQueue [$player->getName ()] = $item;
 	}
 	public function CreativeEconomy() {
 		// 스케쥴로 매번 위치확인하면서 생성작업시작
-		if (! isset ( $this->db ["signMarket"] )) return;
+		if (! isset ( $this->db ["showCase"] )) return;
 		foreach ( $this->getServer ()->getOnlinePlayers () as $player ) {
-			foreach ( $this->db ["signMarket"] as $marketPos => $item ) {
+			foreach ( $this->db ["showCase"] as $marketPos => $item ) {
 				$explode = explode ( ".", $marketPos );
 				if (! isset ( $explode [2] )) continue; // 좌표가 아닐경우 컨티뉴
 				$dx = abs ( $explode [0] - $player->x );
 				$dy = abs ( $explode [1] - $player->y );
 				$dz = abs ( $explode [2] - $player->z ); // XYZ 좌표차이 계산
 				                                         
-				// 반경 25블럭을 넘거갔을경우 생성해제 패킷 전송후 생성패킷큐를 제거
+				// 반경 25블럭을 넘어갔을경우 생성해제 패킷 전송후 생성패킷큐를 제거
 				if (! ($dx <= 25 and $dy <= 25 and $dz <= 25)) {
 					if (! isset ( $this->packetQueue [$player->getName ()] [$marketPos] )) continue;
 					
@@ -390,36 +401,42 @@ class CreativeEconomy extends PluginBase implements Listener {
 					}
 					continue;
 				} else {
-					if (isset ( $this->packetQueue [$player->getName ()] [$marketPos] )) continue;
-					$itemCheck = explode ( ".", $item );
-					if (isset ( $itemCheck [1] )) {
-						$itemClass = Item::get ( $itemCheck [0], $itemCheck [1] );
-					} else {
-						$itemClass = Item::get ( $item );
+					if (! isset ( $this->packetQueue [$player->getName ()] [$marketPos] )) {
+						$itemCheck = explode ( ".", $item );
+						if (isset ( $itemCheck [1] )) {
+							$itemClass = Item::get ( $itemCheck [0], $itemCheck [1] );
+						} else {
+							$itemClass = Item::get ( $item );
+						}
+						// 반경 25블럭 내일경우 생성패킷 전송 후 생성패킷큐에 추가
+						$this->packetQueue [$player->getName ()] [$marketPos] = Entity::$entityCount ++;
+						$this->packet ["AddItemEntityPacket"]->eid = $this->packetQueue [$player->getName ()] [$marketPos];
+						$this->packet ["AddItemEntityPacket"]->item = $itemClass;
+						$this->packet ["AddItemEntityPacket"]->x = $explode [0] + 0.5;
+						$this->packet ["AddItemEntityPacket"]->y = $explode [1];
+						$this->packet ["AddItemEntityPacket"]->z = $explode [2] + 0.5;
+						$player->dataPacket ( $this->packet ["AddItemEntityPacket"] );
 					}
-					// 반경 25블럭 내일경우 생성패킷 전송 후 생성패킷큐에 추가
-					$this->packetQueue [$player->getName ()] [$marketPos] = Entity::$entityCount ++;
-					$this->packet ["AddItemEntityPacket"]->eid = $this->packetQueue [$player->getName ()] [$marketPos];
-					$this->packet ["AddItemEntityPacket"]->item = $itemClass;
-					$this->packet ["AddItemEntityPacket"]->x = $explode [0] + 0.5;
-					$this->packet ["AddItemEntityPacket"]->y = $explode [1];
-					$this->packet ["AddItemEntityPacket"]->z = $explode [2] + 0.5;
-					$player->dataPacket ( $this->packet ["AddItemEntityPacket"] );
-					
 					// 네임택 비활성화 상태이면 네임택비출력
 					if (isset ( $this->db ["settings"] ["nametagEnable"] )) if (! $this->db ["settings"] ["nametagEnable"]) continue;
-					if (isset ( $this->packetQueue [$player->getName ()] ["nametag"] [$marketPos] )) continue;
-					
-					// 유저 패킷을 상점밑에 보내서 네임택 출력
 					if (! isset ( $this->itemName [$item] ) or ! isset ( $this->marketPrice [$item] )) continue;
-					$nameTag = $this->itemName [$item] . "\n" . $this->get ( "price" ) . " : " . $this->marketPrice [$item];
-					$this->packetQueue [$player->getName ()] ["nametag"] [$marketPos] = Entity::$entityCount ++;
-					$this->packet ["AddPlayerPacket"]->eid = $this->packetQueue [$player->getName ()] ["nametag"] [$marketPos];
-					$this->packet ["AddPlayerPacket"]->username = $nameTag;
-					$this->packet ["AddPlayerPacket"]->x = $explode [0] + 0.4;
-					$this->packet ["AddPlayerPacket"]->y = $explode [1] - 3.2;
-					$this->packet ["AddPlayerPacket"]->z = $explode [2] + 0.4;
-					$player->dataPacket ( $this->packet ["AddPlayerPacket"] );
+					
+					// 반경 3블럭 내일경우 유저 패킷을 상점밑에 보내서 네임택 출력
+					if ($dx <= 4 and $dy <= 4 and $dz <= 4) {
+						if (isset ( $this->packetQueue [$player->getName ()] ["nametag"] [$marketPos] )) continue;
+						$nameTag = $this->itemName [$item] . "\n" . $this->get ( "price" ) . " : " . $this->marketPrice [$item];
+						$this->packetQueue [$player->getName ()] ["nametag"] [$marketPos] = Entity::$entityCount ++;
+						$this->packet ["AddPlayerPacket"]->eid = $this->packetQueue [$player->getName ()] ["nametag"] [$marketPos];
+						$this->packet ["AddPlayerPacket"]->username = $nameTag;
+						$this->packet ["AddPlayerPacket"]->x = $explode [0] + 0.4;
+						$this->packet ["AddPlayerPacket"]->y = $explode [1] - 3.2;
+						$this->packet ["AddPlayerPacket"]->z = $explode [2] + 0.4;
+						$player->dataPacket ( $this->packet ["AddPlayerPacket"] );
+					} else if (isset ( $this->packetQueue [$player->getName ()] ["nametag"] [$marketPos] )) {
+						$this->packet ["RemovePlayerPacket"]->eid = $this->packetQueue [$player->getName ()] ["nametag"] [$marketPos];
+						$player->dataPacket ( $this->packet ["RemovePlayerPacket"] ); // 네임택 제거패킷 전송
+						unset ( $this->packetQueue [$player->getName ()] ["nametag"] [$marketPos] );
+					}
 				}
 			}
 		}
@@ -487,7 +504,7 @@ class CreativeEconomy extends PluginBase implements Listener {
 					// z가 대상일때
 					$pos = new Position ( $pos1->x, $pos1->y, $min, $player->level );
 				}
-				$this->db ["signMarket"] ["{$pos->x}.{$pos->y}.{$pos->z}"] = $item;
+				$this->db ["showCase"] ["{$pos->x}.{$pos->y}.{$pos->z}"] = $item;
 				$player->level->setBlock ( $pos, Block::get ( Item::GLASS ), true );
 				$this->marketCount [$item] ++;
 				// 각 부분마다 위 주석코드 실행

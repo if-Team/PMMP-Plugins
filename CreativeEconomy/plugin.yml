@@ -1,6 +1,6 @@
 name: CreativeEconomy
 main: CreativeEconomy\CreativeEconomy
-version: 0.2.2-Alpha
+version: 0.3-Alpha
 author: hm
 api: [1.4.1]
 
