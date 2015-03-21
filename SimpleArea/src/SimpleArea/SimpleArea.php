@@ -32,6 +32,7 @@ use pocketmine\command\PluginCommand;
 use pocketmine\event\player\PlayerDeathEvent;
 use pocketmine\tile\Sign;
 use pocketmine\event\block\SignChangeEvent;
+use SimpleArea\Event\AreaModifyEvent;
 
 class SimpleArea extends PluginBase implements Listener {
 	private static $instance = null;
@@ -44,7 +45,7 @@ class SimpleArea extends PluginBase implements Listener {
 	public $checkMove = [ ];
 	public $economyAPI = null;
 	public $signTemplate = null;
-	public $m_version = 1;
+	public $m_version = 2;
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		if (self::$instance == null) self::$instance = $this;
@@ -164,11 +165,15 @@ class SimpleArea extends PluginBase implements Listener {
 			if ($this->db [$block->getLevel ()->getFolderName ()]->checkResident ( $area ["ID"], $player->getName () )) return;
 			if ($this->db [$block->getLevel ()->getFolderName ()]->isProtected ( $area ["ID"] )) {
 				if ($this->db [$block->getLevel ()->getFolderName ()]->isAllowOption ( $area ["ID"], $block->getID () . ":" . $block->getDamage () )) return;
+				$this->getServer ()->getPluginManager ()->callEvent ( $ev = new AreaModifyEvent ( $player, $block, AreaModifyEvent::PLACE_PROTECT_AREA ) );
+				if ($ev->isCancelled ()) return;
 				if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "block-change-denied" ) );
 				$event->setCancelled ();
 				return;
 			} else {
 				if ($this->db [$block->getLevel ()->getFolderName ()]->isForbidOption ( $area ["ID"], $block->getID () . ":" . $block->getDamage () )) {
+					$this->getServer ()->getPluginManager ()->callEvent ( $ev = new AreaModifyEvent( $player, $block, AreaModifyEvent::PLACE_FORBID ) );
+					if ($ev->isCancelled ()) return;
 					if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "block-active-denied" ) );
 					$event->setCancelled ();
 				}
@@ -177,10 +182,14 @@ class SimpleArea extends PluginBase implements Listener {
 			if ($this->db [$block->getLevel ()->getFolderName ()]->isWhiteWorld ()) {
 				if ($this->db [$block->getLevel ()->getFolderName ()]->option ["white-protect"] == true) {
 					if ($this->db [$block->getLevel ()->getFolderName ()]->isWhiteWorldAllowOption ( $block->getID () . ":" . $block->getDamage () )) return;
+					$this->getServer ()->getPluginManager ()->callEvent ( $ev = new AreaModifyEvent ( $player, $block, AreaModifyEvent::PLACE_WHITE ) );
+					if ($ev->isCancelled ()) return;
 					if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "whiteworld-change-denied" ) );
 					$event->setCancelled ();
 				} else {
 					if ($this->db [$block->getLevel ()->getFolderName ()]->isWhiteWorldForbidOption ( $block->getID () . ":" . $block->getDamage () )) return;
+					$this->getServer ()->getPluginManager ()->callEvent ( $ev = new AreaModifyEvent ( $player, $block, AreaModifyEvent::PLACE_WHITE_FORBID ) );
+					if ($ev->isCancelled ()) return;
 					if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "block-active-denied" ) );
 					$event->setCancelled ();
 				}
@@ -200,10 +209,14 @@ class SimpleArea extends PluginBase implements Listener {
 			if (isset ( $area ["resident"] [0] )) if ($this->db [$block->getLevel ()->getFolderName ()]->checkResident ( $area ["ID"], $player->getName () )) return;
 			if ($this->db [$block->getLevel ()->getFolderName ()]->isProtected ( $area ["ID"] ) == true) {
 				if ($this->db [$block->getLevel ()->getFolderName ()]->isAllowOption ( $area ["ID"], $block->getID () . ":" . $block->getDamage () )) return;
+				$this->getServer ()->getPluginManager ()->callEvent ( $ev = new AreaModifyEvent ( $player, $block, AreaModifyEvent::BREAK_PROTECT_AREA ) );
+				if ($ev->isCancelled ()) return;
 				if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "block-change-denied" ) );
 				$event->setCancelled ();
 			} else {
 				if ($this->db [$block->getLevel ()->getFolderName ()]->isForbidOption ( $area ["ID"], $block->getID () . ":" . $block->getDamage () )) {
+					$this->getServer ()->getPluginManager ()->callEvent ( $ev = new AreaModifyEvent ( $player, $block, AreaModifyEvent::BREAK_FORBID ) );
+					if ($ev->isCancelled ()) return;
 					if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "block-active-denied" ) );
 					$event->setCancelled ();
 				}
@@ -213,10 +226,14 @@ class SimpleArea extends PluginBase implements Listener {
 		if ($this->db [$block->getLevel ()->getFolderName ()]->isWhiteWorld ()) {
 			if ($this->db [$block->getLevel ()->getFolderName ()]->option ["white-protect"] == true) {
 				if ($this->db [$block->getLevel ()->getFolderName ()]->isWhiteWorldAllowOption ( $block->getID () . ":" . $block->getDamage () )) return;
+				$this->getServer ()->getPluginManager ()->callEvent ( $ev = new AreaModifyEvent ( $player, $block, AreaModifyEvent::BREAK_WHITE ) );
+				if ($ev->isCancelled ()) return;
 				if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "whiteworld-change-denied" ) );
 				$event->setCancelled ();
 			} else {
 				if ($this->db [$block->getLevel ()->getFolderName ()]->isWhiteWorldForbidOption ( $block->getID () . ":" . $block->getDamage () )) return;
+				$this->getServer ()->getPluginManager ()->callEvent ( $ev = new AreaModifyEvent ( $player, $block, AreaModifyEvent::BREAK_WHITE_FORBID ) );
+				if ($ev->isCancelled ()) return;
 				if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "block-active-denied" ) );
 				$event->setCancelled ();
 			}
@@ -295,13 +312,14 @@ class SimpleArea extends PluginBase implements Listener {
 					} else {
 						if ($this->checkMove [$event->getPlayer ()->getName ()] == $area ["ID"]) return;
 					}
+					$this->checkMove [$event->getPlayer ()->getName ()] = $area ["ID"];
 					if (isset ( $area ["resident"] [0] )) {
 						if ($this->getServer ()->getOfflinePlayer ( $area ["resident"] [0] ) == null) return;
 						if ($area ["resident"] [0] == $player->getName ()) {
 							if ($this->db [$player->getLevel ()->getFolderName ()]->isHome ( $area ["ID"] )) {
 								$this->message ( $player, $this->get ( "welcome-area-sir" ) );
 							} else {
-								if ($this->config_Data ["show-opland-message"] == true) $this->message ( $player, $this->get ( "welcome-area-master" ) );
+								if ($this->checkShowPreventMessage ()) $this->message ( $player, $this->get ( "welcome-area-master" ) );
 							}
 							$welcome = $this->db [$player->getLevel ()->getFolderName ()]->getWelcome ( $area ["ID"] );
 							if ($welcome != null) {
@@ -312,18 +330,15 @@ class SimpleArea extends PluginBase implements Listener {
 							return;
 						}
 						if ($this->getServer ()->getOfflinePlayer ( $area ["resident"] [0] )->isOp ()) {
-							if ($this->config_Data ["show-opland-message"] == true) $this->message ( $player, $this->get ( "here-is-op-land" ) . $area ["resident"] [0] );
+							if ($this->checkShowPreventMessage ()) $this->message ( $player, $this->get ( "here-is-op-land" ) . $area ["resident"] [0] );
 						} else {
-							$this->message ( $player, $this->get ( "here-is" ) . $area ["resident"] [0] . $this->get ( "his-land" ) );
+							if ($this->checkShowPreventMessage ()) $this->message ( $player, $this->get ( "here-is" ) . $area ["resident"] [0] . $this->get ( "his-land" ) );
 						}
 						$welcome = $this->db [$player->getLevel ()->getFolderName ()]->getWelcome ( $area ["ID"] );
-						if ($welcome != null) $this->message ( $player, $welcome, $this->config_Data ["welcome-prefix"] );
+						if ($welcome != null) if ($this->checkShowPreventMessage ()) $this->message ( $player, $welcome, $this->config_Data ["welcome-prefix"] );
 					} else {
-						$this->message ( $player, $this->get ( "you-can-buy-here" ) . $this->config_Data ["economy-home-price"] . " " . $this->get ( "show-buy-command" ) );
+						if ($this->checkShowPreventMessage ()) $this->message ( $player, $this->get ( "you-can-buy-here" ) . $this->config_Data ["economy-home-price"] . " " . $this->get ( "show-buy-command" ) );
 					}
-					return;
-				} else {
-					if (isset ( $this->checkMove [$event->getPlayer ()->getName ()] )) unset ( $this->checkMove [$event->getPlayer ()->getName ()] );
 					return;
 				}
 			}
@@ -443,12 +458,15 @@ class SimpleArea extends PluginBase implements Listener {
 				}
 				switch (strtolower ( $args [0] )) {
 					case $this->get ( "commands-sa-whiteworld" ) :
+						if (! $player->isOp ()) return false;
 						$this->whiteWorld ( $player );
 						break;
 					case $this->get ( "commands-sa-make" ) :
+						if (! $player->isOp ()) return false;
 						$this->protectArea ( $player );
 						break;
 					case $this->get ( "commands-sa-cancel" ) :
+						if (! $player->isOp ()) return false;
 						if (isset ( $this->make_Queue [$player->getName ()] )) {
 							unset ( $this->make_Queue [$player->getName ()] );
 							$this->message ( $player, $this->get ( "commands-sa-cancel-help" ) );
@@ -459,15 +477,23 @@ class SimpleArea extends PluginBase implements Listener {
 						}
 						break;
 					case $this->get ( "commands-sa-delete" ) :
+						if (! $player->isOp ()) return false;
+						// TODO extremperm
 						$this->deleteHome ( $player );
 						break;
 					case $this->get ( "commands-sa-protect" ) :
+						if (! $player->isOp ()) return false;
+						// TODO extremperm
 						$this->protect ( $player );
 						break;
 					case $this->get ( "commands-sa-pvp" ) :
+						if (! $player->isOp ()) return false;
+						// TODO extremperm
 						$this->pvp ( $player );
 						break;
 					case $this->get ( "commands-sa-allow" ) :
+						if (! $player->isOp ()) return false;
+						// TODO extremperm
 						if (isset ( $args [1] )) {
 							$this->allowBlock ( $player, $args [1] );
 						} else {
@@ -475,6 +501,8 @@ class SimpleArea extends PluginBase implements Listener {
 						}
 						break;
 					case $this->get ( "commands-sa-forbid" ) :
+						if (! $player->isOp ()) return false;
+						// TODO extremperm
 						if (isset ( $args [1] )) {
 							$this->forbidBlock ( $player, $args [1] );
 						} else {
@@ -482,6 +510,7 @@ class SimpleArea extends PluginBase implements Listener {
 						}
 						break;
 					case $this->get ( "commands-sa-arealimit" ) :
+						if (! $player->isOp ()) return false;
 						if (isset ( $args [1] )) {
 							$this->homelimit ( $player, $args [1] );
 						} else {
@@ -489,9 +518,11 @@ class SimpleArea extends PluginBase implements Listener {
 						}
 						break;
 					case $this->get ( "commands-sa-economy" ) :
+						if (! $player->isOp ()) return false;
 						$this->enableEonomy ( $player );
 						break;
 					case $this->get ( "commands-sa-areaprice" ) :
+						if (! $player->isOp ()) return false;
 						if (isset ( $args [1] )) {
 							$this->homeprice ( $player, $args [1] );
 						} else {
@@ -499,6 +530,7 @@ class SimpleArea extends PluginBase implements Listener {
 						}
 						break;
 					case $this->get ( "commands-sa-hourtax" ) :
+						if (! $player->isOp ()) return false;
 						if (isset ( $args [1] )) {
 							$this->setHourTax ( $player, $args [1] );
 						} else {
@@ -506,6 +538,7 @@ class SimpleArea extends PluginBase implements Listener {
 						}
 						break;
 					case $this->get ( "commands-sa-fence" ) :
+						if (! $player->isOp ()) return false;
 						if (isset ( $args [1] )) {
 							$this->setFenceType ( $player, $args [1] );
 						} else {
@@ -513,9 +546,11 @@ class SimpleArea extends PluginBase implements Listener {
 						}
 						break;
 					case $this->get ( "commands-sa-message" ) :
+						if (! $player->isOp ()) return false;
 						$this->IhatePreventMessage ( $player );
 						break;
 					case $this->get ( "commands-sa-setarea" ) :
+						if (! $player->isOp ()) return false;
 						$this->IhateSetMake ( $player );
 						break;
 					case $this->get ( "commands-sa-help" ) :
@@ -526,9 +561,11 @@ class SimpleArea extends PluginBase implements Listener {
 						}
 						break;
 					case $this->get ( "commands-sa-changemode" ) :
+						if (! $player->isOp ()) return false;
 						$this->changeMode ( $player );
 						break;
 					case $this->get ( "commands-sa-invensave" ) :
+						if (! $player->isOp ()) return false;
 						$this->setInvenSave ( $player );
 						break;
 					default :
@@ -966,10 +1003,6 @@ class SimpleArea extends PluginBase implements Listener {
 		}
 	}
 	public function protect(Player $player) {
-		if (! $player->isOp ()) {
-			$this->message ( $this->get ( "youre-not-owner" ) );
-			return;
-		}
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
 			if ($this->db [$player->getLevel ()->getFolderName ()]->isWhiteWorld ()) {
