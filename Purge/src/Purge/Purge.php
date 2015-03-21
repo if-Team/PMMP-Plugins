@@ -21,7 +21,7 @@ class Purge extends PluginBase implements Listener {
 		$this->initMessage ();
 		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
 				$this,
-				"purgeSchedule" ] ), 100 );
+				"purgeSchedule" ] ), 80 );
 		
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
@@ -58,11 +58,8 @@ class Purge extends PluginBase implements Listener {
 	public function onDamage(EntityDamageEvent $event) {
 		if (! $event instanceof EntityDamageByEntityEvent) return;
 		
-		if ($this->purgeStarted) {
-			if ($event->getEntity () instanceof Player) {
-				$event->setCancelled ();
-			} else if ($event->getDamager () instanceof Player) {
-				$this->alert ( $event->getDamager (), $this->get ( "cant-pvp-in-night" ) );
+		if (! $this->purgeStarted) {
+			if ($event->getEntity () instanceof Player and $event->getDamager () instanceof Player) {
 				$event->setCancelled ();
 			}
 		}
