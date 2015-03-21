@@ -1,9 +1,8 @@
 name: SimpleArea
 main: SimpleArea\SimpleArea
-version: 0.15.3-alpha
+version: 0.15.1-alpha
 author: hm
 api: [1.4.1]
-load: STARTUP
 
 permissions:
  simplearea.commands.area:
@@ -15,8 +14,6 @@ permissions:
  simplearea.commands.buyarea:
   default: true
  simplearea.commands.givearea:
-  default: true
- simplearea.commands.landinfo:
   default: true
  simplearea.commands.arealist:
   default: true
@@ -33,6 +30,6 @@ permissions:
  simplearea.commands.welcome:
   default: true
  simplearea.commands.simplearea:
-  default: true
+  default: OP
  simplearea.commands.yap:
   default: OP
