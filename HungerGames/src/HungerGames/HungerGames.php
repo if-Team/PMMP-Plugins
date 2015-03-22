@@ -26,6 +26,7 @@ use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageByChildEntityEvent;
 use pocketmine\event\player\PlayerMoveEvent;
+use pocketmine\event\entity\EntityCombustByBlockEvent;
 
 class HungerGames extends PluginBase implements Listener {
 	public $settings, $score;
@@ -64,14 +65,7 @@ class HungerGames extends PluginBase implements Listener {
 			$event->setCancelled ();
 			if (isset ( $this->touchedQueue [$player->getName ()] [$blockPos] )) {
 				$this->alert ( $player, $this->get ( "already-touched" ) );
-				$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
-						$this,
-						"setBlockPacket" ], [ 
-						$player,
-						$block->x,
-						$block->y,
-						$block->z,
-						Block::GLOWING_OBSIDIAN ] ), 2 );
+				$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"setBlockPacket" ], [ $player,$block->x,$block->y,$block->z,Block::GLOWING_OBSIDIAN ] ), 2 );
 				return;
 			}
 			$rand = mt_rand ( 1, 100 );
@@ -84,14 +78,7 @@ class HungerGames extends PluginBase implements Listener {
 			}
 			
 			$this->touchedQueue [$player->getName ()] [$blockPos] = 0;
-			$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
-					$this,
-					"setBlockPacket" ], [ 
-					$player,
-					$block->x,
-					$block->y,
-					$block->z,
-					Block::GLOWING_OBSIDIAN ] ), 2 );
+			$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"setBlockPacket" ], [ $player,$block->x,$block->y,$block->z,Block::GLOWING_OBSIDIAN ] ), 2 );
 			
 			$armorRand = rand ( 1, 5 );
 			if ($armorRand == 1) {
@@ -139,20 +126,8 @@ class HungerGames extends PluginBase implements Listener {
 				
 				if (! isset ( $this->fireblock [$blockPos] )) {
 					foreach ( $this->getServer ()->getOnlinePlayers () as $player )
-						$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
-								$this,
-								"setBlockPacket" ], [ 
-								$player,
-								$block->x,
-								$block->y,
-								$block->z,
-								Block::FIRE ] ), 2 );
-					$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
-							$this,
-							"restoreBlock" ], [ 
-							$block->x,
-							$block->y,
-							$block->z ] ), 80 );
+						$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"setBlockPacket" ], [ $player,$block->x,$block->y,$block->z,Block::FIRE ] ), 2 );
+					$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"restoreBlock" ], [ $block->x,$block->y,$block->z ] ), 80 );
 				} else {
 					$this->restoreBlock ( $block->x, $block->y, $block->z );
 				}
@@ -164,14 +139,14 @@ class HungerGames extends PluginBase implements Listener {
 	}
 	public function onMove(PlayerMoveEvent $event) {
 		$blockPos = round ( $event->getPlayer ()->x ) . "." . round ( $event->getPlayer ()->y ) . "." . round ( $event->getPlayer ()->z );
-		if (isset ( $this->fireblock [$blockPos] )) $event->getPlayer ()->setOnFire ( 5 );
+		if (isset ( $this->fireblock [$blockPos] )) {
+			$this->getServer ()->getPluginManager ()->callEvent ( $ev = new EntityCombustByBlockEvent ( Block::get ( Block::FIRE ), $event->getPlayer (), 5 ) );
+			if (! $ev->isCancelled ()) $event->getPlayer ()->setOnFire ( $ev->getDuration () );
+		}
 	}
 	public function checkArrow(ProjectileLaunchEvent $event) {
 		if ($event->getEntity () instanceof Arrow) {
-			$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
-					$this,
-					"removeArrow" ], [ 
-					$event ] ), 20 );
+			$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"removeArrow" ], [ $event ] ), 20 );
 		}
 	}
 	public function removeArrow(Event $event) {
@@ -212,11 +187,7 @@ class HungerGames extends PluginBase implements Listener {
 			$player->getInventory ()->remove ( $hungerItem );
 		
 		$air = Item::get ( Item::AIR );
-		$player->getInventory ()->setArmorContents ( [ 
-				$air,
-				$air,
-				$air,
-				$air ] );
+		$player->getInventory ()->setArmorContents ( [ $air,$air,$air,$air ] );
 		$player->getInventory ()->sendArmorContents ( $player );
 		
 		if (isset ( $this->touchedQueue [$event->getPlayer ()->getName ()] )) {
@@ -248,12 +219,8 @@ class HungerGames extends PluginBase implements Listener {
 		}
 	}
 	public function KillUpdate($murder, $victim) {
-		$md = $this->score->get ( $murder->getName (), [ 
-				"kill" => 0,
-				"death" => 0 ] );
-		$vd = $this->score->get ( $victim->getName (), [ 
-				"kill" => 0,
-				"death" => 0 ] );
+		$md = $this->score->get ( $murder->getName (), [ "kill" => 0,"death" => 0 ] );
+		$vd = $this->score->get ( $victim->getName (), [ "kill" => 0,"death" => 0 ] );
 		if ($victim instanceof Player and $murder instanceof Player) {
 			$mi = "[K" . $md ["kill"] ++ . "+1/D" . $md ["death"] . "]";
 			$vi = "[K" . $vd ["kill"] . "/D" . $vd ["death"] ++ . "+1]";
@@ -268,68 +235,10 @@ class HungerGames extends PluginBase implements Listener {
 		$this->saveResource ( "messages.yml", false );
 		$this->messages = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
 		
-		$this->hungerItem = [ 
-				Item::get ( Item::IRON_SWORD ),
-				Item::get ( Item::WOODEN_SWORD ),
-				Item::get ( Item::STONE_SWORD ),
-				Item::get ( Item::DIAMOND_SWORD ),
-				Item::get ( Item::GOLD_SWORD ),
-				Item::get ( Item::WOODEN_AXE ),
-				Item::get ( Item::STONE_AXE ),
-				Item::get ( Item::DIAMOND_AXE ),
-				Item::get ( Item::GOLD_AXE ),
-				Item::get ( Item::ARROW, 0, 15 ),
-				Item::get ( Item::BOW ),
-				Item::get ( Item::APPLE, 0, 3 ),
-				Item::get ( Item::COOKED_PORKCHOP, 0, 2 ),
-				Item::get ( Item::COOKED_CHICKEN, 0, 2 ) ];
-		$this->hungerItemName = [ 
-				$this->get ( "item-iron-sword" ),
-				$this->get ( "item-wooden-sword" ),
-				$this->get ( "item-stone-sword" ),
-				$this->get ( "item-diamond-sword" ),
-				$this->get ( "item-gold-sword" ),
-				$this->get ( "item-wooden-axe" ),
-				$this->get ( "item-stone-axe" ),
-				$this->get ( "item-diamond-axe" ),
-				$this->get ( "item-gold-axe" ),
-				$this->get ( "item-arrow" ),
-				$this->get ( "item-bow" ),
-				$this->get ( "item-apple" ),
-				$this->get ( "item-cooked_porkchop" ),
-				$this->get ( "item-cooked_chicken" ) ];
-		$this->armorItem = [ 
-				[ 
-						Item::get ( Item::LEATHER_CAP ),
-						Item::get ( Item::LEATHER_TUNIC ),
-						Item::get ( Item::LEATHER_PANTS ),
-						Item::get ( Item::LEATHER_BOOTS ) ],
-				[ 
-						Item::get ( Item::CHAIN_HELMET ),
-						Item::get ( Item::CHAIN_CHESTPLATE ),
-						Item::get ( Item::CHAIN_LEGGINGS ),
-						Item::get ( Item::CHAIN_BOOTS ) ],
-				[ 
-						Item::get ( Item::IRON_HELMET ),
-						Item::get ( Item::IRON_CHESTPLATE ),
-						Item::get ( Item::IRON_LEGGINGS ),
-						Item::get ( item::IRON_BOOTS ) ],
-				[ 
-						Item::get ( Item::DIAMOND_HELMET ),
-						Item::get ( Item::DIAMOND_CHESTPLATE ),
-						Item::get ( Item::DIAMOND_LEGGINGS ),
-						Item::get ( Item::DIAMOND_BOOTS ) ],
-				[ 
-						Item::get ( Item::GOLD_HELMET ),
-						Item::get ( Item::GOLD_CHESTPLATE ),
-						Item::get ( Item::GOLD_LEGGINGS ),
-						Item::get ( Item::GOLD_BOOTS ) ] ];
-		$this->armorItemName = [ 
-				$this->get ( "armor-leather-set" ),
-				$this->get ( "armor-chain-set" ),
-				$this->get ( "armor-iron-set" ),
-				$this->get ( "armor-diamond-set" ),
-				$this->get ( "armor-gold-set" ) ];
+		$this->hungerItem = [ Item::get ( Item::IRON_SWORD ),Item::get ( Item::WOODEN_SWORD ),Item::get ( Item::STONE_SWORD ),Item::get ( Item::DIAMOND_SWORD ),Item::get ( Item::GOLD_SWORD ),Item::get ( Item::WOODEN_AXE ),Item::get ( Item::STONE_AXE ),Item::get ( Item::DIAMOND_AXE ),Item::get ( Item::GOLD_AXE ),Item::get ( Item::ARROW, 0, 15 ),Item::get ( Item::BOW ),Item::get ( Item::APPLE, 0, 3 ),Item::get ( Item::COOKED_PORKCHOP, 0, 2 ),Item::get ( Item::COOKED_CHICKEN, 0, 2 ) ];
+		$this->hungerItemName = [ $this->get ( "item-iron-sword" ),$this->get ( "item-wooden-sword" ),$this->get ( "item-stone-sword" ),$this->get ( "item-diamond-sword" ),$this->get ( "item-gold-sword" ),$this->get ( "item-wooden-axe" ),$this->get ( "item-stone-axe" ),$this->get ( "item-diamond-axe" ),$this->get ( "item-gold-axe" ),$this->get ( "item-arrow" ),$this->get ( "item-bow" ),$this->get ( "item-apple" ),$this->get ( "item-cooked_porkchop" ),$this->get ( "item-cooked_chicken" ) ];
+		$this->armorItem = [ [ Item::get ( Item::LEATHER_CAP ),Item::get ( Item::LEATHER_TUNIC ),Item::get ( Item::LEATHER_PANTS ),Item::get ( Item::LEATHER_BOOTS ) ],[ Item::get ( Item::CHAIN_HELMET ),Item::get ( Item::CHAIN_CHESTPLATE ),Item::get ( Item::CHAIN_LEGGINGS ),Item::get ( Item::CHAIN_BOOTS ) ],[ Item::get ( Item::IRON_HELMET ),Item::get ( Item::IRON_CHESTPLATE ),Item::get ( Item::IRON_LEGGINGS ),Item::get ( item::IRON_BOOTS ) ],[ Item::get ( Item::DIAMOND_HELMET ),Item::get ( Item::DIAMOND_CHESTPLATE ),Item::get ( Item::DIAMOND_LEGGINGS ),Item::get ( Item::DIAMOND_BOOTS ) ],[ Item::get ( Item::GOLD_HELMET ),Item::get ( Item::GOLD_CHESTPLATE ),Item::get ( Item::GOLD_LEGGINGS ),Item::get ( Item::GOLD_BOOTS ) ] ];
+		$this->armorItemName = [ $this->get ( "armor-leather-set" ),$this->get ( "armor-chain-set" ),$this->get ( "armor-iron-set" ),$this->get ( "armor-diamond-set" ),$this->get ( "armor-gold-set" ) ];
 	}
 	public function get($var) {
 		return $this->messages [$this->messages ["default-language"] . "-" . $var];

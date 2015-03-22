@@ -12,6 +12,9 @@ use pocketmine\utils\TextFormat;
 use pocketmine\level\Level;
 use pocketmine\entity\Creature;
 use pocketmine\scheduler\CallbackTask;
+use pocketmine\event\entity\EntityCombustByBlockEvent;
+use pocketmine\block\Fire;
+use pocketmine\event\entity\EntityCombustEvent;
 
 class Purge extends PluginBase implements Listener {
 	public $purgeStarted = false;
@@ -19,9 +22,7 @@ class Purge extends PluginBase implements Listener {
 		@mkdir ( $this->getDataFolder () );
 		
 		$this->initMessage ();
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
-				$this,
-				"purgeSchedule" ] ), 80 );
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ $this,"purgeSchedule" ] ), 80 );
 		
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
@@ -56,10 +57,17 @@ class Purge extends PluginBase implements Listener {
 		}
 	}
 	public function onDamage(EntityDamageEvent $event) {
-		if (! $event instanceof EntityDamageByEntityEvent) return;
-		
-		if (! $this->purgeStarted) {
+		if ($event instanceof EntityDamageByEntityEvent) {
+			if ($this->purgeStarted) return;
 			if ($event->getEntity () instanceof Player and $event->getDamager () instanceof Player) {
+				// TODO 제한시간 출력
+				$event->setCancelled ();
+			}
+		}
+	}
+	public function onCombust(EntityCombustEvent $event) {
+		if ($event instanceof EntityCombustByBlockEvent) {
+			if ($event->getEntity () instanceof Player and $event->getCombuster () instanceof Fire) {
 				$event->setCancelled ();
 			}
 		}
