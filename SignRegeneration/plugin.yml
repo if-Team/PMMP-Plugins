@@ -1,0 +1,20 @@
+name: SignRegeneration
+main: hm\SignRegeneration\SignRegeneration
+version: 1.1-alpha
+author: hm
+api: [1.4.1]
+
+commands:
+ resign:
+   permission: SignRegeneration.commands.set
+   description: SignRegeneration control commands
+   usage: /resign
+ 재생성:
+   permission: SignRegeneration.commands.set
+   description: SignRegeneration control commands
+   usage: /재생성
+
+permission:
+ SignRegeneration.commands.*:
+  default: OP
+  description: Allows commands of SignRegeneration control
