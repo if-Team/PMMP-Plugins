@@ -30,6 +30,7 @@ use pocketmine\entity\Entity;
 
 class EconomyGamble extends PluginBase implements Listener {
 	public $messages, $db; // 메시지, DB
+	public $lotto, $probability; // 로또 확률
 	public $economyAPI = null; // 이코노미 API
 	public $m_version = 1; // 메시지 버전 변수
 	public $packetQueue = [ ]; // 아이템 패킷 큐
@@ -76,6 +77,10 @@ class EconomyGamble extends PluginBase implements Listener {
 		$save = new Config ( $this->getDataFolder () . "GambleDB.yml", Config::YAML );
 		$save->setAll ( $this->db );
 		$save->save ();
+		
+		$save = new Config ( $this->getDataFolder () . "lotto.yml", Config::YAML );
+		$save->setAll ( $this->lotto );
+		$save->save ();
 	}
 	public function get($var) {
 		return $this->messages [$this->messages ["default-language"] . "-" . $var];
@@ -84,6 +89,13 @@ class EconomyGamble extends PluginBase implements Listener {
 		$this->saveResource ( "messages.yml", false );
 		$this->messagesUpdate ( "messages.yml" );
 		$this->messages = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
+		
+		$this->saveResource ( "lotto.yml", false );
+		$this->lotto = (new Config ( $this->getDataFolder () . "lotto.yml", Config::YAML ))->getAll ();
+		
+		$this->saveResource ( "probability.yml", false );
+		$this->messagesUpdate ( "probability.yml" );
+		$this->probability = (new Config ( $this->getDataFolder () . "probability.yml", Config::YAML ))->getAll ();
 	}
 	public function messagesUpdate($targetYmlName) {
 		$targetYml = (new Config ( $this->getDataFolder () . $targetYmlName, Config::YAML ))->getAll ();
