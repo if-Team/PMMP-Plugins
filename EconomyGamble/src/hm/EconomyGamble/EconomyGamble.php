@@ -6,256 +6,300 @@
  *  ＼ ＼_＼ ＼ _＼＼ ＼_＼ ＼_＼
  *   ＼/_/  ＼/__/   ＼/_/ ＼/__/
  * ( *you can redistribute it and/or modify *) */
-namespace hm\EconomyGamble;
+namespace EconomyGamble;
 
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\utils\Config;
+use pocketmine\network\protocol\AddItemEntityPacket;
+use pocketmine\network\protocol\RemoveEntityPacket;
+use pocketmine\network\protocol\AddPlayerPacket;
+use pocketmine\network\protocol\RemovePlayerPacket;
+use pocketmine\scheduler\CallbackTask;
+use pocketmine\command\PluginCommand;
+use pocketmine\utils\TextFormat;
+use pocketmine\event\block\BlockBreakEvent;
+use pocketmine\event\player\PlayerQuitEvent;
+use pocketmine\event\player\PlayerInteractEvent;
+use pocketmine\block\Block;
+use pocketmine\item\Item;
 use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
-use pocketmine\tile\Sign;
-use pocketmine\event\player\PlayerInteractEvent;
-use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\Player;
-use pocketmine\utils\TextFormat;
-use pocketmine\item\Item;
-use pocketmine\event\player\PlayerJoinEvent;
-use onebone\economyapi\EconomyAPI;
-use pocketmine\event\block\SignChangeEvent;
+use pocketmine\entity\Entity;
 
 class EconomyGamble extends PluginBase implements Listener {
-	/**
-	 *
-	 * @var economyAPI
-	 */
-	private $api;
-	
-	/**
-	 *
-	 * @var YAML config variable
-	 */
-	public $lotto, $probability, $language, $signform;
-	/**
-	 *
-	 * @var Queue variable
-	 */
-	public $tap = [ ];
-	public $placeQueue = [ ];
+	public $messages, $db; // 메시지, DB
+	public $economyAPI = null; // 이코노미 API
+	public $m_version = 1; // 메시지 버전 변수
+	public $packetQueue = [ ]; // 아이템 패킷 큐
+	public $packet = [ ]; // 전역 패킷 변수
 	public function onEnable() {
-		if (! file_exists ( $this->getDataFolder () )) mkdir ( $this->getDataFolder () );
-		$this->api = EconomyAPI::getInstance ();
-		$this->initYML ();
+		@mkdir ( $this->getDataFolder () );
+		
+		$this->initMessage ();
+		
+		$this->db = (new Config ( $this->getDataFolder () . "GambleDB.yml", Config::YAML, [ "allow-gamble" => true ] ))->getAll ();
+		
+		if ($this->getServer ()->getPluginManager ()->getPlugin ( "EconomyAPI" ) != null) {
+			$this->economyAPI = \onebone\economyapi\EconomyAPI::getInstance ();
+		} else {
+			$this->getLogger ()->error ( $this->get ( "there-are-no-economyapi" ) );
+			$this->getServer ()->getPluginManager ()->disablePlugin ( $this );
+		}
+		
+		$this->registerCommand ( $this->get ( "commands-gamble" ), "ce", "economygamble.commands.gamble", $this->get ( "commands-gamble-usage" ) );
+		
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
+		
+		$this->packet ["AddItemEntityPacket"] = new AddItemEntityPacket ();
+		$this->packet ["AddItemEntityPacket"]->yaw = 0;
+		$this->packet ["AddItemEntityPacket"]->pitch = 0;
+		$this->packet ["AddItemEntityPacket"]->roll = 0;
+		
+		$this->packet ["RemoveEntityPacket"] = new RemoveEntityPacket ();
+		
+		$this->packet ["AddPlayerPacket"] = new AddPlayerPacket ();
+		$this->packet ["AddPlayerPacket"]->clientID = 0;
+		$this->packet ["AddPlayerPacket"]->yaw = 0;
+		$this->packet ["AddPlayerPacket"]->pitch = 0;
+		$this->packet ["AddPlayerPacket"]->item = Item::GOLD_INGOT;
+		$this->packet ["AddPlayerPacket"]->meta = 0;
+		$this->packet ["AddPlayerPacket"]->metadata = [ 0 => [ "type" => 0,"value" => 0 ],1 => [ "type" => 1,"value" => 0 ],16 => [ "type" => 0,"value" => 0 ],17 => [ "type" => 6,"value" => [ 0,0,0 ] ] ];
+		
+		$this->packet ["RemovePlayerPacket"] = new RemovePlayerPacket ();
+		$this->packet ["RemovePlayerPacket"]->clientID = 0;
+		
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ $this,"EconomyGamble" ] ), 20 );
 	}
 	public function onDisable() {
-		$save = new Config ( $this->getDataFolder () . "lotto.yml", Config::YAML );
-		$save->setAll ( $this->lotto );
+		$save = new Config ( $this->getDataFolder () . "GambleDB.yml", Config::YAML );
+		$save->setAll ( $this->db );
 		$save->save ();
 	}
-	public function onCommand(CommandSender $sender, Command $command, $label, array $params) {
-		if ($command->getName () == "gamblehow") {
-			if (! isset ( $params [0] )) {
-				$sender->sendMessage ( TextFormat::DARK_AQUA . $this->getMessage ( "Gamblehow-a" ) );
-				$sender->sendMessage ( TextFormat::DARK_AQUA . $this->getMessage ( "Gamblehow-b" ) );
-				$sender->sendMessage ( TextFormat::DARK_AQUA . $this->getMessage ( "Gamblehow-c" ) );
-				$sender->sendMessage ( TextFormat::DARK_AQUA . "*-------------------*" );
-				$sender->sendMessage ( TextFormat::DARK_AQUA . "/gamblehow gamble" );
-				$sender->sendMessage ( TextFormat::DARK_AQUA . "/gamblehow itemgamble" );
-				$sender->sendMessage ( TextFormat::DARK_AQUA . "/gamblehow lottery" );
-				$sender->sendMessage ( TextFormat::DARK_AQUA . "/gamblehow random" );
-				$sender->sendMessage ( TextFormat::DARK_AQUA . "*-------------------*" );
-				return true;
-			}
-			switch ($params [0]) {
-				case "gamble" :
-					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->getMessage ( "Gamblehow-d" ) );
-					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->getMessage ( "Gamblehow-Gamble-a" ) );
-					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->getMessage ( "Gamblehow-Gamble-b" ) );
-					break;
-				case "itemgamble" :
-					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->getMessage ( "Gamblehow-d" ) );
-					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->getMessage ( "Gamblehow-ItemGamble" ) );
-					break;
-				case "lottery" :
-					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->getMessage ( "Gamblehow-d" ) );
-					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->getMessage ( "Gamblehow-Lottery" ) );
-					break;
-				case "random" :
-					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->getMessage ( "Gamblehow-d" ) );
-					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->getMessage ( "Gamblehow-Random" ) );
-					break;
-				default :
-					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->getMessage ( "Gamblehow-a" ) );
-					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->getMessage ( "Gamblehow-b" ) );
-					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->getMessage ( "Gamblehow-c" ) );
-					$sender->sendMessage ( TextFormat::DARK_AQUA . "*-------------------*" );
-					$sender->sendMessage ( TextFormat::DARK_AQUA . "/gamblehow gamble" );
-					$sender->sendMessage ( TextFormat::DARK_AQUA . "/gamblehow itemgamble" );
-					$sender->sendMessage ( TextFormat::DARK_AQUA . "/gamblehow lottery" );
-					$sender->sendMessage ( TextFormat::DARK_AQUA . "/gamblehow random" );
-					$sender->sendMessage ( TextFormat::DARK_AQUA . "*-------------------*" );
-					break;
-			}
-			return true;
+	public function get($var) {
+		return $this->messages [$this->messages ["default-language"] . "-" . $var];
+	}
+	public function initMessage() {
+		$this->saveResource ( "messages.yml", false );
+		$this->messagesUpdate ( "messages.yml" );
+		$this->messages = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
+	}
+	public function messagesUpdate($targetYmlName) {
+		$targetYml = (new Config ( $this->getDataFolder () . $targetYmlName, Config::YAML ))->getAll ();
+		if (! isset ( $targetYml ["m_version"] )) {
+			$this->saveResource ( $targetYmlName, true );
+		} else if ($targetYml ["m_version"] < $this->m_version) {
+			$this->saveResource ( $targetYmlName, true );
 		}
 	}
-	public function onSignChange(SignChangeEvent $event) {
+	public function registerCommand($name, $fallback, $permission, $description = "", $usage = "") {
+		$commandMap = $this->getServer ()->getCommandMap ();
+		$command = new PluginCommand ( $name, $this );
+		$command->setDescription ( $description );
+		$command->setPermission ( $permission );
+		$command->setUsage ( $usage );
+		$commandMap->register ( $fallback, $command );
+	}
+	public function message($player, $text = "", $mark = null) {
+		if ($mark == null) $mark = $this->get ( "default-prefix" );
+		$player->sendMessage ( TextFormat::DARK_AQUA . $mark . " " . $text );
+	}
+	public function alert($player, $text = "", $mark = null) {
+		if ($mark == null) $mark = $this->get ( "default-prefix" );
+		$player->sendMessage ( TextFormat::RED . $mark . " " . $text );
+	}
+	// ----------------------------------------------------------------------------------
+	public function onBreak(BlockBreakEvent $event) {
+		$block = $event->getBlock ();
 		$player = $event->getPlayer ();
-		if ($event->getLine ( 0 ) == "gamble") {
-			if (! is_numeric ( $event->getLine ( 1 ) )) {
-				$player->sendMessage ( $this->getMessage ( "mustnumberic" ) );
+		if (isset ( $this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"] )) {
+			if (! $player->hasPermission ( "economygamble.commands.gamble" )) {
+				$this->alert ( $player, $this->get ( "gamble-cannot-break" ) );
+				$event->setCancelled ();
 				return;
 			}
-			$event->setLine ( 0, $this->getSignForm ( "a1" ) );
-			$event->setLine ( 1, $this->getSignForm ( "a2" ) . '$' . $event->getLine ( 1 ) );
-			$event->setLine ( 2, $this->getSignForm ( "a3" ) );
-			$event->setLine ( 3, $this->getSignForm ( "a4" ) );
-			$player->sendMessage ( $this->getMessage ( "GambleSetupFinish" ) );
-		}
-		if ($event->getLine ( 0 ) == "itemgamble") {
-			$event->setLine ( 0, $this->getSignForm ( "b1" ) );
-			$event->setLine ( 1, $this->getSignForm ( "b2" ) );
-			$event->setLine ( 2, $this->getSignForm ( "b3" ) );
-			$event->setLine ( 3, $this->getSignForm ( "b4" ) );
-			$player->sendMessage ( $this->getMessage ( "ItemGambleSetupFinish" ) );
-		}
-		if ($event->getLine ( 0 ) == "lottery") {
-			$event->setLine ( 0, $this->getSignForm ( "c1" ) );
-			$event->setLine ( 1, $this->getSignForm ( "c2" ) . '$' . $this->probability ["LotteryPrice"] );
-			$event->setLine ( 2, $this->getSignForm ( "c3" ) );
-			$event->setLine ( 3, $this->getSignForm ( "c4" ) . '$' . $this->probability ["LotteryCompensation"] );
-			$player->sendMessage ( $this->getMessage ( "LotterySetupFinish" ) );
-		}
-		if ($event->getLine ( 0 ) == "randomgamble") {
-			$event->setLine ( 0, $this->getSignForm ( "d1" ) );
-			$event->setLine ( 1, $this->getSignForm ( "d2" ) );
-			$event->setLine ( 2, $this->getSignForm ( "d3" ) );
-			$event->setLine ( 3, $this->getSignForm ( "d4" ) );
-			$player->sendMessage ( $this->getMessage ( "RandomGambleSetupFinish" ) );
+			if (isset ( $this->marketCount [$this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"]] )) {
+				if ($this->marketCount [$this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"]] > 0) {
+					$this->marketCount [$this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"]] --;
+				}
+			}
+			unset ( $this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"] );
+			if (isset ( $this->packetQueue [$player->getName ()] ["nametag"] ["{$block->x}.{$block->y}.{$block->z}"] )) {
+				$this->packet ["RemovePlayerPacket"]->eid = $this->packetQueue [$player->getName ()] ["nametag"] ["{$block->x}.{$block->y}.{$block->z}"];
+				$player->dataPacket ( $this->packet ["RemovePlayerPacket"] ); // 제거패킷 전송
+			}
+			if (isset ( $this->packetQueue [$player->getName ()] ["{$block->x}.{$block->y}.{$block->z}"] )) {
+				$this->packet ["RemoveEntityPacket"]->eid = $this->packetQueue [$player->getName ()] ["{$block->x}.{$block->y}.{$block->z}"];
+				$player->dataPacket ( $this->packet ["RemoveEntityPacket"] ); // 아이템 제거패킷 전송
+				unset ( $this->packetQueue [$player->getName ()] ["{$block->x}.{$block->y}.{$block->z}"] );
+			}
+			$this->message ( $player, $this->get ( "gamble-completely-destroyed" ) );
 		}
 	}
-	public function playerBlockTouch(PlayerInteractEvent $event) {
-		$sender = $event->getPlayer ();
+	public function onTouch(PlayerInteractEvent $event) {
 		$block = $event->getBlock ();
-		$itemid = $event->getItem ()->getID ();
-		$itemdamage = $event->getItem ()->getDamage ();
-		
-		if (isset ( $this->tap [$sender->getName ()] ) and $this->tap [$sender->getName ()] [0] === $block->x . ":" . $block->y . ":" . $block->z and (time () - $this->tap [$sender->getName ()] [1]) <= 2) {
-			if ($block->getID () == 323 or $block->getID () == 63 or $block->getID () == 68) {
-				$sign = $event->getPlayer ()->getLevel ()->getTile ( $block );
-				if ($sign instanceof Sign) {
-					$sign = $sign->getText ();
-					if ($sign [0] == $this->getSignForm ( "a1" )) {
-						if (isset ( $sign [1] )) {
-							$e = explode ( "$", $sign [1] );
-							$money = $e [1];
-							$mymoney = EconomyAPI::getInstance ()->myMoney ( $sender );
-							if (! is_numeric ( $money ) or $money == 0) {
-								$sender->sendMessage ( $this->getMessage ( "WrongFormat-Sign" ) );
-								if ($event->getItem ()->isPlaceable ()) $this->placeQueue [$sender->getName ()] = true;
-								return 0;
-							}
-							if ($mymoney < $money) {
-								$sender->sendMessage ( $this->getMessage ( "LackOfhMoney" ) );
-								if ($event->getItem ()->isPlaceable ()) $this->placeQueue [$sender->getName ()] = true;
-								return 0;
-							}
-							$rand = rand ( 1, $this->getProbability ( "GambleProbability", 1 ) );
-							if ($rand <= $this->getProbability ( "GambleProbability", 0 )) {
-								$this->api->addMoney ( $sender, $money );
-								$sender->sendMessage ( $this->getMessage ( "SuccessGamble" ) );
-							} else {
-								$this->api->reduceMoney ( $sender, $money );
-								$sender->sendMessage ( $this->getMessage ( "FailGamble" ) );
-							}
-						}
-						if ($event->getItem ()->isPlaceable ()) $this->placeQueue [$sender->getName ()] = true;
-					}
-					if ($sign [0] == $this->getSignForm ( "b1" )) {
-						if ($itemid == 0) {
-							$sender->sendMessage ( $this->getMessage ( "noitem" ) );
-							if ($event->getItem ()->isPlaceable ()) $this->placeQueue [$sender->getName ()] = true;
-							return;
-						}
-						$rand = rand ( 1, $this->getProbability ( "ItemGambleProbability", 1 ) );
-						if ($rand <= $this->getProbability ( "ItemGambleProbability", 0 )) {
-							$sender->getInventory ()->addItem ( Item::get ( $itemid, $itemdamage, 1 ) );
-							$sender->sendMessage ( $this->getMessage ( "SuccessitemGamble" ) );
-						} else {
-							$this->removeItem ( $sender, Item::get ( $itemid, $itemdamage, 1 ) );
-							$sender->sendMessage ( $this->getMessage ( "FailitemGamble" ) );
-						}
-						if ($event->getItem ()->isPlaceable ()) $this->placeQueue [$sender->getName ()] = true;
-					}
-					if ($sign [0] == $this->getSignForm ( "c1" )) {
-						$mymoney = EconomyAPI::getInstance ()->myMoney ( $sender );
-						if ($mymoney < $this->probability ["LotteryPrice"]) {
-							$sender->sendMessage ( $this->getMessage ( "LackOfhMoney" ) );
-							if ($event->getItem ()->isPlaceable ()) $this->placeQueue [$sender->getName ()] = true;
-							return;
-						}
-						$lotto_c = 0;
-						if (isset ( $this->lotto [$sender->getName ()] )) {
-							$get = $this->lotto [$sender->getName ()];
-							$lotto_c = $get ["count"];
-						}
-						$this->lotto [$sender->getName ()] = array ("count" => ++ $lotto_c,"day" => date ( "d" ) );
-						
-						$this->api->reduceMoney ( $sender, $this->getProbability ( "LotteryPrice", 0 ) );
-						$sender->sendMessage ( $this->getMessage ( "LotteryPayment" ) . $this->lotto [$sender->getName ()] ["count"] );
-						$sender->sendMessage ( $this->getMessage ( "LotteryPayment-a" ) );
-						if ($event->getItem ()->isPlaceable ()) $this->placeQueue [$sender->getName ()] = true;
-					}
-					if ($sign [0] == $this->getSignForm ( "d1" )) {
-						$mymoney = EconomyAPI::getInstance ()->myMoney ( $sender );
-						if ($mymoney == 0) {
-							$sender->sendMessage ( $this->getMessage ( "LackOfhMoney" ) );
-							if ($event->getItem ()->isPlaceable ()) $this->placeQueue [$sender->getName ()] = true;
-							return 0;
-						}
-						$pay = rand ( 1, $mymoney );
-						$rand = rand ( 1, $this->getProbability ( "RandomGambleProbability", 1 ) );
-						if ($rand <= $this->getProbability ( "RandomGambleProbability", 0 )) {
-							$this->api->addMoney ( $sender, $pay );
-							$sender->sendMessage ( $this->getMessage ( "SuccessGamble" ) . " $" . $pay . $this->getMessage ( "SuccessGamble-a" ) );
-						} else {
-							$this->api->reduceMoney ( $sender, $pay );
-							$sender->sendMessage ( $this->getMessage ( "FailGamble" ) . " $" . $pay . $this->getMessage ( "FailGamble-a" ) );
-						}
-						if ($event->getItem ()->isPlaceable ()) $this->placeQueue [$sender->getName ()] = true;
-					}
-					unset ( $this->tap [$sender->getName ()] );
+		$player = $event->getPlayer ();
+		if (isset ( $this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"] )) {
+			// TODO 해당하는 겜블진행
+		}
+		if (isset ( $this->createQueue [$player->getName ()] )) {
+			$event->setCancelled ();
+			$pos = $block->getSide ( 1 );
+			$gamble = $this->createQueue [$player->getName ()];
+			$this->db ["showCase"] ["{$pos->x}.{$pos->y}.{$pos->z}"] = $gamble;
+			$block->getLevel ()->setBlock ( $pos, Block::get ( Item::GLASS ), true );
+			unset ( $this->createQueue [$player->getName ()] );
+			$this->message ( $player, $this->get ( "gamble-completely-created" ) );
+		}
+		if (isset ( $this->autoCreateQueue [$player->getName ()] ) and $this->autoCreateQueue [$player->getName ()] ["pos1"] === null) {
+			$event->setCancelled ();
+			$this->autoCreateQueue [$player->getName ()] ["pos1"] = $block->getSide ( 1 );
+			// POS1 지정완료
+			$this->message ( $player, $this->get ( "pos1-is-selected" ) );
+			return;
+		}
+		if (isset ( $this->autoCreateQueue [$player->getName ()] ) and $this->autoCreateQueue [$player->getName ()] ["pos2"] === null) {
+			$event->setCancelled ();
+			$this->autoCreateQueue [$player->getName ()] ["pos2"] = $block->getSide ( 1 );
+			// POS2 지정완료
+			$this->message ( $player, $this->get ( "pos2-is-selected" ) );
+			$this->message ( $player, $this->get ( "are-you-want-continue" ) );
+			$this->message ( $player, $this->get ( "you-can-possible-to-cancel" ) );
+			return;
+		}
+	}
+	public function onCommand(CommandSender $player, Command $command, $label, Array $args) {
+		if (! $player instanceof Player) {
+			$this->alert ( $player, $this->get ( "only-in-game" ) );
+			return true;
+		}
+		switch (strtolower ( $command->getName () )) {
+			case $this->get ( "commands-gamble" ) :
+				if (! isset ( $args [0] )) {
+					$this->message ( $player, $this->get ( "commands-ce-help1" ) );
+					$this->message ( $player, $this->get ( "commands-ce-help2" ) );
+					$this->message ( $player, $this->get ( "commands-ce-help3" ) );
+					break;
 				}
-			}
-		} else if ($block->getID () == 323 or $block->getID () == 63 or $block->getID () == 68) {
-			$sign = $event->getPlayer ()->getLevel ()->getTile ( $block );
-			if ($sign instanceof Sign) {
-				$sign = $sign->getText ();
-				if ($sign [0] === $this->getSignForm ( "a1" ) or $sign [0] === $this->getSignForm ( "b1" ) or $sign [0] === $this->getSignForm ( "c1" ) or $sign [0] === $this->getSignForm ( "d1" )) {
-					$this->tap [$sender->getName ()] = array ($block->x . ":" . $block->y . ":" . $block->z,time () );
-					$mymoney = EconomyAPI::getInstance ()->myMoney ( $sender );
-					$sender->sendMessage ( $this->getMessage ( "AskAgain" ) . $mymoney . "]" );
-					if ($event->getItem ()->isPlaceable ()) $this->placeQueue [$sender->getName ()] = true;
+				switch ($args [0]) {
+					case $this->get ( "sub-commands-create" ) :
+						(isset ( $args [1] )) ? $this->GambleCreateQueue ( $player, $args [1] ) : $this->GambleCreateQueue ( $player );
+						break;
+					case $this->get ( "sub-commands-cancel" ) :
+						// ( 모든 큐를 초기화 )
+						if (isset ( $this->createQueue [$player->getName ()] )) unset ( $this->createQueue [$player->getName ()] );
+						$this->message ( $player, $this->get ( "all-processing-is-stopped" ) );
+						break;
+					case $this->get ( "sub-commands-seegamble" ) :
+						if (isset ( $this->db ["settings"] ["seeGamble"] )) {
+							if ($this->db ["settings"] ["seeGamble"]) {
+								$this->db ["settings"] ["seeGamble"] = false;
+								$this->message ( $player, $this->get ( "seegamble-disabled" ) );
+							} else {
+								$this->db ["settings"] ["seeGamble"] = true;
+								$this->message ( $player, $this->get ( "seegamble-enabled" ) );
+							}
+						} else {
+							$this->db ["settings"] ["seeGamble"] = true;
+							$this->message ( $player, $this->get ( "seegamble-enabled" ) );
+						}
+						break;
+					default :
+						$this->message ( $player, $this->get ( "commands-ce-help1" ) );
+						$this->message ( $player, $this->get ( "commands-ce-help2" ) );
+						$this->message ( $player, $this->get ( "commands-ce-help3" ) );
+						break;
+				}
+				break;
+		}
+		return true;
+	}
+	public function GambleCreateQueue(Player $player, $gamble = null) {
+		// TODO 예외사항 처리
+		$this->message ( $player, $this->get ( "which-you-want-place-choose-pos" ) );
+		$this->createQueue [$player->getName ()] = $gamble;
+	}
+	public function CreativeEconomy() {
+		// 스케쥴로 매번 위치확인하면서 생성작업시작
+		if (! isset ( $this->db ["showCase"] )) return;
+		foreach ( $this->getServer ()->getOnlinePlayers () as $player ) {
+			foreach ( $this->db ["showCase"] as $gamblePos => $item ) {
+				$explode = explode ( ".", $gamblePos );
+				if (! isset ( $explode [2] )) continue; // 좌표가 아닐경우 컨티뉴
+				$dx = abs ( $explode [0] - $player->x );
+				$dy = abs ( $explode [1] - $player->y );
+				$dz = abs ( $explode [2] - $player->z ); // XYZ 좌표차이 계산
+				                                         
+				// 반경 25블럭을 넘어갔을경우 생성해제 패킷 전송후 생성패킷큐를 제거
+				if (! ($dx <= 25 and $dy <= 25 and $dz <= 25)) {
+					if (! isset ( $this->packetQueue [$player->getName ()] [$gamblePos] )) continue;
+					
+					if (isset ( $this->packetQueue [$player->getName ()] [$gamblePos] )) {
+						$this->packet ["RemoveEntityPacket"]->eid = $this->packetQueue [$player->getName ()] [$gamblePos];
+						$player->dataPacket ( $this->packet ["RemoveEntityPacket"] ); // 아이템 제거패킷 전송
+						unset ( $this->packetQueue [$player->getName ()] [$gamblePos] );
+					}
+					if (isset ( $this->packetQueue [$player->getName ()] ["nametag"] [$gamblePos] )) {
+						$this->packet ["RemovePlayerPacket"]->eid = $this->packetQueue [$player->getName ()] ["nametag"] [$gamblePos];
+						$player->dataPacket ( $this->packet ["RemovePlayerPacket"] ); // 네임택 제거패킷 전송
+						unset ( $this->packetQueue [$player->getName ()] ["nametag"] [$gamblePos] );
+					}
+					continue;
+				} else {
+					if (! isset ( $this->packetQueue [$player->getName ()] [$gamblePos] )) {
+						$itemCheck = explode ( ".", $item );
+						if (isset ( $itemCheck [1] )) {
+							$itemClass = Item::get ( $itemCheck [0], $itemCheck [1] );
+						} else {
+							$itemClass = Item::get ( $item );
+						}
+						// 반경 25블럭 내일경우 생성패킷 전송 후 생성패킷큐에 추가
+						$this->packetQueue [$player->getName ()] [$gamblePos] = Entity::$entityCount ++;
+						$this->packet ["AddItemEntityPacket"]->eid = $this->packetQueue [$player->getName ()] [$gamblePos];
+						$this->packet ["AddItemEntityPacket"]->item = $itemClass;
+						$this->packet ["AddItemEntityPacket"]->x = $explode [0] + 0.5;
+						$this->packet ["AddItemEntityPacket"]->y = $explode [1];
+						$this->packet ["AddItemEntityPacket"]->z = $explode [2] + 0.5;
+						$player->dataPacket ( $this->packet ["AddItemEntityPacket"] );
+					}
+					// 네임택 비활성화 상태이면 네임택비출력
+					if (isset ( $this->db ["settings"] ["nametagEnable"] )) if (! $this->db ["settings"] ["nametagEnable"]) continue;
+					
+					if (! isset ( $this->itemName [$item] )) {
+						$explodeItem = explode ( ".", $item );
+						if (isset ( $this->itemName [$explodeItem [0]] )) {
+							$itemName = $this->itemName [$explodeItem [0]];
+						} else {
+							continue;
+						}
+					} else {
+						$itemName = $this->itemName [$item];
+					}
+					
+					// 반경 6블럭 내일경우 유저 패킷을 상점밑에 보내서 네임택 출력
+					if ($dx <= 6 and $dy <= 6 and $dz <= 6) {
+						if (isset ( $this->packetQueue [$player->getName ()] ["nametag"] [$gamblePos] )) continue;
+						$nameTag = ""; // TODO 도박알림띄우기
+						$this->packetQueue [$player->getName ()] ["nametag"] [$gamblePos] = Entity::$entityCount ++;
+						$this->packet ["AddPlayerPacket"]->eid = $this->packetQueue [$player->getName ()] ["nametag"] [$gamblePos];
+						$this->packet ["AddPlayerPacket"]->username = $nameTag;
+						$this->packet ["AddPlayerPacket"]->x = $explode [0] + 0.4;
+						$this->packet ["AddPlayerPacket"]->y = $explode [1] - 3.2;
+						$this->packet ["AddPlayerPacket"]->z = $explode [2] + 0.4;
+						$player->dataPacket ( $this->packet ["AddPlayerPacket"] );
+					} else if (isset ( $this->packetQueue [$player->getName ()] ["nametag"] [$gamblePos] )) {
+						$this->packet ["RemovePlayerPacket"]->eid = $this->packetQueue [$player->getName ()] ["nametag"] [$gamblePos];
+						$player->dataPacket ( $this->packet ["RemovePlayerPacket"] ); // 네임택 제거패킷 전송
+						unset ( $this->packetQueue [$player->getName ()] ["nametag"] [$gamblePos] );
+					}
 				}
 			}
 		}
-	}
-	public function getMessage($var) {
-		return $this->language [$this->language ["setlanguage"] . "-" . $var];
-	}
-	public function getSignForm($var) {
-		return $this->signform [$this->language ["setlanguage"] . "-" . $var];
 	}
 	public function getProbability($var, $num) {
 		$e = explode ( "/", $this->probability [$var] );
 		return $e [$num];
-	}
-	public function onPlace(BlockPlaceEvent $event) {
-		$username = $event->getPlayer ()->getName ();
-		if (isset ( $this->placeQueue [$username] )) {
-			$event->setCancelled ( true );
-			unset ( $this->placeQueue [$username] );
-		}
 	}
 	public function lottocheck(PlayerJoinEvent $event) {
 		$player = $event->getPlayer ();
@@ -265,50 +309,29 @@ class EconomyGamble extends PluginBase implements Listener {
 			$count = $get ["count"];
 			
 			if ($count != 0 and date ( "d" ) != $day) {
-				$player->sendMessage ( $this->getMessage ( "LotteryCheck" ) );
+				$player->sendMessage ( $this->get ( "LotteryCheck" ) );
 				$resultCount = $count;
 				for($i = 1; $i <= $count; $i ++) {
 					$rand = rand ( 1, $this->getProbability ( "LotteryProbability", 1 ) );
 					if (! ($rand <= $this->getProbability ( "LotteryProbability", 0 ))) -- $resultCount;
 				}
 				if ($resultCount == 0) {
-					$player->sendMessage ( $this->getMessage ( "LotteryCheck-a" ) . " " . $count . $this->getMessage ( "LotteryCheck-b" ) );
-					$player->sendMessage ( $this->getMessage ( "FailGamble" ) );
+					$player->sendMessage ( $this->get ( "LotteryCheck-a" ) . " " . $count . $this->get ( "LotteryCheck-b" ) );
+					$player->sendMessage ( $this->get ( "FailGamble" ) );
 				} else {
 					$this->api->addMoney ( $player, $resultCount * $this->getProbability ( "LotteryCompensation", 0 ) );
 					foreach ( $this->getServer ()->getOnlinePlayers () as $p ) {
-						$p->sendMessage ( $player->getName () . $this->getMessage ( "SuccessLottery" ) );
-						$p->sendMessage ( $this->getMessage ( "SuccessLottery-a" ) . $count . $this->getMessage ( "SuccessLottery-b" ) . $resultCount * $this->getProbability ( "LotteryCompensation", 0 ) . $this->getMessage ( "SuccessLottery-c" ) );
+						$p->sendMessage ( $player->getName () . $this->get ( "SuccessLottery" ) );
+						$p->sendMessage ( $this->get ( "SuccessLottery-a" ) . $count . $this->get ( "SuccessLottery-b" ) . $resultCount * $this->getProbability ( "LotteryCompensation", 0 ) . $this->get ( "SuccessLottery-c" ) );
 					}
 				}
 				unset ( $this->lotto [$player->getName ()] );
 			}
 		}
 	}
-	public function removeItem($sender, $getitem) {
-		$getcount = $getitem->getCount ();
-		if ($getcount <= 0) return;
-		for($index = 0; $index < $sender->getInventory ()->getSize (); $index ++) {
-			$setitem = $sender->getInventory ()->getItem ( $index );
-			if ($getitem->getID () == $setitem->getID () and $getitem->getDamage () == $setitem->getDamage ()) {
-				if ($getcount >= $setitem->getCount ()) {
-					$getcount -= $setitem->getCount ();
-					$sender->getInventory ()->setItem ( $index, Item::get ( Item::AIR, 0, 1 ) );
-				} else if ($getcount < $setitem->getCount ()) {
-					$sender->getInventory ()->setItem ( $index, Item::get ( $getitem->getID (), 0, $setitem->getCount () - $getcount ) );
-					break;
-				}
-			}
-		}
-	}
-	public function initYML() {
-		$this->saveResource ( "lotto.yml", false );
-		$this->saveResource ( "probability.yml", false );
-		$this->saveResource ( "language.yml", false );
-		$this->saveResource ( "signform.yml", false );
-		$this->lotto = (new Config ( $this->getDataFolder () . "lotto.yml", Config::YAML ))->getAll ();
-		$this->probability = (new Config ( $this->getDataFolder () . "probability.yml", Config::YAML ))->getAll ();
-		$this->language = (new Config ( $this->getDataFolder () . "language.yml", Config::YAML ))->getAll ();
-		$this->signform = (new Config ( $this->getDataFolder () . "signform.yml", Config::YAML ))->getAll ();
+	public function onQuit(PlayerQuitEvent $event) {
+		if (isset ( $this->createQueue [$event->getPlayer ()->getName ()] )) unset ( $this->createQueue [$event->getPlayer ()->getName ()] );
 	}
 }
+
+?>
