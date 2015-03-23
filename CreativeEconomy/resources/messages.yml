@@ -3,7 +3,7 @@
 
 #PLEASE SET HERE TO YOUR LANGUAGE PREFIX
 default-language: ko
-m_version: 2
+m_version: 4
 
 #(EN) ENGLISH
 
@@ -24,20 +24,21 @@ ko-sub-commands-autocreate: "자동"
 ko-sub-commands-change: "변경"
 ko-sub-commands-lock: "동결"
 ko-sub-commands-cancel: "중단"
+ko-sub-commands-seepurchase: "거래표시"
 
 ko-there-are-no-economyapi: "이코노미 API 플러그인이 없습니다! 플러그인 비활성화 됨!"
 ko-market-cannot-break: "상점은 OP만이 파괴할 수 있습니다 !"
 ko-ur-not-use-market: "상점을 이용할 권한이 없습니다 !"
 ko-you-can-buy-or-sell: "아이템을 구매또는 판매 하시겠습니까?"
-ko-buy-or-sell-help-command: "/구매 <수량> 또는 /판매 <수량>"
+ko-buy-or-sell-help-command: "/구매 수량 또는 /판매 수량"
 ko-market-completely-destroyed: "상점이 성공적으로 파괴되었습니다 !"
 ko-market-completely-created: "상점이 성공적으로 설치되었습니다 !"
-ko-please-choose-item: "먼저 상점에서 아이템을 선택해주세요 !"
-ko-which-you-want-place-choose-pos: "상점 생성을 시작합니다, 원하는 곳을 터치해주세요"
+ko-please-choose-item: "상점에서 아이템을 선택해주세요 !"
+ko-which-you-want-place-choose-pos: "상점을 생성합니다, 원하는 곳을 터치해주세요"
 ko-not-found-item-data: "해당하는 아이템 정보가 없습니다! 진행 불가능"
 ko-not-enough-money-to-purchase: "해당 거래를 하기에 돈이 부족합니다 !"
-ko-is-successfully-buyed: "을(를) 성공적으로 구매했습니다!"
-ko-is-successfully-selled: "을(를) 성공적으로 판매했습니다!"
+ko-is-successfully-buyed: "을(를) 구매했습니다"
+ko-is-successfully-selled: "을(를) 판매했습니다"
 ko-not-enough-item: "아이템이 부족합니다 ! 거래불가 !"
 ko-market-disabled: "상점거래가 비활성화되었습니다"
 ko-market-enabled: "상점거래가 활성화되었습니다"
@@ -49,15 +50,19 @@ ko-please-select-pos1: "pos1을 지정해주세요 !"
 ko-please-select-pos2: "pos2을 지정해주세요 !"
 ko-are-you-want-continue: "진행하려면 이전 명령어를 다시 입력해주세요 !"
 ko-you-can-possible-to-cancel: "/창조경제 중단 으로 중단가능 !"
-ko-all-processing-is-stopped: "진행 중이던 작업들이 취소되었습니다 !"
+ko-all-processing-is-stopped: "진행 중이던 작업들이 중단되었습니다 !"
 ko-this-item-doesnt-sell: "이 아이템은 거래하실 수 없습니다 !"
 ko-my-money: "보유금액"
+ko-my-item-count: "보유아이템 수"
 ko-price: "가격"
+ko-count: "총"
 ko-old-price: "이전가격"
 ko-new-price: "현재가격"
 ko-nametag: "네임태그"
-ko-nametag-enabled: "상점에 네임태그가 활성화 되었습니다 !"
-ko-nametag-disabled: "상점에 네임태그가 비활성화 되었습니다 !"
+ko-nametag-enabled: "상점 네임택이 활성화 되었습니다 !"
+ko-nametag-disabled: "상점 네임택이 비활성화 되었습니다 !"
+ko-seepurchase-enabled: "거래 상황 표시가 활성화 되었습니다 !"
+ko-seepurchase-disabled: "거래 상황 표시가 활성화 되었습니다 !"
 
 ko-commands-ce-help1: "/창조경제 생성 <아이디:값>"
 ko-commands-ce-help2: "/창조경제 자동"

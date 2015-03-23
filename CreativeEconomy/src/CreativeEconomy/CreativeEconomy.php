@@ -27,7 +27,7 @@ use pocketmine\network\protocol\RemovePlayerPacket;
 class CreativeEconomy extends PluginBase implements Listener {
 	private static $instance = null;
 	public $messages, $db;
-	public $m_version = 3;
+	public $m_version = 4;
 	public $marketCount, $marketPrice, $itemName;
 	public $economyAPI = null;
 	public $purchaseQueue = [ ]; // 상점결제 큐
@@ -125,15 +125,41 @@ class CreativeEconomy extends PluginBase implements Listener {
 			if (isset ( $this->marketPrice [$this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"]] )) {
 				$price = $this->marketPrice [$this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"]];
 			} else {
-				$this->alert ( $player, $this->get ( "not-found-item-data" ) );
-				return;
+				$explode = explode ( ".", $this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"] );
+				if (isset ( $this->marketPrice [$explode [0]] )) {
+					$price = $this->marketPrice [$explode [0]];
+				} else {
+					$this->alert ( $player, $this->get ( "not-found-item-data" ) );
+					return;
+				}
+			}
+			//
+			if (isset ( $this->itemName [$this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"]] )) {
+				$itemName = $this->itemName [$this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"]];
+			} else {
+				$explode = explode ( ".", $this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"] );
+				if (isset ( $this->itemName [$explode [0]] )) {
+					$itemName = $this->itemName [$explode [0]];
+				} else {
+					$this->alert ( $player, $this->get ( "not-found-item-data" ) );
+					return;
+				}
 			}
 			if ($price == 0) {
 				$this->alert ( $player, $this->get ( "this-item-doesnt-sell" ) );
 				return;
 			}
+			$check = explode ( ".", $this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"] );
+			if (! isset ( $check [1] )) $check [1] = 0;
+			$haveItem = 0;
+			foreach ( $player->getInventory ()->getContents () as $inven ) {
+				if (! $inven instanceof Item) continue;
+				if ($inven->getID () == $check [0] and $inven->getDamage () == $check [1]) {
+					$haveItem += $inven->getCount (); // 가진아이템 수 확인
+				}
+			}
 			$this->purchaseQueue [$player->getName ()] ["id"] = $this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"];
-			$this->message ( $player, "' " . $this->itemName [$this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"]] . " '" . $this->get ( "you-can-buy-or-sell" ) );
+			$this->message ( $player, "' " . $itemName . " '" . $this->get ( "you-can-buy-or-sell" ) . " ( " . $this->get ( "my-item-count" ) . " : " . $haveItem . " )" );
 			$this->message ( $player, $this->get ( "buy-or-sell-help-command" ) . " ( " . $this->get ( "price" ) . " : " . $price . " )" );
 			$event->setCancelled ();
 		}
@@ -251,6 +277,20 @@ class CreativeEconomy extends PluginBase implements Listener {
 							$this->message ( $player, $this->get ( "nametag-disabled" ) );
 						}
 						break;
+					case $this->get ( "sub-commands-seepurchase" ) :
+						if (isset ( $this->db ["settings"] ["seePurchase"] )) {
+							if ($this->db ["settings"] ["seePurchase"]) {
+								$this->db ["settings"] ["seePurchase"] = false;
+								$this->message ( $player, $this->get ( "seepurchase-disabled" ) );
+							} else {
+								$this->db ["settings"] ["seePurchase"] = true;
+								$this->message ( $player, $this->get ( "seepurchase-enabled" ) );
+							}
+						} else {
+							$this->db ["settings"] ["seePurchase"] = true;
+							$this->message ( $player, $this->get ( "seepurchase-enabled" ) );
+						}
+						break;
 					default :
 						$this->message ( $player, $this->get ( "commands-ce-help1" ) );
 						$this->message ( $player, $this->get ( "commands-ce-help2" ) );
@@ -272,23 +312,19 @@ class CreativeEconomy extends PluginBase implements Listener {
 			return;
 		} else {
 			if ($item == null) $item = $this->purchaseQueue [$player->getName ()] ["id"];
-			if (! isset ( $this->marketPrice [$item] )) {
-				$this->alert ( $player, $this->get ( "not-found-item-data" ) );
-				return;
-			}
 			$check = explode ( ".", $item );
 			// 가격시세가 있는지 체크, 없다면 데미지0번 시세가 있는지 체크후 있으면 따르고 없으면 리턴
 			if (isset ( $this->marketPrice [$item] )) {
 				$price = $this->marketPrice [$item] * $count;
 			} else {
-				if (isset ( $this->marketPrice [$check [0] . ".0"] )) {
-					$price = $this->marketPrice [$check [0] . ".0"] * $count;
+				if (isset ( $this->marketPrice [$check [0]] )) {
+					$price = $this->marketPrice [$check [0]] * $count;
 				} else {
-					$this->alert ( $player, $this->get ( "not-found-item-data" ) );
+					$this->alert ( $player, $this->get ( "not-found-item-data" ) . " (" . $item . ")" );
 					return;
 				}
 			}
-			if (! is_numeric ( $count ) and ! isset ( $check [1] )) {
+			if (! is_numeric ( $count )) {
 				$this->alert ( $player, $this->get ( "buy-or-sell-help-command" ) );
 				return;
 			}
@@ -300,8 +336,26 @@ class CreativeEconomy extends PluginBase implements Listener {
 			}
 			$this->economyAPI->reduceMoney ( $player, $price );
 			$player->getInventory ()->addItem ( Item::get ( $check [0], $check [1], $count ) );
-			(! isset ( $this->itemName [$item] )) ? $itemName = "undefied" : $itemName = $this->itemName [$item];
+			
+			if (! isset ( $this->itemName [$item] )) {
+				$explodeItem = explode ( ".", $item );
+				if (isset ( $this->itemName [$explodeItem [0]] )) {
+					$itemName = $this->itemName [$explodeItem [0]];
+				} else {
+					$itemName = "undefied";
+				}
+			} else {
+				$itemName = $this->itemName [$item];
+			}
 			$this->message ( $player, $itemName . "({$item})({$count}) " . $this->get ( "is-successfully-buyed" ) . " ( " . $this->get ( "my-money" ) . " : " . $money . " )" );
+			if (isset ( $this->db ["settings"] ["seePurchase"] ) and $this->db ["settings"] ["seePurchase"]) {
+				foreach ( $this->getServer ()->getOnlinePlayers () as $op ) {
+					if ($op->isOp ()) {
+						$this->message ( $op, $player->getName () . " : " . $itemName . "({$item})({$count}) " . $this->get ( "is-successfully-buyed" ) );
+						$this->getLogger ()->info ( $player->getName () . " : " . $itemName . "({$item})({$count}) " . $this->get ( "is-successfully-buyed" ) . " ( " . $this->get ( "my-money" ) . " : " . $money . " )" );
+					}
+				}
+			}
 			if (isset ( $this->purchaseQueue [$player->getName ()] )) unset ( $this->purchaseQueue [$player->getName ()] );
 			return;
 		}
@@ -316,43 +370,58 @@ class CreativeEconomy extends PluginBase implements Listener {
 			return;
 		} else {
 			if ($item == null) $item = $this->purchaseQueue [$player->getName ()] ["id"];
-			if (! isset ( $this->marketPrice [$item] )) {
-				$this->alert ( $player, $this->get ( "not-found-item-data" ) );
-				return;
-			}
 			$check = explode ( ".", $item );
 			// 가격시세가 있는지 체크, 없다면 데미지0번 시세가 있는지 체크후 있으면 따르고 없으면 리턴
 			if (isset ( $this->marketPrice [$item] )) {
 				$price = $this->marketPrice [$item] * $count;
 			} else {
-				if (isset ( $this->marketPrice [$check [0] . ".0"] )) {
-					$price = $this->marketPrice [$check [0] . ".0"] * $count;
+				if (isset ( $this->marketPrice [$check [0]] )) {
+					$price = $this->marketPrice [$check [0]] * $count;
 				} else {
-					$this->alert ( $player, $this->get ( "not-found-item-data" ) );
+					$this->alert ( $player, $this->get ( "not-found-item-data" ) . " (" . $item . ")" );
 					return;
 				}
 			}
-			if (! is_numeric ( $count ) and ! isset ( $check [1] )) {
+			if (! is_numeric ( $count )) {
 				$this->alert ( $player, $this->get ( "buy-or-sell-help-command" ) );
 				return;
 			}
 			if (! isset ( $check [1] )) $check [1] = 0; // 데미지값이 없으면 0으로
 			$haveItem = 0;
 			foreach ( $player->getInventory ()->getContents () as $inven ) {
-				if (! $inven instanceof Item) return;
+				if (! $inven instanceof Item) continue;
 				if ($inven->getID () == $check [0] and $inven->getDamage () == $check [1]) {
-					$haveItem = $inven->getCount (); // 가진아이템 수 확인
+					$haveItem += $inven->getCount (); // 가진아이템 수 확인
 				}
 			}
 			if ($haveItem < $count) {
-				$this->alert ( $player, $this->get ( "not-enough-item" ) );
+				$this->alert ( $player, $this->get ( "not-enough-item" ) . " (" . $this->get ( "my-item-count" ) . " : " . $haveItem . " )" );
 				return;
 			}
 			$this->economyAPI->addMoney ( $player, $price );
 			$money = $this->economyAPI->myMoney ( $player );
 			$player->getInventory ()->removeItem ( Item::get ( $check [0], $check [1], $count ) );
-			(! isset ( $this->itemName [$item] )) ? $itemName = "undefied" : $itemName = $this->itemName [$item];
+			
+			if (! isset ( $this->itemName [$item] )) {
+				$explodeItem = explode ( ".", $item );
+				if (isset ( $this->itemName [$explodeItem [0]] )) {
+					$itemName = $this->itemName [$explodeItem [0]];
+				} else {
+					$itemName = "undefied";
+				}
+			} else {
+				$itemName = $this->itemName [$item];
+			}
+			
 			$this->message ( $player, $itemName . "({$item})({$count}) " . $this->get ( "is-successfully-selled" ) . " ( " . $this->get ( "my-money" ) . " : " . $money . " )" );
+			if (isset ( $this->db ["settings"] ["seePurchase"] ) and $this->db ["settings"] ["seePurchase"]) {
+				foreach ( $this->getServer ()->getOnlinePlayers () as $op ) {
+					if ($op->isOp ()) {
+						$this->message ( $op, $player->getName () . " : " . $itemName . "({$item})({$count}) " . $this->get ( "is-successfully-selled" ) );
+						$this->getLogger ()->info ( $player->getName () . " : " . $itemName . "({$item})({$count}) " . $this->get ( "is-successfully-selled" ) . " ( " . $this->get ( "my-money" ) . " : " . $money . " )" );
+					}
+				}
+			}
 			if (isset ( $this->purchaseQueue [$player->getName ()] )) unset ( $this->purchaseQueue [$player->getName ()] );
 			return;
 		}
@@ -367,8 +436,8 @@ class CreativeEconomy extends PluginBase implements Listener {
 				return;
 			}
 		}
-		if (! isset ( $this->marketPrice [$item] )) {
-			$this->alert ( $player, $this->get ( "not-found-item-data" ) );
+		if (! isset ( $this->marketCount [$item] )) {
+			$this->alert ( $player, $this->get ( "not-found-item-data" ) . " ( " . $item . " )" );
 			return;
 		}
 		$this->message ( $player, $this->get ( "which-you-want-place-choose-pos" ) );
@@ -419,12 +488,32 @@ class CreativeEconomy extends PluginBase implements Listener {
 					}
 					// 네임택 비활성화 상태이면 네임택비출력
 					if (isset ( $this->db ["settings"] ["nametagEnable"] )) if (! $this->db ["settings"] ["nametagEnable"]) continue;
-					if (! isset ( $this->itemName [$item] ) or ! isset ( $this->marketPrice [$item] )) continue;
+					
+					if (! isset ( $this->marketPrice [$item] )) {
+						$explodeItem = explode ( ".", $item );
+						if (isset ( $this->marketPrice [$explodeItem [0]] )) {
+							$marketprice = $this->marketPrice [$explodeItem [0]];
+						} else {
+							continue;
+						}
+					} else {
+						$marketprice = $this->marketPrice [$item];
+					}
+					if (! isset ( $this->itemName [$item] )) {
+						$explodeItem = explode ( ".", $item );
+						if (isset ( $this->itemName [$explodeItem [0]] )) {
+							$itemName = $this->itemName [$explodeItem [0]];
+						} else {
+							continue;
+						}
+					} else {
+						$itemName = $this->itemName [$item];
+					}
 					
 					// 반경 3블럭 내일경우 유저 패킷을 상점밑에 보내서 네임택 출력
 					if ($dx <= 4 and $dy <= 4 and $dz <= 4) {
 						if (isset ( $this->packetQueue [$player->getName ()] ["nametag"] [$marketPos] )) continue;
-						$nameTag = $this->itemName [$item] . "\n" . $this->get ( "price" ) . " : " . $this->marketPrice [$item];
+						$nameTag = $itemName . "\n" . $this->get ( "price" ) . " : " . $marketprice;
 						$this->packetQueue [$player->getName ()] ["nametag"] [$marketPos] = Entity::$entityCount ++;
 						$this->packet ["AddPlayerPacket"]->eid = $this->packetQueue [$player->getName ()] ["nametag"] [$marketPos];
 						$this->packet ["AddPlayerPacket"]->username = $nameTag;
@@ -510,7 +599,7 @@ class CreativeEconomy extends PluginBase implements Listener {
 				// 각 부분마다 위 주석코드 실행
 				if (++ $min > $max) {
 					unset ( $this->autoCreateQueue [$player->getName ()] );
-					$this->message ( $player, $this->get ( "market-completely-created" ) );
+					$this->message ( $player, $this->get ( "market-completely-created" ) . " (" . $this->get ( "count" ) . " : " . $min - 1 . " )" );
 					return; // 모든 블럭에 배치가 끝나면 리턴
 				}
 			}
@@ -518,16 +607,25 @@ class CreativeEconomy extends PluginBase implements Listener {
 	}
 	public function ChangeMarketPrice(Player $player, $item = null, $price = null) {
 		// 기본가격시세를 입력된 값으로 설정
-		if ($item == null or ! is_numeric ( $item )) {
+		if ($item == null) {
 			$this->alert ( $player, $this->get ( "commands-ce-help3" ) );
 			return;
+		}
+		if (is_numeric ( $item )) {
+			$explode = explode ( ":", $item );
+			if (isset ( $explode [1] ) and is_numeric ( $explode [0] ) and is_numeric ( $explode [1] )) {
+				$item = $explode [0] . "." . $explode [1];
+			} else {
+				$this->alert ( $player, $this->get ( "commands-ce-help3" ) );
+				return;
+			}
 		}
 		if ($price == null or ! is_numeric ( $price )) {
 			$this->alert ( $player, $this->get ( "commands-ce-help3" ) );
 			return;
 		}
 		if (! isset ( $this->marketPrice [$item] )) {
-			$this->alert ( $player, $this->get ( "not-found-item-data" ) );
+			$this->alert ( $player, $this->get ( "not-found-item-data" ) . " (" . $item . " )" );
 			return;
 		}
 		$oldPrice = $this->marketPrice [$item];
