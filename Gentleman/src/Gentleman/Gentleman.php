@@ -37,19 +37,20 @@ class Gentleman extends PluginBase implements Listener {
 		return static::$instance;
 	}
 	public function onChat(PlayerChatEvent $event) {
+		if ($event->getPlayer ()->isOp ()) return;
 		$find = $this->checkSwearWord ( $event->getMessage () );
 		if ($find != null) {
-			$event->getPlayer ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "some-badwords-found" ) . ": " . $find );
+			$event->getPlayer ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "some-badwords-found" ) . ": " . $event->getMessage () . "( " . $find . " ) " );
 			$event->setCancelled ();
-			$this->cautionNotice ( $event->getPlayer (), $find );
+			$this->cautionNotice ( $event->getPlayer (), $event->getMessage () . "( " . $find . " ) " );
 			return;
 		}
 		if (isset ( $this->oldChat [$event->getPlayer ()->getName ()] )) {
 			$find = $this->checkSwearWord ( $this->oldChat [$event->getPlayer ()->getName ()] . $event->getMessage () );
 			if ($find != null) {
-				$event->getPlayer ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "some-badwords-found" ) . ": " . $find );
+				$event->getPlayer ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "some-badwords-found" ) . ": " . $event->getMessage () . "( " . $find . " ) " );
 				$event->setCancelled ();
-				$this->cautionNotice ( $event->getPlayer (), $find );
+				$this->cautionNotice ( $event->getPlayer (), $event->getMessage () . "( " . $find . " ) " );
 				return;
 			}
 		}
@@ -62,10 +63,10 @@ class Gentleman extends PluginBase implements Listener {
 			$message .= $line;
 		$find = $this->checkSwearWord ( $message );
 		if ($find != null) {
-			$event->getPlayer ()->sendMessage ( TextFormat::RED . $this->get ( "some-badwords-found" ) . ": " . $find );
+			$event->getPlayer ()->sendMessage ( TextFormat::RED . $this->get ( "some-badwords-found" ) . ": " . $message . " ( " . $find . " ) " );
 			$event->getPlayer ()->sendMessage ( TextFormat::RED . $this->get ( "you-need-to-change-your-name" ) );
 			$event->setCancelled ();
-			$this->cautionNotice ( $event->getPlayer (), $find );
+			$this->cautionNotice ( $event->getPlayer (), $message . " ( " . $find . " ) " );
 			return;
 		}
 		if (isset ( $this->oldSign [$event->getPlayer ()->getName ()] )) {
@@ -95,7 +96,7 @@ class Gentleman extends PluginBase implements Listener {
 			if ($find != null) {
 				$event->getPlayer ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "some-badwords-found" ) . ": " . $find );
 				$event->setCancelled ();
-				$this->cautionNotice ( $event->getPlayer (), $find );
+				$this->cautionNotice ( $event->getPlayer (), $event->getMessage () . " ( " . $find . " )" );
 			}
 		}
 	}
