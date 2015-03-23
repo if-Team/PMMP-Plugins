@@ -611,7 +611,7 @@ class CreativeEconomy extends PluginBase implements Listener {
 			$this->alert ( $player, $this->get ( "commands-ce-help3" ) );
 			return;
 		}
-		if (is_numeric ( $item )) {
+		if (! is_numeric ( $item )) {
 			$explode = explode ( ":", $item );
 			if (isset ( $explode [1] ) and is_numeric ( $explode [0] ) and is_numeric ( $explode [1] )) {
 				$item = $explode [0] . "." . $explode [1];
