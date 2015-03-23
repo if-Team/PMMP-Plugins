@@ -20,7 +20,7 @@ class Gentleman extends PluginBase implements Listener {
 	public $list, $messages;
 	public $badQueue = [ ];
 	public $preventQueue = [ ];
-	public $oldChat = [ ];
+	public $oldChat = [ ], $oldSign = [ ];
 	public $banPoint;
 	public $m_version = 1;
 	public function onEnable() {
@@ -37,20 +37,19 @@ class Gentleman extends PluginBase implements Listener {
 		return static::$instance;
 	}
 	public function onChat(PlayerChatEvent $event) {
-		if ($event->getPlayer ()->isOp ()) return;
 		$find = $this->checkSwearWord ( $event->getMessage () );
 		if ($find != null) {
-			$event->getPlayer ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "some-badwords-found" ) . ": " . $event->getMessage () . "( " . $find . " ) " );
+			$event->getPlayer ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "some-badwords-found" ) . ": " . $find );
 			$event->setCancelled ();
-			$this->cautionNotice ( $event->getPlayer (), $event->getMessage () . "( " . $find . " ) " );
+			$this->cautionNotice ( $event->getPlayer (), $find );
 			return;
 		}
-		if (isset ( $oldChat )) {
+		if (isset ( $this->oldChat [$event->getPlayer ()->getName ()] )) {
 			$find = $this->checkSwearWord ( $this->oldChat [$event->getPlayer ()->getName ()] . $event->getMessage () );
 			if ($find != null) {
-				$event->getPlayer ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "some-badwords-found" ) . ": " . $event->getMessage () . "( " . $find . " ) " );
+				$event->getPlayer ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "some-badwords-found" ) . ": " . $find );
 				$event->setCancelled ();
-				$this->cautionNotice ( $event->getPlayer (), $event->getMessage () . "( " . $find . " ) " );
+				$this->cautionNotice ( $event->getPlayer (), $find );
 				return;
 			}
 		}
@@ -63,11 +62,23 @@ class Gentleman extends PluginBase implements Listener {
 			$message .= $line;
 		$find = $this->checkSwearWord ( $message );
 		if ($find != null) {
-			$event->getPlayer ()->sendMessage ( TextFormat::RED . $this->get ( "some-badwords-found" ) . ": " . $message . " ( " . $find . " ) " );
+			$event->getPlayer ()->sendMessage ( TextFormat::RED . $this->get ( "some-badwords-found" ) . ": " . $find );
 			$event->getPlayer ()->sendMessage ( TextFormat::RED . $this->get ( "you-need-to-change-your-name" ) );
 			$event->setCancelled ();
-			$this->cautionNotice ( $event->getPlayer (), $message . " ( " . $find . " ) " );
+			$this->cautionNotice ( $event->getPlayer (), $find );
+			return;
 		}
+		if (isset ( $this->oldSign [$event->getPlayer ()->getName ()] )) {
+			$find = $this->checkSwearWord ( $this->oldSign [$event->getPlayer ()->getName ()] . $message );
+			if ($find != null) {
+				$event->getPlayer ()->sendMessage ( TextFormat::RED . $this->get ( "some-badwords-found" ) . ": " . $find );
+				$event->getPlayer ()->sendMessage ( TextFormat::RED . $this->get ( "you-need-to-change-your-name" ) );
+				$event->setCancelled ();
+				$this->cautionNotice ( $event->getPlayer (), $find );
+				return;
+			}
+		}
+		$this->oldSign [$event->getPlayer ()->getName ()] = $message;
 	}
 	public function userCommand(PlayerCommandPreprocessEvent $event) {
 		$command = $event->getMessage ();
@@ -82,9 +93,9 @@ class Gentleman extends PluginBase implements Listener {
 		if ($command [0] == "/me" or $command [0] == "/tell") {
 			$find = $this->checkSwearWord ( $event->getMessage () );
 			if ($find != null) {
-				$event->getPlayer ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "some-badwords-found" ) . ": " . $event->getMessage () . " ( " . $find . " )" );
+				$event->getPlayer ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "some-badwords-found" ) . ": " . $find );
 				$event->setCancelled ();
-				$this->cautionNotice ( $event->getPlayer (), $event->getMessage () . " ( " . $find . " )" );
+				$this->cautionNotice ( $event->getPlayer (), $find );
 			}
 		}
 	}
@@ -96,7 +107,10 @@ class Gentleman extends PluginBase implements Listener {
 			$event->getPlayer ()->sendMessage ( TextFormat::RED . $this->get ( "some-badwords-found" ) . ": " . $find );
 			$event->getPlayer ()->sendMessage ( TextFormat::RED . $this->get ( "you-need-to-change-your-name" ) );
 			$this->preventQueue [$event->getPlayer ()->getName ()] = $find;
-			$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"executeKick" ], [ $event->getPlayer () ] ), 140 );
+			$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
+					$this,
+					"executeKick" ], [ 
+					$event->getPlayer () ] ), 140 );
 		}
 	}
 	public function executeKick($player) {
@@ -162,7 +176,8 @@ class Gentleman extends PluginBase implements Listener {
 		$parseBadwords = mb_convert_encoding ( $parseBadwords, "UTF-8", "CP949" );
 		$parseBadwords = explode ( ' ', $parseBadwords );
 		
-		$list = [ "badwords" => [ ] ];
+		$list = [ 
+				"badwords" => [ ] ];
 		foreach ( $parseBadwords as $badword )
 			$list ["badwords"] [] = $badword;
 		
