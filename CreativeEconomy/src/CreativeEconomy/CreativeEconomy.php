@@ -59,7 +59,8 @@ class CreativeEconomy extends PluginBase implements Listener {
 		$this->messagesUpdate ( "messages.yml" );
 		$this->messagesUpdate ( $this->messages ["default-language"] . "_item_data.yml" );
 		
-		$this->db = (new Config ( $this->getDataFolder () . "marketDB.yml", Config::YAML, [ "allow-purchase" => true ] ))->getAll ();
+		$this->db = (new Config ( $this->getDataFolder () . "marketDB.yml", Config::YAML, [ 
+				"allow-purchase" => true ] ))->getAll ();
 		$this->marketCount = (new Config ( $this->getDataFolder () . "marketCount.yml", Config::YAML ))->getAll ();
 		$this->itemName = (new Config ( $this->getDataFolder () . $this->messages ["default-language"] . "_item_data.yml", Config::YAML ))->getAll ();
 		
@@ -91,12 +92,29 @@ class CreativeEconomy extends PluginBase implements Listener {
 		$this->packet ["AddPlayerPacket"]->pitch = 0;
 		$this->packet ["AddPlayerPacket"]->item = 0;
 		$this->packet ["AddPlayerPacket"]->meta = 0;
-		$this->packet ["AddPlayerPacket"]->metadata = [ 0 => [ "type" => 0,"value" => 0 ],1 => [ "type" => 1,"value" => 0 ],16 => [ "type" => 0,"value" => 0 ],17 => [ "type" => 6,"value" => [ 0,0,0 ] ] ];
+		$this->packet ["AddPlayerPacket"]->metadata = [ 
+				0 => [ 
+						"type" => 0,
+						"value" => 0 ],
+				1 => [ 
+						"type" => 1,
+						"value" => 0 ],
+				16 => [ 
+						"type" => 0,
+						"value" => 0 ],
+				17 => [ 
+						"type" => 6,
+						"value" => [ 
+								0,
+								0,
+								0 ] ] ];
 		
 		$this->packet ["RemovePlayerPacket"] = new RemovePlayerPacket ();
 		$this->packet ["RemovePlayerPacket"]->clientID = 0;
 		
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ $this,"CreativeEconomy" ] ), 20 );
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
+				$this,
+				"CreativeEconomy" ] ), 20 );
 	}
 	public function onDisable() {
 		$save = new Config ( $this->getDataFolder () . "marketDB.yml", Config::YAML );
@@ -352,9 +370,9 @@ class CreativeEconomy extends PluginBase implements Listener {
 				foreach ( $this->getServer ()->getOnlinePlayers () as $op ) {
 					if ($op->isOp ()) {
 						$this->message ( $op, $player->getName () . " : " . $itemName . "({$item})({$count}) " . $this->get ( "is-successfully-buyed" ) );
-						$this->getLogger ()->info ( $player->getName () . " : " . $itemName . "({$item})({$count}) " . $this->get ( "is-successfully-buyed" ) . " ( " . $this->get ( "my-money" ) . " : " . $money . " )" );
 					}
 				}
+				$this->getLogger ()->info ( $player->getName () . " : " . $itemName . "({$item})({$count}) " . $this->get ( "is-successfully-buyed" ) . " ( " . $this->get ( "my-money" ) . " : " . $money . " )" );
 			}
 			if (isset ( $this->purchaseQueue [$player->getName ()] )) unset ( $this->purchaseQueue [$player->getName ()] );
 			return;
@@ -418,9 +436,9 @@ class CreativeEconomy extends PluginBase implements Listener {
 				foreach ( $this->getServer ()->getOnlinePlayers () as $op ) {
 					if ($op->isOp ()) {
 						$this->message ( $op, $player->getName () . " : " . $itemName . "({$item})({$count}) " . $this->get ( "is-successfully-selled" ) );
-						$this->getLogger ()->info ( $player->getName () . " : " . $itemName . "({$item})({$count}) " . $this->get ( "is-successfully-selled" ) . " ( " . $this->get ( "my-money" ) . " : " . $money . " )" );
 					}
 				}
+				$this->getLogger ()->info ( $player->getName () . " : " . $itemName . "({$item})({$count}) " . $this->get ( "is-successfully-selled" ) . " ( " . $this->get ( "my-money" ) . " : " . $money . " )" );
 			}
 			if (isset ( $this->purchaseQueue [$player->getName ()] )) unset ( $this->purchaseQueue [$player->getName ()] );
 			return;
