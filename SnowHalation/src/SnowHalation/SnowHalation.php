@@ -26,17 +26,11 @@ class SnowHalation extends PluginBase implements Listener {
 		@mkdir ( $this->getDataFolder () );
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 		
-		$this->config_File = new Config ( $this->getDataFolder () . "set-up.yml", Config::YAML, [ 
-				"enable-snowing" => 1,
-				"enable-sunlight" => 0 
-		] );
+		$this->config_File = new Config ( $this->getDataFolder () . "set-up.yml", Config::YAML, [ "enable-snowing" => 1,"enable-sunlight" => 0 ] );
 		$this->config = $this->config_File->getAll ();
 		
 		$this->pk = new AddEntityPacket ();
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
-				$this,
-				"SnowHalation" 
-		] ), 1 );
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ $this,"SnowHalation" ] ), 1 );
 	}
 	public function onDisable() {
 		$this->config_File->setAll ( $this->config );
@@ -44,8 +38,7 @@ class SnowHalation extends PluginBase implements Listener {
 	}
 	public function onCommand(CommandSender $sender, Command $command, $label, Array $args) {
 		if (strtolower ( $command->getName () == "snow" )) {
-			if (! $sender->hasPermission ( "snowhalation" ))
-				return false;
+			if (! $sender->hasPermission ( "snowhalation" )) return false;
 			if (! isset ( $args [0] )) {
 				$sender->sendMessage ( TextFormat::DARK_AQUA . "/snow on - 눈이 보이게 합니다." );
 				$sender->sendMessage ( TextFormat::DARK_AQUA . "/snow off - 눈이 보이지않게 합니다." );
@@ -70,8 +63,7 @@ class SnowHalation extends PluginBase implements Listener {
 					}
 					break;
 				case "on" :
-					if (isset ( $this->denied [$sender->getName ()] ))
-						unset ( $this->denied [$sender->getName ()] );
+					if (isset ( $this->denied [$sender->getName ()] )) unset ( $this->denied [$sender->getName ()] );
 					$sender->sendMessage ( TextFormat::DARK_AQUA . "[SnowHalation] 눈이 내리게 설정했습니다." );
 					break;
 				case "off" :
@@ -106,8 +98,7 @@ class SnowHalation extends PluginBase implements Listener {
 		if (! $this->checkEnableSnowing ()) {
 			if ($this->checkEnableSunLight ()) {
 				foreach ( $this->getServer ()->getOnlinePlayers () as $player ) {
-					if ($player->spawned != true or isset ( $this->denied [$player->getName ()] ))
-						continue;
+					if ($player->spawned != true or isset ( $this->denied [$player->getName ()] )) continue;
 					$x = mt_rand ( $player->x - 15, $player->x + 15 );
 					$z = mt_rand ( $player->z - 15, $player->z + 15 );
 					
@@ -115,20 +106,14 @@ class SnowHalation extends PluginBase implements Listener {
 						$this->cooltime ++;
 						
 						$y = $player->getLevel ()->getHighestBlockAt ( $x, $z );
-						$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
-								$this,
-								"destructSnowLayer" 
-						], [ 
-								new Position ( $x, $y, $z, $player->getLevel () ) 
-						] ), 20 );
+						$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"destructSnowLayer" ], [ new Position ( $x, $y, $z, $player->getLevel () ) ] ), 20 );
 					}
 				}
 			}
 			return;
 		}
 		foreach ( $this->getServer ()->getOnlinePlayers () as $player ) {
-			if ($player->spawned != true or isset ( $this->denied [$player->getName ()] ))
-				continue;
+			if ($player->spawned != true or isset ( $this->denied [$player->getName ()] )) continue;
 			$this->createSnow ( $player );
 		}
 	}
@@ -140,66 +125,52 @@ class SnowHalation extends PluginBase implements Listener {
 	}
 	public function createSnow(Player $player) {
 		$x = mt_rand ( $player->x - 15, $player->x + 15 );
+		$y = $player->getLevel ()->getHighestBlockAt ( $x, $z );
 		$z = mt_rand ( $player->z - 15, $player->z + 15 );
 		
-		$this->pk->type = 81;
-		$this->pk->eid = Entity::$entityCount ++;
-		$this->pk->x = $x;
-		$this->pk->y = $player->y + 13;
-		$this->pk->z = $z;
-		$this->pk->did = 0;
-		$player->dataPacket ( $this->pk );
+		if ($y <= $player->y) {
+			$this->pk->type = 81;
+			$this->pk->eid = Entity::$entityCount ++;
+			$this->pk->x = $x;
+			$this->pk->y = $player->y + 13;
+			$this->pk->z = $z;
+			$this->pk->did = 0;
+			$player->dataPacket ( $this->pk );
+		}
 		
 		if (! $this->checkEnableSunLight ()) {
 			if ($this->cooltime < 11) {
 				$this->cooltime ++;
 				
-				$y = $player->getLevel ()->getHighestBlockAt ( $x, $z );
-				$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
-						$this,
-						"createSnowLayer" 
-				], [ 
-						new Position ( $x, $y, $z, $player->getLevel () ) 
-				] ), 20 );
+				$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"createSnowLayer" ], [ new Position ( $x, $y, $z, $player->getLevel () ) ] ), 20 );
 			}
 		} else {
 			if ($this->cooltime < 11) {
 				$this->cooltime ++;
 				
-				$y = $player->getLevel ()->getHighestBlockAt ( $x, $z );
-				$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
-						$this,
-						"destructSnowLayer" 
-				], [ 
-						new Position ( $x, $y, $z, $player->getLevel () ) 
-				] ), 20 );
+				$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"destructSnowLayer" ], [ new Position ( $x, $y, $z, $player->getLevel () ) ] ), 20 );
 			}
 		}
 	}
 	public function createSnowLayer(Position $pos) {
 		$this->cooltime --;
 		
-		if ($pos == null)
-			return;
+		if ($pos == null) return;
 		
 		$down = $pos->getLevel ()->getBlock ( $pos );
-		if (! $down->isSolid ())
-			return;
+		if (! $down->isSolid ()) return;
 		
 		$up = $pos->getLevel ()->getBlock ( $pos->add ( 0, 1, 0 ) );
-		if ($up->getId () != Block::AIR)
-			return;
+		if ($up->getId () != Block::AIR) return;
 		
 		$pos->getLevel ()->setBlock ( $up, Block::get ( Item::SNOW_LAYER ), 0, true );
 	}
 	public function destructSnowLayer(Position $pos) {
 		$this->cooltime --;
 		
-		if ($pos == null)
-			return;
+		if ($pos == null) return;
 		
-		if ($pos->getLevel ()->getBlock ( $pos )->getId () == Block::SNOW_LAYER)
-			$pos->getLevel ()->setBlock ( $pos, Block::get ( Item::AIR ), 0, true );
+		if ($pos->getLevel ()->getBlock ( $pos )->getId () == Block::SNOW_LAYER) $pos->getLevel ()->setBlock ( $pos, Block::get ( Item::AIR ), 0, true );
 	}
 }
 
