@@ -33,6 +33,9 @@ use pocketmine\event\player\PlayerDeathEvent;
 use pocketmine\tile\Sign;
 use pocketmine\event\block\SignChangeEvent;
 use SimpleArea\Event\AreaModifyEvent;
+use pocketmine\event\entity\EntityCombustEvent;
+use pocketmine\event\entity\EntityCombustByBlockEvent;
+use pocketmine\block\Fire;
 
 class SimpleArea extends PluginBase implements Listener {
 	private static $instance = null;
@@ -53,40 +56,19 @@ class SimpleArea extends PluginBase implements Listener {
 		$this->initMessage ();
 		$this->messagesUpdate ();
 		
-		$this->config = new Config ( $this->getDataFolder () . "settings.yml", Config::YAML, [ 
-				"default-home-size" => 20,
-				"maximum-home-limit" => 1,
-				"show-prevent-message" => true,
-				"show-opland-message" => true,
-				"economy-enable" => true,
-				"economy-home-price" => 5000,
-				"economy-home-reward-price" => 2500,
-				"hour-tax-price" => 4,
-				"default-prefix" => $this->get ( "default-prefix" ),
-				"welcome-prefix" => $this->get ( "welcome-prefix" ),
-				"default-wall-type" => 139,
-				"enable-setarea" => true ] );
+		$this->config = new Config ( $this->getDataFolder () . "settings.yml", Config::YAML, [ "default-home-size" => 20,"maximum-home-limit" => 1,"show-prevent-message" => true,"show-opland-message" => true,"economy-enable" => true,"economy-home-price" => 5000,"economy-home-reward-price" => 2500,"hour-tax-price" => 4,"default-prefix" => $this->get ( "default-prefix" ),"welcome-prefix" => $this->get ( "welcome-prefix" ),"default-wall-type" => 139,"enable-setarea" => true ] );
 		$this->config_Data = $this->config->getAll ();
 		
-		$signTemplate = new Config ( $this->getDataFolder () . "signTemplate.yml", Config::YAML, [ 
-				"signTemplate" => [ 
-						"0" => "----------",
-						"1" => "X",
-						"2" => "ECONOMY LAND",
-						"3" => "----------" ] ] );
+		$signTemplate = new Config ( $this->getDataFolder () . "signTemplate.yml", Config::YAML, [ "signTemplate" => [ "0" => "----------","1" => "X","2" => "ECONOMY LAND","3" => "----------" ] ] );
 		$this->signTemplate = $signTemplate->getAll ();
 		
 		foreach ( $this->getServer ()->getLevels () as $level )
 			$this->db [$level->getFolderName ()] = new SimpleArea_Database ( $this->getServer ()->getDataPath () . "worlds/" . $level->getFolderName () . "/", $level, $this->config_Data ["default-wall-type"] );
 		
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
-				$this,
-				"autoSave" ] ), 2400 );
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ $this,"autoSave" ] ), 2400 );
 		
 		foreach ( $this->getServer ()->getLevels () as $level )
-			$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
-					$this,
-					"hourTaxCheck" ] ), 20 * 60 * 60 );
+			$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ $this,"hourTaxCheck" ] ), 20 * 60 * 60 );
 		
 		$this->registerCommand ( $this->get ( "commands-area" ), "simplearea.commands.area", $this->get ( "commands-area-desc" ) );
 		$this->registerCommand ( $this->get ( "commands-setarea" ), "simplearea.commands.setarea", $this->get ( "commands-setarea-desc" ) );
@@ -172,7 +154,7 @@ class SimpleArea extends PluginBase implements Listener {
 				return;
 			} else {
 				if ($this->db [$block->getLevel ()->getFolderName ()]->isForbidOption ( $area ["ID"], $block->getID () . ":" . $block->getDamage () )) {
-					$this->getServer ()->getPluginManager ()->callEvent ( $ev = new AreaModifyEvent( $player, $block, AreaModifyEvent::PLACE_FORBID ) );
+					$this->getServer ()->getPluginManager ()->callEvent ( $ev = new AreaModifyEvent ( $player, $block, AreaModifyEvent::PLACE_FORBID ) );
 					if ($ev->isCancelled ()) return;
 					if ($this->checkShowPreventMessage ()) $this->alert ( $player, $this->get ( "block-active-denied" ) );
 					$event->setCancelled ();
@@ -346,20 +328,21 @@ class SimpleArea extends PluginBase implements Listener {
 	}
 	public function onDamage(EntityDamageEvent $event) {
 		if ($event instanceof EntityDamageByEntityEvent) {
-			if ($event->getEntity () instanceof Player) {
+			if ($event->getEntity () instanceof Player and $event->getDamager () instanceof Player) {
 				$player = $event->getEntity ();
-				$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
-				if ($area != null) if (! $this->db [$player->getLevel ()->getFolderName ()]->isPvpAllow ( $area ["ID"] )) $event->setCancelled ();
-				else if ($area == null) if (! $this->db [$player->getLevel ()->getFolderName ()]->isWhiteWorldPvpAllow ()) $event->setCancelled ();
-			}
-			if ($event->getDamager () instanceof Player) {
-				$player = $event->getDamager ();
 				$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 				if ($area != null) if (! $this->db [$player->getLevel ()->getFolderName ()]->isPvpAllow ( $area ["ID"] )) {
 					$this->message ( $player, $this->get ( "here-is-pvp-not-allow" ) );
 					$event->setCancelled ();
-				} else if ($area == null) if (! $this->db [$player->getLevel ()->getFolderName ()]->isWhiteWorldPvpAllow ()) {
-					$this->message ( $player, $this->get ( "here-is-pvp-not-allow" ) );
+				} else if ($area == null) if (! $this->db [$player->getLevel ()->getFolderName ()]->isWhiteWorldPvpAllow ()) $event->setCancelled ();
+			}
+		}
+	}
+	public function onCombust(EntityCombustEvent $event) {
+		if ($event instanceof EntityCombustByBlockEvent) {
+			if ($event->getEntity () instanceof Player and $event->getCombuster () instanceof Fire) {
+				$area = $this->db [$event->getEntity ()->getFolderName ()]->getArea ( $event->getEntity ()->x, $event->getEntity ()->z );
+				if ($area != null) if (! $this->db [$event->getEntity ()->getLevel ()->getFolderName ()]->isPvpAllow ( $area ["ID"] )) {
 					$event->setCancelled ();
 				}
 			}
@@ -612,8 +595,7 @@ class SimpleArea extends PluginBase implements Listener {
 		if ($this->db [$player->getLevel ()->getFolderName ()]->isHome ( $area ["ID"] )) {
 			$this->db [$player->getLevel ()->getFolderName ()]->removeFence ( $area ["startX"], $area ["endX"], $area ["startZ"], $area ["endZ"] );
 			$this->db [$player->getLevel ()->getFolderName ()]->yml [$area ["ID"]] ["is-home"] = false;
-			$this->db [$player->getLevel ()->getFolderName ()]->yml [$area ["ID"]] ["resident"] = [ 
-					$player->getName () ];
+			$this->db [$player->getLevel ()->getFolderName ()]->yml [$area ["ID"]] ["resident"] = [ $player->getName () ];
 			$this->message ( $player, $this->get ( "changemode-to-protect-area" ) );
 		} else {
 			$this->db [$player->getLevel ()->getFolderName ()]->setFence ( $area ["startX"], $area ["endX"], $area ["startZ"], $area ["endZ"] );
@@ -654,8 +636,7 @@ class SimpleArea extends PluginBase implements Listener {
 						} else {
 							$player = $this->getServer ()->getPlayerExact ( $area ["resident"] [0] );
 							if ($player != null) $this->message ( $player, $this->get ( "sequestrated-1" ) . $area ["ID"] . $this->get ( "sequestrated-2" ) );
-							$this->db [$level->getFolderName ()]->setResident ( $area ["ID"], [ 
-									null ] );
+							$this->db [$level->getFolderName ()]->setResident ( $area ["ID"], [ null ] );
 						}
 					}
 				}
@@ -748,8 +729,7 @@ class SimpleArea extends PluginBase implements Listener {
 				return false;
 			}
 			$this->db [$player->getLevel ()->getFolderName ()]->removeUserProperty ( $player->getName (), $area ["ID"] );
-			$this->db [$player->getLevel ()->getFolderName ()]->setResident ( $area ["ID"], [ 
-					$target ] );
+			$this->db [$player->getLevel ()->getFolderName ()]->setResident ( $area ["ID"], [ $target ] );
 			$this->db [$player->getLevel ()->getFolderName ()]->addUserProperty ( $target->getName (), $area ["ID"] );
 			if ($this->checkEconomyAPI ()) $this->economyAPI->addMoney ( $player, $this->config_Data ["economy-reward-price"] );
 			$this->message ( $player, $target . $this->get ( "givearea-success" ) );
@@ -858,8 +838,7 @@ class SimpleArea extends PluginBase implements Listener {
 						return false;
 					}
 				}
-				$this->db [$player->getLevel ()->getFolderName ()]->setResident ( $area ["ID"], [ 
-						$player->getName () ] );
+				$this->db [$player->getLevel ()->getFolderName ()]->setResident ( $area ["ID"], [ $player->getName () ] );
 				$this->db [$player->getLevel ()->getFolderName ()]->addUserProperty ( $player->getName (), $area ["ID"] );
 				$this->message ( $player, $this->get ( "buyarea-success" ) );
 				if ($this->checkEconomyAPI ()) {
@@ -1093,8 +1072,7 @@ class SimpleArea extends PluginBase implements Listener {
 			return false;
 		} else {
 			$this->db [$player->getLevel ()->getFolderName ()]->removeUserProperty ( $player->getName (), $area ["ID"] );
-			$this->db [$player->getLevel ()->getFolderName ()]->setResident ( $area ["ID"], [ 
-					null ] );
+			$this->db [$player->getLevel ()->getFolderName ()]->setResident ( $area ["ID"], [ null ] );
 			$this->message ( $player, $this->get ( "sellarea-complete" ) );
 			if ($this->checkEconomyAPI ()) {
 				$this->economyAPI->addMoney ( $player, $this->config_Data ["economy-home-reward-price"] );
@@ -1278,8 +1256,7 @@ class SimpleArea extends PluginBase implements Listener {
 		} else {
 			foreach ( $area ["resident"] as $res )
 				if ($res != $player->getName ()) $this->db [$player->getLevel ()->getFolderName ()]->removeUserProperty ( $res, $area ["ID"] );
-			$this->db [$player->getLevel ()->getFolderName ()]->setResident ( $area ["ID"], [ 
-					$player->getName () ] );
+			$this->db [$player->getLevel ()->getFolderName ()]->setResident ( $area ["ID"], [ $player->getName () ] );
 			$this->message ( $player, $this->get ( "inviteclear-complete" ) );
 		}
 		
@@ -1300,11 +1277,7 @@ class SimpleArea extends PluginBase implements Listener {
 			$startZ = $endZ;
 			$endZ = $backup;
 		}
-		return [ 
-				$startX,
-				$endX,
-				$startZ,
-				$endZ ];
+		return [ $startX,$endX,$startZ,$endZ ];
 	}
 	public function rent(Player $player, $price = null) {
 		if ($this->checkEconomyEnable () and $this->checkEconomyAPI ()) {
@@ -1392,11 +1365,7 @@ class SimpleArea extends PluginBase implements Listener {
 					$this->rent_Queue [$owner->getName ()] ["ID"] = $area ["ID"];
 					$this->rent_Queue [$owner->getName ()] ["buyer"] = $player;
 					$this->rent_Queue [$owner->getName ()] ["price"] = $price;
-					$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
-							$this,
-							"rentTimeout" ], [ 
-							$owner,
-							$player ] ), 200 );
+					$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"rentTimeout" ], [ $owner,$player ] ), 200 );
 					$this->message ( $player, $this->get ( "rent-request-sent" ) );
 					return true;
 				}

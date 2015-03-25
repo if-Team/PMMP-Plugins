@@ -67,6 +67,7 @@ class Purge extends PluginBase implements Listener {
 	}
 	public function onCombust(EntityCombustEvent $event) {
 		if ($event instanceof EntityCombustByBlockEvent) {
+			if ($this->purgeStarted) return;
 			if ($event->getEntity () instanceof Player and $event->getCombuster () instanceof Fire) {
 				$event->setCancelled ();
 			}
