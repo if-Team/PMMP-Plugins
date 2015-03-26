@@ -27,7 +27,7 @@ class namingCaution extends PluginBase implements Listener {
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 		$this->chatpk = new ChatPacket ();
 		$this->listyml = new Config ( $this->getDataFolder () . "list.yml", Config::YAML, array (
-				"message" => "[CAUTION] You can't use this nickname\nKick processed automatically\nWhen the nickname changes, You can normally use",
+				"message" => "[CAUTION] You can't use this username\nKicking processed automatically...\nWhen you change your username, you can play.",
 				"names" => array () 
 		) );
 		$this->list = $this->listyml->getAll ();
@@ -36,8 +36,8 @@ class namingCaution extends PluginBase implements Listener {
 		if ($command->getName () == "nc") {
 			if (! isset ( $params [0] )) {
 				$sender->sendMessage ( TextFormat::DARK_AQUA . "*-------------------*" );
-				$sender->sendMessage ( TextFormat::DARK_AQUA . "/nc add" . TextFormat::WHITE . " nickname" );
-				$sender->sendMessage ( TextFormat::DARK_AQUA . "/nc del" . TextFormat::WHITE . " nickname" );
+				$sender->sendMessage ( TextFormat::DARK_AQUA . "/nc add" . TextFormat::WHITE . " <username>" );
+				$sender->sendMessage ( TextFormat::DARK_AQUA . "/nc del" . TextFormat::WHITE . " <username>" );
 				$sender->sendMessage ( TextFormat::DARK_AQUA . "/nc clear" );
 				$sender->sendMessage ( TextFormat::DARK_AQUA . "/nc list" );
 				$sender->sendMessage ( TextFormat::DARK_AQUA . "*-------------------*" );
@@ -48,13 +48,13 @@ class namingCaution extends PluginBase implements Listener {
 					if (isset ( $params [1] )) {
 						$key = array_search ( $params [1], $this->list ["names"] );
 						if ($key != false) {
-							$sender->sendMessage ( TextFormat::DARK_AQUA . $params [1] . " name already has been banned.." );
+							$sender->sendMessage ( "Username:" . TextFormat::DARK_AQUA . $params [1] . " already has been banned.." );
 							break;
 						}
 						$this->list ["names"] [] = $params [1];
-						$sender->sendMessage ( TextFormat::DARK_AQUA . $params [1] . "  name has been banned." );
+						$sender->sendMessage ( "Username:" TextFormat::DARK_AQUA . $params [1] . "  has been banned." );
 					} else {
-						$sender->sendMessage ( TextFormat::DARK_AQUA . "/nc add" . TextFormat::WHITE . " nickname" );
+						$sender->sendMessage ( TextFormat::DARK_AQUA . "/nc add" . TextFormat::WHITE . " <username>" );
 					}
 					break;
 				case "del" :
@@ -62,18 +62,18 @@ class namingCaution extends PluginBase implements Listener {
 						$key = array_search ( $params [1], $this->list ["names"] );
 						if ($key != false) {
 							unset ( $this->list ["names"] [$key] );
-							$sender->sendMessage ( TextFormat::DARK_AQUA . $params [1] . " name has been pardoned." );
+							$sender->sendMessage ( "Username:" . TextFormat::DARK_AQUA . $params [1] . " has been pardoned." );
 						}
 					} else {
-						$sender->sendMessage ( TextFormat::DARK_AQUA . "is not exist ban list." );
+						$sender->sendMessage ( TextFormat::DARK_AQUA . "is not in the banned usernames list." );
 					}
 					break;
 				case "clear" :
 					$this->list ["names"] = [ ];
-					$sender->sendMessage ( TextFormat::DARK_AQUA . "All names has been pardoned." );
+					$sender->sendMessage ( TextFormat::DARK_AQUA . "All usernames have been pardoned." );
 					break;
 				case "list" :
-					$sender->sendMessage ( TextFormat::DARK_AQUA . "[namingCaution] Preview Name Ban List." );
+					$sender->sendMessage ( TextFormat::DARK_AQUA . "[namingCaution] List of banned usernames:" );
 					$list = TextFormat::DARK_AQUA;
 					foreach ( $this->list ["names"] as $l )
 						$list .= $l . " ";
@@ -81,8 +81,8 @@ class namingCaution extends PluginBase implements Listener {
 					break;
 				default :
 					$sender->sendMessage ( TextFormat::DARK_AQUA . "*-------------------*" );
-					$sender->sendMessage ( TextFormat::DARK_AQUA . "/nc add" . TextFormat::WHITE . " nickname" );
-					$sender->sendMessage ( TextFormat::DARK_AQUA . "/nc del" . TextFormat::WHITE . " nickname" );
+					$sender->sendMessage ( TextFormat::DARK_AQUA . "/nc add" . TextFormat::WHITE . " <username>" );
+					$sender->sendMessage ( TextFormat::DARK_AQUA . "/nc del" . TextFormat::WHITE . " <username>" );
 					$sender->sendMessage ( TextFormat::DARK_AQUA . "/nc clear" );
 					$sender->sendMessage ( TextFormat::DARK_AQUA . "/nc list" );
 					$sender->sendMessage ( TextFormat::DARK_AQUA . "*-------------------*" );
@@ -122,7 +122,7 @@ class namingCaution extends PluginBase implements Listener {
 		}
 	}
 	public function Kick(Player $player) {
-		$player->kick ( "has been banned nickname" );
+		$player->kick ( "You're not allowed to use this username." );
 	}
 }
 
