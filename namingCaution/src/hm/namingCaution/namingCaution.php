@@ -52,7 +52,7 @@ class namingCaution extends PluginBase implements Listener {
 							break;
 						}
 						$this->list ["names"] [] = $params [1];
-						$sender->sendMessage ( "Username:" TextFormat::DARK_AQUA . $params [1] . "  has been banned." );
+						$sender->sendMessage ( "Username:" . TextFormat::DARK_AQUA . $params [1] . "  has been banned." );
 					} else {
 						$sender->sendMessage ( TextFormat::DARK_AQUA . "/nc add" . TextFormat::WHITE . " <username>" );
 					}
