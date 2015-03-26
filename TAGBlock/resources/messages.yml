@@ -2,9 +2,13 @@
 # YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
 
 #PLEASE SET HERE TO YOUR LANGUAGE PREFIX
-default-language: ko
+default-language: en
 
 #(EN) ENGLISH
+ko-default-prefix: "[ SERVER ]"
+ko-TAGBlock-line0: "tagblock"
+ko-TAGBlock-added: "TAGBlock Added !"
+ko-TAGBlock-deleted: "TAGBlock Deleted !"
 
 #(KO) KOREAN
 ko-default-prefix: "[ 서버 ]"
