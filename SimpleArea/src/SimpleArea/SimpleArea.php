@@ -823,6 +823,10 @@ class SimpleArea extends PluginBase implements Listener {
 		return true;
 	}
 	public function buyHome(Player $player) {
+		if (! $this->checkHomeLimit ( $player )) {
+			$this->alert ( $player, $this->get ( "no-more-buying-area" ) );
+			return;
+		}
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
 			$this->alert ( $player, $this->get ( "area-doesent-exist" ) );
@@ -1413,6 +1417,10 @@ class SimpleArea extends PluginBase implements Listener {
 		return true;
 	}
 	public function SimpleArea(Player $player) {
+		if (! $this->checkHomeLimit ( $player )) {
+			$this->alert ( $player, $this->get ( "no-more-buying-area" ) );
+			return;
+		}
 		$size = ( int ) round ( $this->getHomeSize () / 2 );
 		$startX = ( int ) round ( $player->x - $size );
 		$endX = ( int ) round ( $player->x + $size );
