@@ -2,10 +2,13 @@
 # YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
 
 #PLEASE SET HERE TO YOUR LANGUAGE PREFIX
-default-language: ko
+default-language: en
 m_version: 1
 
 #(EN) ENGLISH
+en-serverinfo: "< SERVER INFO >"
+en-usercount: "ONLINE : "
+en-mymoney: "MYMONEY : "
 
 #(KO) KOREAN
 ko-serverinfo: "< 서버 정보 >"
