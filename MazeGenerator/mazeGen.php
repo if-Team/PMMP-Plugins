@@ -22,7 +22,7 @@ if($_GET['x'] == '' or $_GET['y'] == '' or !is_numeric($_GET['x']) or !is_numeri
 }
 
 $im = imagecreatetruecolor(($x = $_GET['x']*2 + 1), ($y = $_GET['y']*2 + 1));
-$im - imagefilledrectangle($im, 0, 0, $x, $y, imagecolorallocate($im, 245, 245, 245));
+$im = imagefilledrectangle($im, 0, 0, $x, $y, imagecolorallocate($im, 245, 245, 245));
 render($im, createMazeArray($_GET['x'], $_GET['y']));
 //waterMark($im);
 send($im);
