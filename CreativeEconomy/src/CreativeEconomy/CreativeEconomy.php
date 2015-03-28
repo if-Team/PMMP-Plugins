@@ -2,6 +2,7 @@
 
 namespace CreativeEconomy;
 
+use onebone\economyapi\EconomyAPI;
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\utils\Config;
@@ -9,7 +10,6 @@ use pocketmine\command\PluginCommand;
 use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
 use pocketmine\event\player\PlayerInteractEvent;
-use pocketmine\event\block\SignChangeEvent;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\Player;
 use pocketmine\utils\TextFormat;
@@ -29,12 +29,14 @@ class CreativeEconomy extends PluginBase implements Listener {
 	public $messages, $db;
 	public $m_version = 5;
 	public $marketCount, $marketPrice, $itemName;
+	/** @var EconomyAPI */
 	public $economyAPI = null;
 	public $purchaseQueue = [ ]; // 상점결제 큐
 	public $createQueue = [ ]; // 상점제작시 POS백업큐
 	public $autoCreateQueue = [ ]; // 자동 상점제작시 POS백업큐
 	public $packetQueue = [ ]; // 아이템 패킷 큐
 	public $packet = [ ]; // 전역 패킷 변수
+
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		
@@ -64,7 +66,7 @@ class CreativeEconomy extends PluginBase implements Listener {
 		$this->itemName = (new Config ( $this->getDataFolder () . $this->messages ["default-language"] . "_item_data.yml", Config::YAML ))->getAll ();
 		
 		if ($this->getServer ()->getPluginManager ()->getPlugin ( "EconomyAPI" ) != null) {
-			$this->economyAPI = \onebone\economyapi\EconomyAPI::getInstance ();
+			$this->economyAPI = EconomyAPI::getInstance ();
 		} else {
 			$this->getLogger ()->error ( $this->get ( "there-are-no-economyapi" ) );
 			$this->getServer ()->getPluginManager ()->disablePlugin ( $this );
@@ -912,11 +914,11 @@ class CreativeEconomy extends PluginBase implements Listener {
 		$command->setUsage ( $usage );
 		$commandMap->register ( $fallback, $command );
 	}
-	public function message($player, $text = "", $mark = null) {
+	public function message(CommandSender $player, $text = "", $mark = null) {
 		if ($mark == null) $mark = $this->get ( "default-prefix" );
 		$player->sendMessage ( TextFormat::DARK_AQUA . $mark . " " . $text );
 	}
-	public function alert($player, $text = "", $mark = null) {
+	public function alert(CommandSender $player, $text = "", $mark = null) {
 		if ($mark == null) $mark = $this->get ( "default-prefix" );
 		$player->sendMessage ( TextFormat::RED . $mark . " " . $text );
 	}
