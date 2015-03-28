@@ -3,7 +3,7 @@
 
 #PLEASE SET HERE TO YOUR LANGUAGE PREFIX
 default-language: ko
-m_version: 4
+m_version: 5
 
 #(EN) ENGLISH
 
@@ -63,6 +63,10 @@ ko-nametag-enabled: "상점 네임택이 활성화 되었습니다 !"
 ko-nametag-disabled: "상점 네임택이 비활성화 되었습니다 !"
 ko-seepurchase-enabled: "거래 상황 표시가 활성화 되었습니다 !"
 ko-seepurchase-disabled: "거래 상황 표시가 활성화 되었습니다 !"
+ko-allitem: "전체"
+ko-allitem-selled: "모든 아이템을 판매 처리했습니다 !"
+ko-pricefix: "가격수리"
+ko-pricefix-complete: "가격이 원자재가격에 맞춰서 수정 되었습니다 !"
 
 ko-commands-ce-help1: "/창조경제 생성 <아이디:값>"
 ko-commands-ce-help2: "/창조경제 자동"

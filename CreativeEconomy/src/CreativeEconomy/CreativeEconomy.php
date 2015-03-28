@@ -27,7 +27,7 @@ use pocketmine\network\protocol\RemovePlayerPacket;
 class CreativeEconomy extends PluginBase implements Listener {
 	private static $instance = null;
 	public $messages, $db;
-	public $m_version = 4;
+	public $m_version = 5;
 	public $marketCount, $marketPrice, $itemName;
 	public $economyAPI = null;
 	public $purchaseQueue = [ ]; // 상점결제 큐
@@ -59,8 +59,7 @@ class CreativeEconomy extends PluginBase implements Listener {
 		$this->messagesUpdate ( "messages.yml" );
 		$this->messagesUpdate ( $this->messages ["default-language"] . "_item_data.yml" );
 		
-		$this->db = (new Config ( $this->getDataFolder () . "marketDB.yml", Config::YAML, [ 
-				"allow-purchase" => true ] ))->getAll ();
+		$this->db = (new Config ( $this->getDataFolder () . "marketDB.yml", Config::YAML, [ "allow-purchase" => true ] ))->getAll ();
 		$this->marketCount = (new Config ( $this->getDataFolder () . "marketCount.yml", Config::YAML ))->getAll ();
 		$this->itemName = (new Config ( $this->getDataFolder () . $this->messages ["default-language"] . "_item_data.yml", Config::YAML ))->getAll ();
 		
@@ -92,29 +91,12 @@ class CreativeEconomy extends PluginBase implements Listener {
 		$this->packet ["AddPlayerPacket"]->pitch = 0;
 		$this->packet ["AddPlayerPacket"]->item = 0;
 		$this->packet ["AddPlayerPacket"]->meta = 0;
-		$this->packet ["AddPlayerPacket"]->metadata = [ 
-				0 => [ 
-						"type" => 0,
-						"value" => 0 ],
-				1 => [ 
-						"type" => 1,
-						"value" => 0 ],
-				16 => [ 
-						"type" => 0,
-						"value" => 0 ],
-				17 => [ 
-						"type" => 6,
-						"value" => [ 
-								0,
-								0,
-								0 ] ] ];
+		$this->packet ["AddPlayerPacket"]->metadata = [ 0 => [ "type" => 0,"value" => 0 ],1 => [ "type" => 1,"value" => 0 ],16 => [ "type" => 0,"value" => 0 ],17 => [ "type" => 6,"value" => [ 0,0,0 ] ] ];
 		
 		$this->packet ["RemovePlayerPacket"] = new RemovePlayerPacket ();
 		$this->packet ["RemovePlayerPacket"]->clientID = 0;
 		
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
-				$this,
-				"CreativeEconomy" ] ), 20 );
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ $this,"CreativeEconomy" ] ), 20 );
 	}
 	public function onDisable() {
 		$save = new Config ( $this->getDataFolder () . "marketDB.yml", Config::YAML );
@@ -241,15 +223,19 @@ class CreativeEconomy extends PluginBase implements Listener {
 		if (isset ( $this->packetQueue [$event->getPlayer ()->getName ()] )) unset ( $this->packetQueue [$event->getPlayer ()->getName ()] );
 	}
 	public function onCommand(CommandSender $player, Command $command, $label, Array $args) {
-		if (! $player instanceof Player) {
-			$this->alert ( $player, $this->get ( "only-in-game" ) );
-			return true;
-		}
 		switch (strtolower ( $command->getName () )) {
 			case $this->get ( "commands-buy" ) :
+				if (! $player instanceof Player) {
+					$this->alert ( $player, $this->get ( "only-in-game" ) );
+					return true;
+				}
 				(isset ( $args [0] )) ? $this->CEBuyCommand ( $player, $args [0] ) : $this->CEBuyCommand ( $player );
 				break;
 			case $this->get ( "commands-sell" ) :
+				if (! $player instanceof Player) {
+					$this->alert ( $player, $this->get ( "only-in-game" ) );
+					return true;
+				}
 				(isset ( $args [0] )) ? $this->CESellCommand ( $player, $args [0] ) : $this->CESellCommand ( $player );
 				break;
 			case $this->get ( "commands-ce" ) :
@@ -262,15 +248,27 @@ class CreativeEconomy extends PluginBase implements Listener {
 				}
 				switch ($args [0]) {
 					case $this->get ( "sub-commands-create" ) :
+						if (! $player instanceof Player) {
+							$this->alert ( $player, $this->get ( "only-in-game" ) );
+							return true;
+						}
 						(isset ( $args [1] )) ? $this->CECreateQueue ( $player, $args [1] ) : $this->CECreateQueue ( $player );
 						break;
 					case $this->get ( "sub-commands-autocreate" ) :
+						if (! $player instanceof Player) {
+							$this->alert ( $player, $this->get ( "only-in-game" ) );
+							return true;
+						}
 						$this->CEAutoSet ( $player );
 						break;
 					case $this->get ( "sub-commands-change" ) :
 						(isset ( $args [1] ) and isset ( $args [2] )) ? $this->ChangeMarketPrice ( $player, $args [1], $args [2] ) : $this->ChangeMarketPrice ( $player );
 						break;
 					case $this->get ( "sub-commands-cancel" ) :
+						if (! $player instanceof Player) {
+							$this->alert ( $player, $this->get ( "only-in-game" ) );
+							return true;
+						}
 						// ( 모든 큐를 초기화 )
 						if (isset ( $this->purchaseQueue [$player->getName ()] )) unset ( $this->purchaseQueue [$player->getName ()] );
 						if (isset ( $this->createQueue [$player->getName ()] )) unset ( $this->createQueue [$player->getName ()] );
@@ -309,6 +307,10 @@ class CreativeEconomy extends PluginBase implements Listener {
 							$this->message ( $player, $this->get ( "seepurchase-enabled" ) );
 						}
 						break;
+					case $this->get ( "pricefix" ) :
+						$this->rendezvous ();
+						$this->message ( $player, $this->get ( "pricefix-complete" ) );
+						break;
 					default :
 						$this->message ( $player, $this->get ( "commands-ce-help1" ) );
 						$this->message ( $player, $this->get ( "commands-ce-help2" ) );
@@ -319,6 +321,197 @@ class CreativeEconomy extends PluginBase implements Listener {
 				break;
 		}
 		return true;
+	}
+	public function rendezvous() {
+		$this->marketPrice [5] = $this->marketPrice [17] / 4;
+		$this->marketPrice [336] = $this->marketPrice [337];
+		$this->marketPrice [280] = $this->marketPrice [5] / 2;
+		$this->marketPrice [263] = $this->marketPrice [17];
+		$this->marketPrice [263.1] = $this->marketPrice [17];
+		$this->marketPrice [14] = $this->marketPrice [266];
+		$this->marketPrice [15] = $this->marketPrice [265];
+		$this->marketPrice [16] = $this->marketPrice [263];
+		$this->marketPrice [20] = $this->marketPrice [12];
+		$this->marketPrice [26] = ($this->marketPrice [35] * 3) + ($this->marketPrice [5] * 3);
+		$this->marketPrice [30] = $this->marketPrice [287];
+		$this->marketPrice [35] = $this->marketPrice [287] * 4;
+		$this->marketPrice [35.1] = $this->marketPrice [287] * 4;
+		$this->marketPrice [35.2] = $this->marketPrice [287] * 4;
+		$this->marketPrice [35.3] = $this->marketPrice [287] * 4;
+		$this->marketPrice [35.4] = $this->marketPrice [287] * 4;
+		$this->marketPrice [35.5] = $this->marketPrice [287] * 4;
+		$this->marketPrice [35.6] = $this->marketPrice [287] * 4;
+		$this->marketPrice [35.7] = $this->marketPrice [287] * 4;
+		$this->marketPrice [35.8] = $this->marketPrice [287] * 4;
+		$this->marketPrice [35.9] = $this->marketPrice [287] * 4;
+		$this->marketPrice [35.10] = $this->marketPrice [287] * 4;
+		$this->marketPrice [35.11] = $this->marketPrice [287] * 4;
+		$this->marketPrice [35.12] = $this->marketPrice [287] * 4;
+		$this->marketPrice [35.13] = $this->marketPrice [287] * 4;
+		$this->marketPrice [35.14] = $this->marketPrice [287] * 4;
+		$this->marketPrice [35.15] = $this->marketPrice [287] * 4;
+		$this->marketPrice [41] = $this->marketPrice [266] * 9;
+		$this->marketPrice [42] = $this->marketPrice [265] * 9;
+		$this->marketPrice [45] = $this->marketPrice [336] * 4;
+		$this->marketPrice [47] = ($this->marketPrice [5] * 6) + ($this->marketPrice [340] * 3);
+		$this->marketPrice [48] = $this->marketPrice [4] + $this->marketPrice [106];
+		$this->marketPrice [50] = $this->marketPrice [263] + $this->marketPrice [280];
+		$this->marketPrice [53] = $this->marketPrice [5] * 1.5;
+		$this->marketPrice [54] = $this->marketPrice [5] * 8;
+		$this->marketPrice [56] = $this->marketPrice [264];
+		$this->marketPrice [58] = $this->marketPrice [5] * 4;
+		$this->marketPrice [61] = $this->marketPrice [4] * 8;
+		$this->marketPrice [63] = $this->marketPrice [5] * 6 + $this->marketPrice [280];
+		$this->marketPrice [64] = $this->marketPrice [5] * 6;
+		$this->marketPrice [65] = $this->marketPrice [280] * 7;
+		$this->marketPrice [67] = $this->marketPrice [4] * 1.5;
+		$this->marketPrice [68] = $this->marketPrice [63];
+		$this->marketPrice [71] = $this->marketPrice [265] * 6;
+		$this->marketPrice [73] = $this->marketPrice [331];
+		$this->marketPrice [74] = $this->marketPrice [331];
+		$this->marketPrice [78] = $this->marketPrice [80] / 2;
+		$this->marketPrice [80] = $this->marketPrice [332] * 4;
+		$this->marketPrice [81] = $this->marketPrice [351];
+		$this->marketPrice [82] = $this->marketPrice [337] * 4;
+		$this->marketPrice [83] = $this->marketPrice [338];
+		$this->marketPrice [85] = ($this->marketPrice [5] * 4) + ($this->marketPrice [280] * 2);
+		$this->marketPrice [86] = $this->marketPrice [361] * 4;
+		$this->marketPrice [87] = $this->marketPrice [405];
+		$this->marketPrice [89] = $this->marketPrice [348] * 4;
+		$this->marketPrice [91] = $this->marketPrice [86] + $this->marketPrice [50];
+		$this->marketPrice [92] = (2 * 3) + ($this->marketPrice [296] * 3) + ($this->marketPrice [353] * 2) + $this->marketPrice [344];
+		$this->marketPrice [96] = $this->marketPrice [5] * 6;
+		$this->marketPrice [98] = $this->marketPrice [1] * 4;
+		$this->marketPrice [103] = $this->marketPrice [360] * 9;
+		$this->marketPrice [107] = ($this->marketPrice [5] * 2) + ($this->marketPrice [280] * 4);
+		$this->marketPrice [108] = $this->marketPrice [45] * 1.5;
+		$this->marketPrice [109] = $this->marketPrice [98] * 1.5;
+		$this->marketPrice [110] = $this->marketPrice [2] * 2;
+		$this->marketPrice [112] = $this->marketPrice [405] * 4;
+		$this->marketPrice [114] = $this->marketPrice [112] * 1.5;
+		$this->marketPrice [127] = $this->marketPrice [351] * 3;
+		$this->marketPrice [128] = $this->marketPrice [24] * 1.5;
+		$this->marketPrice [129] = $this->marketPrice [388];
+		$this->marketPrice [133] = $this->marketPrice [388] * 9;
+		$this->marketPrice [134] = $this->marketPrice [5] * 1.5;
+		$this->marketPrice [135] = $this->marketPrice [5] * 1.5;
+		$this->marketPrice [136] = $this->marketPrice [5] * 1.5;
+		$this->marketPrice [139] = $this->marketPrice [1];
+		$this->marketPrice [139.1] = $this->marketPrice [48];
+		$this->marketPrice [152] = $this->marketPrice [331] * 9;
+		$this->marketPrice [155] = $this->marketPrice [406] * 4;
+		$this->marketPrice [155.1] = $this->marketPrice [155];
+		$this->marketPrice [155.2] = $this->marketPrice [155] * 2;
+		$this->marketPrice [156] = $this->marketPrice [155] * 1.5;
+		$this->marketPrice [163] = $this->marketPrice [5] * 1.5;
+		$this->marketPrice [164] = $this->marketPrice [5] * 1.5;
+		$this->marketPrice [170] = $this->marketPrice [296] * 9;
+		$this->marketPrice [172] = $this->marketPrice [82];
+		$this->marketPrice [173] = $this->marketPrice [263] * 9;
+		$this->marketPrice [245] = $this->marketPrice [4] * 4;
+		$this->marketPrice [246] = $this->marketPrice [49];
+		$this->marketPrice [247] = ($this->marketPrice [265] * 6) + ($this->marketPrice [264] * 3);
+		$this->marketPrice [281] = $this->marketPrice [5] * 0.75;
+		$this->marketPrice [282] = $this->marketPrice [39] + $this->marketPrice [40] + $this->marketPrice [291];
+		$this->marketPrice [297] = $this->marketPrice [296] * 3;
+		$this->marketPrice [320] = $this->marketPrice [319];
+		$this->marketPrice [321] = ($this->marketPrice [280] * 8) + $this->marketPrice [35];
+		$this->marketPrice [323] = $this->marketPrice [5] * 3 + $this->marketPrice [280];
+		$this->marketPrice [324] = $this->marketPrice [5] * 6;
+		$this->marketPrice [325] = $this->marketPrice [265] * 3;
+		$this->marketPrice [328] = $this->marketPrice [265] * 5;
+		$this->marketPrice [330] = $this->marketPrice [265] * 6;
+		$this->marketPrice [339] = $this->marketPrice [338];
+		$this->marketPrice [340] = $this->marketPrice [339] * 3 + $this->marketPrice [334];
+		$this->marketPrice [352] = $this->marketPrice [351] * 3;
+		$this->marketPrice [353] = $this->marketPrice [338];
+		$this->marketPrice [354] = $this->marketPrice [92];
+		$this->marketPrice [355] = $this->marketPrice [26];
+		$this->marketPrice [360] = $this->marketPrice [362];
+		$this->marketPrice [357] = ($this->marketPrice [296] * 2) + $this->marketPrice [351];
+		$this->marketPrice [359] = $this->marketPrice [265] * 2;
+		$this->marketPrice [362] = $this->marketPrice [360];
+		$this->marketPrice [459] = ($this->marketPrice [457] * 6) + $this->marketPrice [281];
+		$this->marketPrice [44] = $this->marketPrice [1] / 2;
+		$this->marketPrice [44.1] = $this->marketPrice [24] / 2;
+		$this->marketPrice [44.2] = $this->marketPrice [5] / 2;
+		$this->marketPrice [44.3] = $this->marketPrice [4] / 2;
+		$this->marketPrice [44.4] = $this->marketPrice [45] / 2;
+		$this->marketPrice [44.5] = $this->marketPrice [98] / 2;
+		$this->marketPrice [44.6] = $this->marketPrice [112] / 2;
+		$this->marketPrice [44.7] = $this->marketPrice [155] / 2;
+		$this->marketPrice [157] = $this->marketPrice [5];
+		$this->marketPrice [158] = $this->marketPrice [5] / 2;
+		$this->marketPrice [43] = $this->marketPrice [44] * 2;
+		$this->marketPrice [43.1] = $this->marketPrice [44.1] * 2;
+		$this->marketPrice [43.2] = $this->marketPrice [44.2] * 2;
+		$this->marketPrice [43.3] = $this->marketPrice [44.3] * 2;
+		$this->marketPrice [43.4] = $this->marketPrice [44.4] * 2;
+		$this->marketPrice [43.5] = $this->marketPrice [44.5] * 2;
+		$this->marketPrice [43.6] = $this->marketPrice [44.6] * 2;
+		$this->marketPrice [43.7] = $this->marketPrice [44.7] * 2;
+		$this->marketPrice [27] = 0;
+		$this->marketPrice [51] = 0;
+		$this->marketPrice [52] = 0;
+		$this->marketPrice [59] = 0;
+		$this->marketPrice [62] = 0;
+		$this->marketPrice [66] = 0;
+		$this->marketPrice [95] = 0;
+		$this->marketPrice [101] = 0;
+		$this->marketPrice [102] = 0;
+		$this->marketPrice [104] = 0;
+		$this->marketPrice [105] = 0;
+		$this->marketPrice [141] = 0;
+		$this->marketPrice [142] = 0;
+		$this->marketPrice [171] = 0;
+		$this->marketPrice [244] = 0;
+		$this->marketPrice [256] = 0;
+		$this->marketPrice [257] = 0;
+		$this->marketPrice [258] = 0;
+		$this->marketPrice [259] = 0;
+		$this->marketPrice [261] = 0;
+		$this->marketPrice [262] = 0;
+		$this->marketPrice [267] = 0;
+		$this->marketPrice [268] = 0;
+		$this->marketPrice [269] = 0;
+		$this->marketPrice [270] = 0;
+		$this->marketPrice [271] = 0;
+		$this->marketPrice [272] = 0;
+		$this->marketPrice [273] = 0;
+		$this->marketPrice [274] = 0;
+		$this->marketPrice [275] = 0;
+		$this->marketPrice [276] = 0;
+		$this->marketPrice [278] = 0;
+		$this->marketPrice [279] = 0;
+		$this->marketPrice [283] = 0;
+		$this->marketPrice [284] = 0;
+		$this->marketPrice [285] = 0;
+		$this->marketPrice [286] = 0;
+		$this->marketPrice [290] = 0;
+		$this->marketPrice [291] = 0;
+		$this->marketPrice [292] = 0;
+		$this->marketPrice [293] = 0;
+		$this->marketPrice [294] = 0;
+		$this->marketPrice [298] = 0;
+		$this->marketPrice [299] = 0;
+		$this->marketPrice [300] = 0;
+		$this->marketPrice [301] = 0;
+		$this->marketPrice [302] = 0;
+		$this->marketPrice [303] = 0;
+		$this->marketPrice [304] = 0;
+		$this->marketPrice [305] = 0;
+		$this->marketPrice [306] = 0;
+		$this->marketPrice [307] = 0;
+		$this->marketPrice [308] = 0;
+		$this->marketPrice [309] = 0;
+		$this->marketPrice [310] = 0;
+		$this->marketPrice [312] = 0;
+		$this->marketPrice [313] = 0;
+		$this->marketPrice [314] = 0;
+		$this->marketPrice [315] = 0;
+		$this->marketPrice [316] = 0;
+		$this->marketPrice [317] = 0;
+		$this->marketPrice [260] = 0;
 	}
 	public function CEBuyCommand(Player $player, $count = 1, $item = null) {
 		if ($this->db ["allow-purchase"] == false) {
@@ -383,66 +576,98 @@ class CreativeEconomy extends PluginBase implements Listener {
 			$this->alert ( $player, $this->get ( "ur-not-use-market" ) );
 			return;
 		}
-		if (! isset ( $this->purchaseQueue [$player->getName ()] ) and $item == null) {
-			$this->message ( $player, $this->get ( "please-choose-item" ) );
-			return;
-		} else {
-			if ($item == null) $item = $this->purchaseQueue [$player->getName ()] ["id"];
-			$check = explode ( ".", $item );
-			// 가격시세가 있는지 체크, 없다면 데미지0번 시세가 있는지 체크후 있으면 따르고 없으면 리턴
-			if (isset ( $this->marketPrice [$item] )) {
-				$price = $this->marketPrice [$item] * $count;
-			} else {
-				if (isset ( $this->marketPrice [$check [0]] )) {
-					$price = $this->marketPrice [$check [0]] * $count;
+		if ($count == $this->get ( "allitem" )) {
+			// 전체판매 옵션
+			foreach ( $player->getInventory ()->getContents () as $allItem ) {
+				$count = $allItem->getCount ();
+				$check [0] = $allItem->getId ();
+				$check [1] = $allItem->getDamage ();
+				// 가격시세가 있는지 체크, 없다면 데미지0번 시세가 있는지 체크후 있으면 따르고 없으면 리턴
+				if (isset ( $this->marketPrice [$item] )) {
+					$price = $this->marketPrice [$item] * $count;
 				} else {
-					$this->alert ( $player, $this->get ( "not-found-item-data" ) . " (" . $item . ")" );
-					return;
-				}
-			}
-			if (! is_numeric ( $count )) {
-				$this->alert ( $player, $this->get ( "buy-or-sell-help-command" ) );
-				return;
-			}
-			if (! isset ( $check [1] )) $check [1] = 0; // 데미지값이 없으면 0으로
-			$haveItem = 0;
-			foreach ( $player->getInventory ()->getContents () as $inven ) {
-				if (! $inven instanceof Item) continue;
-				if ($inven->getID () == $check [0] and $inven->getDamage () == $check [1]) {
-					$haveItem += $inven->getCount (); // 가진아이템 수 확인
-				}
-			}
-			if ($haveItem < $count) {
-				$this->alert ( $player, $this->get ( "not-enough-item" ) . " (" . $this->get ( "my-item-count" ) . " : " . $haveItem . " )" );
-				return;
-			}
-			$this->economyAPI->addMoney ( $player, $price );
-			$money = $this->economyAPI->myMoney ( $player );
-			$player->getInventory ()->removeItem ( Item::get ( $check [0], $check [1], $count ) );
-			
-			if (! isset ( $this->itemName [$item] )) {
-				$explodeItem = explode ( ".", $item );
-				if (isset ( $this->itemName [$explodeItem [0]] )) {
-					$itemName = $this->itemName [$explodeItem [0]];
-				} else {
-					$itemName = "undefied";
-				}
-			} else {
-				$itemName = $this->itemName [$item];
-			}
-			
-			$this->message ( $player, $itemName . "({$item})({$count}) " . $this->get ( "is-successfully-selled" ) . " ( " . $this->get ( "my-money" ) . " : " . $money . " )" );
-			if (isset ( $this->db ["settings"] ["seePurchase"] ) and $this->db ["settings"] ["seePurchase"]) {
-				foreach ( $this->getServer ()->getOnlinePlayers () as $op ) {
-					if ($op->isOp ()) {
-						$this->message ( $op, $player->getName () . " : " . $itemName . "({$item})({$count}) " . $this->get ( "is-successfully-selled" ) );
+					if (isset ( $this->marketPrice [$check [0]] )) {
+						$price = $this->marketPrice [$check [0]] * $count;
+					} else {
+						continue;
 					}
 				}
-				$this->getLogger ()->info ( $player->getName () . " : " . $itemName . "({$item})({$count}) " . $this->get ( "is-successfully-selled" ) . " ( " . $this->get ( "my-money" ) . " : " . $money . " )" );
+				if ($price == 0) continue;
+				$this->economyAPI->addMoney ( $player, $price );
+				$money = $this->economyAPI->myMoney ( $player );
+				$player->getInventory ()->removeItem ( Item::get ( $check [0], $check [1], $count ) );
 			}
-			if (isset ( $this->purchaseQueue [$player->getName ()] )) unset ( $this->purchaseQueue [$player->getName ()] );
+			$this->message ( $player, $this->get ( "allitem-selled" ) );
 			return;
 		}
+		if (! isset ( $this->purchaseQueue [$player->getName ()] ) and $item == null) {
+			$inhand = $player->getInventory ()->getItemInHand ();
+			$count = $inhand->getCount ();
+			$item = $inhand->getId ();
+			if ($inhand->getDamage () != 0) $item = $item . "." . $inhand->getDamage ();
+			// $this->message ( $player, $this->get ( "please-choose-item" ) );
+			// return;
+		}
+		if (isset ( $this->purchaseQueue [$player->getName ()] ["id"] ) and $item == null) {
+			$item = $this->purchaseQueue [$player->getName ()] ["id"];
+		}
+		if ($item == null) {
+			$this->message ( $player, $this->get ( "please-choose-item" ) );
+			return;
+		}
+		$check = explode ( ".", $item );
+		// 가격시세가 있는지 체크, 없다면 데미지0번 시세가 있는지 체크후 있으면 따르고 없으면 리턴
+		if (isset ( $this->marketPrice [$item] )) {
+			$price = $this->marketPrice [$item] * $count;
+		} else {
+			if (isset ( $this->marketPrice [$check [0]] )) {
+				$price = $this->marketPrice [$check [0]] * $count;
+			} else {
+				$this->alert ( $player, $this->get ( "not-found-item-data" ) . " (" . $item . ")" );
+				return;
+			}
+		}
+		if (! is_numeric ( $count )) {
+			$this->alert ( $player, $this->get ( "buy-or-sell-help-command" ) );
+			return;
+		}
+		if (! isset ( $check [1] )) $check [1] = 0; // 데미지값이 없으면 0으로
+		$haveItem = 0;
+		foreach ( $player->getInventory ()->getContents () as $inven ) {
+			if (! $inven instanceof Item) continue;
+			if ($inven->getID () == $check [0] and $inven->getDamage () == $check [1]) {
+				$haveItem += $inven->getCount (); // 가진아이템 수 확인
+			}
+		}
+		if ($haveItem < $count) {
+			$this->alert ( $player, $this->get ( "not-enough-item" ) . " (" . $this->get ( "my-item-count" ) . " : " . $haveItem . " )" );
+			return;
+		}
+		$this->economyAPI->addMoney ( $player, $price );
+		$money = $this->economyAPI->myMoney ( $player );
+		$player->getInventory ()->removeItem ( Item::get ( $check [0], $check [1], $count ) );
+		
+		if (! isset ( $this->itemName [$item] )) {
+			$explodeItem = explode ( ".", $item );
+			if (isset ( $this->itemName [$explodeItem [0]] )) {
+				$itemName = $this->itemName [$explodeItem [0]];
+			} else {
+				$itemName = "undefied";
+			}
+		} else {
+			$itemName = $this->itemName [$item];
+		}
+		$this->message ( $player, $itemName . "({$item})({$count}) " . $this->get ( "is-successfully-selled" ) . " ( " . $this->get ( "my-money" ) . " : " . $money . " )" );
+		if (isset ( $this->db ["settings"] ["seePurchase"] ) and $this->db ["settings"] ["seePurchase"]) {
+			foreach ( $this->getServer ()->getOnlinePlayers () as $op ) {
+				if ($op->isOp ()) {
+					$this->message ( $op, $player->getName () . " : " . $itemName . "({$item})({$count}) " . $this->get ( "is-successfully-selled" ) );
+				}
+			}
+			$this->getLogger ()->info ( $player->getName () . " : " . $itemName . "({$item})({$count}) " . $this->get ( "is-successfully-selled" ) . " ( " . $this->get ( "my-money" ) . " : " . $money . " )" );
+		}
+		if (isset ( $this->purchaseQueue [$player->getName ()] )) unset ( $this->purchaseQueue [$player->getName ()] );
+		return;
 	}
 	public function CECreateQueue(Player $player, $item = null) {
 		if ($item == null or ! is_numeric ( $item )) {
