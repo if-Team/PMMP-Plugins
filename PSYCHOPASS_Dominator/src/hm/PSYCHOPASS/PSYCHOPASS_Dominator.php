@@ -48,11 +48,20 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 	/*
 	 * @var PSYCHOPASS_API
 	 */
+	/*
+	 * @var MESSAGE_VERSION
+	*/
+	public $m_version = 1;
 	public $api = null;
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
+		
 		if (self::$instance == null) self::$instance = $this;
-		if ($this->checkPSYCHOPASS_API ()) $this->api = PSYCHOPASS_API::getInstance ();
+		
+		if ($this->getServer ()->getPluginManager ()->getPlugin ( "PSYCHOPASS_API" ) != null) {
+			$this->api = PSYCHOPASS_API::getInstance ();
+		}
+		
 		$this->loadExecuteData ();
 		
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
@@ -63,10 +72,6 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 	}
 	public static function getInstance() {
 		return self::$instance;
-	}
-	public function checkPSYCHOPASS_API() {
-		if (class_exists ( 'hm\\PSYCHOPASS\\PSYCHOPASS_API' )) return true;
-		return false;
 	}
 	public function onJoin(PlayerJoinEvent $event) {
 		$player = $event->getPlayer ();
@@ -725,11 +730,29 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 		$this->defaultTextData ();
 	}
 	public function defaultTextData() {
-		$this->language = $this->initializeYML ( "language.yml", [ "setlanguage" => "ko","ko-not-found-user" => "§3해당하는 유저를 찾을 수 없습니다.","ko-default-cause-ban" => "OP에 의한 밴","ko-default-cause-kick" => "OP에 의한 킥","ko-default-cause-ipban" => "OP에 의한 아이피밴","ko-default-cause-subnet" => "OP에 의한 서브넷밴","ko-default-cause-pardon" => "OP에 의한 밴 해제","ko-info-ban" => "§3[PSYCHOPASS] /b <인덱스 OR 유저명> -밴","ko-info-kick" => "§3[PSYCHOPASS] /k <인덱스 OR 유저명> -킥","ko-info-ipban" => "§3[PSYCHOPASS] /i <인덱스 OR 유저명> -아이피밴","ko-info-subban" => "§3[PSYCHOPASS] /s <인덱스 OR 유저명> -서브넷밴","ko-info-list" => "§3[PSYCHOPASS] /l -인덱스 조회","ko-info-banlist" => "§3[PSYCHOPASS] /l <b:k:i:s:p> - 밴리스트 조회","ko-info-pardon" => "§3[PSYCHOPASS] /p <인덱스 OR 유저명> -밴해제","ko-now-onlinelist" => "§3현재 접속중 리스트","ko-now-offlinelist" => "§3최근 오프라인된 리스트","ko-time" => "Y년 m월 d일 H시 i분 s초","ko-execute-time" => "§c처리일자","ko-execute-cause" => "§c사유","ko-execute-before-cause" => "§c이전사유","ko-executor" => "§c처리자","ko-executed-name" => "§c처리된닉네임","ko-warning-disconnected" => "§c* 5초 뒤 서버와의 연결이 종료됩니다.","ko-already-banned" => "§c이미 밴이력이 있습니다, 밴이력을 표시합니다.","ko-executed-ban+kick" => "§3대상을 밴처리했습니다, (5초 후 킥처리됩니다)","ko-executed-ban" => "§3대상을 밴처리했습니다.","ko-warning-ban" => "§c경고,  본 회원분은 밴처리되었습니다.","ko-broadcast-ban-info" => "§3님이 밴처리되었습니다, 사유","ko-executed-kick" => "§3대상을 킥처리했습니다, (5초 후 밴처리됩니다)","ko-warning-kick" => "§c경고,  본 회원분은 킥처리되었습니다.","ko-broadcast-kick-info" => "§3님이 킥처리되었습니다, 사유","ko-user-not-login" => "§3해당 유저가 접속 중이 아닙니다.","ko-already-ipbanned" => "§c이미 아이피밴이력이 있습니다, 밴이력을 표시합니다.","ko-executed-ipban+kick" => "§3대상을 아이피밴처리했습니다, (5초 후 킥처리됩니다)","ko-executed-ipban" => "§3대상을 아이피밴처리했습니다.","ko-warning-ipban" => "§c경고,  본 회원분은 아이피밴처리되었습니다.","ko-broadcast-ipban-info" => "§3님이 아이피밴처리되었습니다, 사유","ko-already-subbanned" => "§c이미 서브넷밴이력이 있습니다, 밴이력을 표시합니다.","ko-executed-subban+kick" => "§3대상을 서브넷밴처리했습니다, (5초 후 킥처리됩니다)","ko-executed-subban" => "§3대상을 서브넷밴처리했습니다.","ko-warning-subban" => "§c경고,  본 회원분은 서브넷밴처리되었습니다.","ko-broadcast-subban-info" => "§3님이 서브넷밴처리되었습니다, 사유","ko-deleted-ban" => "§3님의 밴 기록을 삭제했습니다.","ko-broadcast-pardon-ban" => "§3님이 밴해제 되었습니다, 사유","ko-deleted-ipban" => "§3님의 아이피밴 기록을 삭제했습니다.","ko-broadcast-pardon-ipban" => "§3님이 아이피밴 해제 되었습니다, 사유","ko-deleted-subban" => "§3님의 서브넷밴 기록을 삭제했습니다.","ko-broadcast-pardon-subban" => "§3님이 서브넷밴 해제 되었습니다, 사유","ko-deleted-ipban" => "§3해당 아이피밴 기록을 삭제했습니다.","ko-broadcast-pardon-ipbban" => "§3아이피밴 해제 되었습니다, 사유","ko-can-not-found-ban" => "§3해당되는 밴이력을 찾을 수없습니다","ko-warning_banned" => "§c해당 닉네임은 밴처리되어있습니다,","ko-warning_ipbanned" => "§c해당 아아피는 밴처리되어있습니다","ko-warning_subnetbanned" => "§c해당 서브넷아이피는 밴처리되어있습니다","ko-contact-admin" => "§c관련문의는 서버 관리자에게 해주세요.","ko-index_name_caution1" => "§c숫자로 된 닉네임이나 d<숫자>","ko-index_name_caution2" => "§c닉네임은 사용이 불가능합니다.","ko-index_name_caution3" => "§c(다른 닉네임을 사용해주세요.)","ko-search_info" => "§c내역을 출력합니다.","ko-info-banlist-1" => "§3[PSYCHOPASS] /l b<인덱스> -밴 내역 조회","ko-info-kicklist" => "§3[PSYCHOPASS] /l k<인덱스> -킥 내역 조회","ko-info-ipbanlist" => "§3[PSYCHOPASS] /l i<인덱스> -아이피밴 내역 조회","ko-info-subbanlist" => "§3[PSYCHOPASS] /l s<인덱스> -서브넷밴 내역 조회","ko-info-pardonlist" => "§3[PSYCHOPASS] /l p<인덱스> -밴해제 내역 조회","ko-amount" => "총","ko-not-found-list" => "§3검색되는 리스트가 없습니다." ] )->getAll ();
+		$this->saveResource ( "messages.yml", false );
+		$this->messagesUpdate ( "messages.yml" );
+		$this->language = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
 	}
 	public function getMessage($var) {
 		if (isset ( $this->language [$this->language ["setlanguage"] . "-" . $var] )) return $this->language [$this->language ["setlanguage"] . "-" . $var];
 		else return $var . " NOT FOUND LANGUAGE DATA";
+	}
+	public function messagesUpdate($targetYmlName) {
+		$targetYml = (new Config ( $this->getDataFolder () . $targetYmlName, Config::YAML ))->getAll ();
+		if (! isset ( $targetYml ["m_version"] )) {
+			$this->saveResource ( $targetYmlName, true );
+		} else if ($targetYml ["m_version"] < $this->m_version) {
+			$this->saveResource ( $targetYmlName, true );
+		}
+	}
+	public function registerCommand($name, $fallback, $permission, $description = "", $usage = "") {
+		$commandMap = $this->getServer ()->getCommandMap ();
+		$command = new PluginCommand ( $name, $this );
+		$command->setDescription ( $description );
+		$command->setPermission ( $permission );
+		$command->setUsage ( $usage );
+		$commandMap->register ( $fallback, $command );
 	}
 	public function initializeYML($path, $array) {
 		return new Config ( $this->getDataFolder () . $path, Config::YAML, $array );
