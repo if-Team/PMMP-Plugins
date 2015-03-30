@@ -1,0 +1,5 @@
+name: CommandDefender
+main: CommandDefender\CommandDefender
+version: 0.1-Alpha
+author: hm
+api: [1.4.1]
