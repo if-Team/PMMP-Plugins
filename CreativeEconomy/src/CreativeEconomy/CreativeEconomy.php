@@ -2,7 +2,6 @@
 
 namespace CreativeEconomy;
 
-use onebone\economyapi\EconomyAPI;
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\utils\Config;
@@ -10,6 +9,7 @@ use pocketmine\command\PluginCommand;
 use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
 use pocketmine\event\player\PlayerInteractEvent;
+use pocketmine\event\block\SignChangeEvent;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\Player;
 use pocketmine\utils\TextFormat;
@@ -29,14 +29,12 @@ class CreativeEconomy extends PluginBase implements Listener {
 	public $messages, $db;
 	public $m_version = 5;
 	public $marketCount, $marketPrice, $itemName;
-	/** @var EconomyAPI */
 	public $economyAPI = null;
 	public $purchaseQueue = [ ]; // 상점결제 큐
 	public $createQueue = [ ]; // 상점제작시 POS백업큐
 	public $autoCreateQueue = [ ]; // 자동 상점제작시 POS백업큐
 	public $packetQueue = [ ]; // 아이템 패킷 큐
 	public $packet = [ ]; // 전역 패킷 변수
-
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		
@@ -58,7 +56,6 @@ class CreativeEconomy extends PluginBase implements Listener {
 		} // IF BLOCK ID OR DAMAGES LIST UPDATED, OLD DATA WILL RESTORED
 		
 		$this->messagesUpdate ( "marketCount.yml" );
-		$this->messagesUpdate ( "messages.yml" );
 		$this->messagesUpdate ( $this->messages ["default-language"] . "_item_data.yml" );
 		
 		$this->db = (new Config ( $this->getDataFolder () . "marketDB.yml", Config::YAML, [ "allow-purchase" => true ] ))->getAll ();
@@ -66,7 +63,7 @@ class CreativeEconomy extends PluginBase implements Listener {
 		$this->itemName = (new Config ( $this->getDataFolder () . $this->messages ["default-language"] . "_item_data.yml", Config::YAML ))->getAll ();
 		
 		if ($this->getServer ()->getPluginManager ()->getPlugin ( "EconomyAPI" ) != null) {
-			$this->economyAPI = EconomyAPI::getInstance ();
+			$this->economyAPI = \onebone\economyapi\EconomyAPI::getInstance ();
 		} else {
 			$this->getLogger ()->error ( $this->get ( "there-are-no-economyapi" ) );
 			$this->getServer ()->getPluginManager ()->disablePlugin ( $this );
@@ -246,6 +243,9 @@ class CreativeEconomy extends PluginBase implements Listener {
 					$this->message ( $player, $this->get ( "commands-ce-help2" ) );
 					$this->message ( $player, $this->get ( "commands-ce-help3" ) );
 					$this->message ( $player, $this->get ( "commands-ce-help4" ) );
+					$this->message ( $player, $this->get ( "commands-ce-help5" ) );
+					$this->message ( $player, $this->get ( "commands-ce-help6" ) );
+					$this->message ( $player, $this->get ( "commands-ce-help7" ) );
 					break;
 				}
 				switch ($args [0]) {
@@ -313,11 +313,17 @@ class CreativeEconomy extends PluginBase implements Listener {
 						$this->rendezvous ();
 						$this->message ( $player, $this->get ( "pricefix-complete" ) );
 						break;
+					case $this->get ( "itemsetup" ) :
+						(isset ( $args [1] ) and isset ( $args [2] )) ? $this->ChangeMarketInfo ( $player, $args [1], $args [2] ) : $this->ChangeMarketInfo ( $player );
+						break;
 					default :
 						$this->message ( $player, $this->get ( "commands-ce-help1" ) );
 						$this->message ( $player, $this->get ( "commands-ce-help2" ) );
 						$this->message ( $player, $this->get ( "commands-ce-help3" ) );
 						$this->message ( $player, $this->get ( "commands-ce-help4" ) );
+						$this->message ( $player, $this->get ( "commands-ce-help5" ) );
+						$this->message ( $player, $this->get ( "commands-ce-help6" ) );
+						$this->message ( $player, $this->get ( "commands-ce-help7" ) );
 						break;
 				}
 				break;
@@ -334,6 +340,14 @@ class CreativeEconomy extends PluginBase implements Listener {
 		$this->marketPrice [15] = $this->marketPrice [265];
 		$this->marketPrice [16] = $this->marketPrice [263];
 		$this->marketPrice [20] = $this->marketPrice [12];
+		
+		$this->marketPrice [21] = ($this->marketPrice [351]) * 8;
+		$this->marketPrice [22] = $this->marketPrice [351] * 9;
+		
+		$this->marketPrice [24] = $this->marketPrice [12] * 4;
+		$this->marketPrice [24.1] = $this->marketPrice [12] * 4;
+		$this->marketPrice [24.1] = ($this->marketPrice [12] * 4) * 4;
+		
 		$this->marketPrice [26] = ($this->marketPrice [35] * 3) + ($this->marketPrice [5] * 3);
 		$this->marketPrice [30] = $this->marketPrice [287];
 		$this->marketPrice [35] = $this->marketPrice [287] * 4;
@@ -357,7 +371,7 @@ class CreativeEconomy extends PluginBase implements Listener {
 		$this->marketPrice [45] = $this->marketPrice [336] * 4;
 		$this->marketPrice [47] = ($this->marketPrice [5] * 6) + ($this->marketPrice [340] * 3);
 		$this->marketPrice [48] = $this->marketPrice [4] + $this->marketPrice [106];
-		$this->marketPrice [50] = $this->marketPrice [263] + $this->marketPrice [280];
+		$this->marketPrice [50] = ($this->marketPrice [263] + $this->marketPrice [280]) / 4;
 		$this->marketPrice [53] = $this->marketPrice [5] * 1.5;
 		$this->marketPrice [54] = $this->marketPrice [5] * 8;
 		$this->marketPrice [56] = $this->marketPrice [264];
@@ -850,7 +864,7 @@ class CreativeEconomy extends PluginBase implements Listener {
 			}
 		}
 	}
-	public function ChangeMarketPrice(Player $player, $item = null, $price = null) {
+	public function ChangeMarketPrice(CommandSender $player, $item = null, $price = null) {
 		// 기본가격시세를 입력된 값으로 설정
 		if ($item == null) {
 			$this->alert ( $player, $this->get ( "commands-ce-help3" ) );
@@ -882,6 +896,28 @@ class CreativeEconomy extends PluginBase implements Listener {
 		$save->setAll ( $this->marketPrice );
 		$save->save ();
 	}
+	public function ChangeMarketInfo(CommandSender $player, $item = null, $name = null) {
+		// 기본가격시세를 입력된 값으로 설정
+		if ($item == null or $name == null) {
+			$this->alert ( $player, $this->get ( "commands-ce-help7" ) );
+			return;
+		}
+		if (! is_numeric ( $item )) {
+			$explode = explode ( ":", $item );
+			if (isset ( $explode [1] ) and is_numeric ( $explode [0] ) and is_numeric ( $explode [1] )) {
+				$item = $explode [0] . "." . $explode [1];
+			} else {
+				$this->alert ( $player, $this->get ( "commands-ce-help7" ) );
+				return;
+			}
+		}
+		$this->itemName [$item] = $name;
+		$this->message ( $player, $this->get ( "itemsetup-complete" ) );
+		
+		$save = new Config ( $this->getDataFolder () . $this->messages ["default-language"] . "_item_data.yml", Config::YAML );
+		$save->setAll ( $this->itemName );
+		$save->save ();
+	}
 	public function AllFreezeMarket(Player $player) {
 		if ($this->db ["allow-purchase"] == true) {
 			$this->db ["allow-purchase"] = false;
@@ -896,6 +932,7 @@ class CreativeEconomy extends PluginBase implements Listener {
 	}
 	public function initMessage() {
 		$this->saveResource ( "messages.yml", false );
+		$this->messagesUpdate ( "messages.yml" );
 		$this->messages = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
 	}
 	public function messagesUpdate($targetYmlName) {
@@ -914,11 +951,11 @@ class CreativeEconomy extends PluginBase implements Listener {
 		$command->setUsage ( $usage );
 		$commandMap->register ( $fallback, $command );
 	}
-	public function message(CommandSender $player, $text = "", $mark = null) {
+	public function message($player, $text = "", $mark = null) {
 		if ($mark == null) $mark = $this->get ( "default-prefix" );
 		$player->sendMessage ( TextFormat::DARK_AQUA . $mark . " " . $text );
 	}
-	public function alert(CommandSender $player, $text = "", $mark = null) {
+	public function alert($player, $text = "", $mark = null) {
 		if ($mark == null) $mark = $this->get ( "default-prefix" );
 		$player->sendMessage ( TextFormat::RED . $mark . " " . $text );
 	}

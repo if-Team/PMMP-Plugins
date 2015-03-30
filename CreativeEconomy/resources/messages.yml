@@ -67,11 +67,16 @@ ko-allitem: "전체"
 ko-allitem-selled: "모든 아이템을 판매 처리했습니다 !"
 ko-pricefix: "가격수리"
 ko-pricefix-complete: "가격이 원자재가격에 맞춰서 수정 되었습니다 !"
+ko-itemsetup: "설정"
+ko-itemsetup-complete: "아이템 정보가 설정되었습니다 !"
 
 ko-commands-ce-help1: "/창조경제 생성 <아이디:값>"
 ko-commands-ce-help2: "/창조경제 자동"
 ko-commands-ce-help3: "/창조경제 변경 <아이디:값> <가격>"
 ko-commands-ce-help4: "/창조경제 동결 - 모든 거래를 동결"
+ko-commands-ce-help5: "/창조경제 네임태그 - 네임택을 보이거나 끕니다"
+ko-commands-ce-help6: "/창조경제 거래표시 - 서버내 거래를 표시합니다"
+ko-commands-ce-help7: "/창조경제 설정 <아이디:값> <이름> - 아이템정보설정"
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/blob/master/CreativeEconomy/resources/messages.yml
