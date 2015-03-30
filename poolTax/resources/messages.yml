@@ -1,0 +1,15 @@
+# IF YOU NEED A SOME OTHER LANGUAGE SETTINGS #
+# YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
+
+#PLEASE SET HERE TO YOUR LANGUAGE PREFIX
+default-language: ko
+m_version: 1
+
+#(EN) ENGLISH
+
+#(KO) KOREAN
+ko-prefix: "[ 세금 ]"
+ko-paid: "명에게 세금을 걷었고"
+ko-failed: "명이 파산상태입니다"
+# AND YOU CAN PROVIDE YOUR TRANSLATION       #
+# https://github.com/if-Team/PMMP-Plugins/blob/master/poolTax/resources/messages.yml
