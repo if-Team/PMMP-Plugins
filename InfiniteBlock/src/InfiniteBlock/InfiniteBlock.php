@@ -19,6 +19,8 @@ use pocketmine\item\Tool;
 use pocketmine\entity\Entity;
 use pocketmine\event\block\BlockUpdateEvent;
 use pocketmine\event\entity\ItemSpawnEvent;
+use pocketmine\event\player\PlayerJoinEvent;
+use pocketmine\event\player\PlayerQuitEvent;
 
 class InfiniteBlock extends PluginBase implements Listener {
 	public $config, $config_Data, $index;
@@ -27,6 +29,7 @@ class InfiniteBlock extends PluginBase implements Listener {
 	public $itemQueue = [ ];
 	public $messages;
 	public $mineFile, $mineSettings, $sortedSettings;
+	public $tictock = [ ];
 	public $m_version = 1;
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
@@ -144,9 +147,24 @@ class InfiniteBlock extends PluginBase implements Listener {
 			}
 		}
 	}
+	public function onJoin(PlayerJoinEvent $event) {
+		$this->tictock [$event->getPlayer ()->getName ()] = round ( microtime ( true ) * 1000 );
+	}
+	public function onQuit(PlayerQuitEvent $event) {
+		$player = $event->getPlayer ();
+		if (isset ( $this->tictock [$player->getName ()] ))
+			unset ( $this->tictock [$player->getName ()] );
+	}
 	public function onBreak(BlockBreakEvent $event) {
+		$this->tictock [$event->getPlayer ()->getName ()] = $time;
 		$area = $this->getArea ( $event->getBlock ()->x, $event->getBlock ()->y, $event->getBlock ()->z );
 		if ($area != false) {
+			$time = round ( microtime ( true ) * 1000 );
+		
+			if (($time - $this->tictock [$event->getPlayer ()->getName ()]) <= 450) {
+				$event->setCancelled ();
+				return;
+			}
 			$block = $event->getBlock ();
 			$x = $block->x + 0.5;
 			$y = $block->y + 0.5;
@@ -154,14 +172,12 @@ class InfiniteBlock extends PluginBase implements Listener {
 			if ($area ["is-mine"] == true) {
 				$drops = $event->getBlock ()->getDrops ( $event->getItem () );
 				foreach ( $drops as $drop )
-					// if ($drop [2] > 0) $event->getPlayer ()->getInventory ()->addItem ( Item::get (...$drop));
 					if ($drop [2] > 0) $event->getPlayer ()->getInventory ()->addItem ( Item::get (...$drop));
 				$this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"] = Block::get ( $this->randomMine () );
 				$this->itemQueue ["{$x}:{$y}:{$z}"] = $drops;
 			} else {
 				$drops = $event->getBlock ()->getDrops ( $event->getItem () );
 				foreach ( $drops as $drop )
-					// if ($drop [2] > 0) $event->getPlayer ()->getInventory ()->addItem ( Item::get (...$drop));
 					if ($drop [2] > 0) $event->getPlayer ()->getInventory ()->addItem ( Item::get (...$drop));
 				$this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"] = $block;
 				$this->itemQueue ["{$x}:{$y}:{$z}"] = $drops;
@@ -378,13 +394,7 @@ class InfiniteBlock extends PluginBase implements Listener {
 			$startZ = $endZ;
 			$endZ = $backup;
 		}
-		return [ 
-				$startX,
-				$endX,
-				$startY,
-				$endY,
-				$startZ,
-				$endZ ];
+		return [ $startX,$endX,$startY,$endY,$startZ,$endZ ];
 	}
 	public function checkOverlap($startX, $endX, $startY, $endY, $startZ, $endZ) {
 		foreach ( $this->config_Data as $area ) {
@@ -395,15 +405,7 @@ class InfiniteBlock extends PluginBase implements Listener {
 	public function addArea($startX, $endX, $startY, $endY, $startZ, $endZ, $ismine = false) {
 		if ($this->checkOverlap ( $startX, $endX, $startY, $endY, $startZ, $endZ ) != false) return false;
 		
-		$this->config_Data [$this->index] = [ 
-				"ID" => $this->index,
-				"is-mine" => $ismine,
-				"startX" => $startX,
-				"endX" => $endX,
-				"startY" => $startY,
-				"endY" => $endY,
-				"startZ" => $startZ,
-				"endZ" => $endZ ];
+		$this->config_Data [$this->index] = [ "ID" => $this->index,"is-mine" => $ismine,"startX" => $startX,"endX" => $endX,"startY" => $startY,"endY" => $endY,"startZ" => $startZ,"endZ" => $endZ ];
 		return $this->index ++;
 	}
 	public function deleteArea(Player $player, $id = null) {
