@@ -20,6 +20,7 @@ use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerKickEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\IPlayer;
+use pocketmine\event\player\PlayerChatEvent;
 
 class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 	/*
@@ -50,10 +51,8 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 	public $api = null;
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
-		if (self::$instance == null)
-			self::$instance = $this;
-		if ($this->checkPSYCHOPASS_API ())
-			$this->api = PSYCHOPASS_API::getInstance ();
+		if (self::$instance == null) self::$instance = $this;
+		if ($this->checkPSYCHOPASS_API ()) $this->api = PSYCHOPASS_API::getInstance ();
 		$this->loadExecuteData ();
 		
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
@@ -66,8 +65,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 		return self::$instance;
 	}
 	public function checkPSYCHOPASS_API() {
-		if (class_exists ( 'hm\\PSYCHOPASS\\PSYCHOPASS_API' ))
-			return true;
+		if (class_exists ( 'hm\\PSYCHOPASS\\PSYCHOPASS_API' )) return true;
 		return false;
 	}
 	public function onJoin(PlayerJoinEvent $event) {
@@ -81,9 +79,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$player->sendMessage ( $this->getMessage ( "index_name_caution1" ) );
 			$player->sendMessage ( $this->getMessage ( "index_name_caution2" ) );
 			$player->sendMessage ( $this->getMessage ( "index_name_caution3" ) );
-			$this->initialize_schedule_delay ( $this, "KickExecute", 100, [ 
-					$player 
-			] );
+			$this->initialize_schedule_delay ( $this, "KickExecute", 100, [ $player ] );
 			return;
 		}
 		if (isset ( $this->ipban_data [$player->getAddress ()] )) {
@@ -93,9 +89,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$player->sendMessage ( $this->getMessage ( "warning_ipbanned" ) . "(" . $player->getAddress () . ")" );
 			$player->sendMessage ( $this->getMessage ( "warning-disconnected" ) );
 			$player->sendMessage ( $this->getMessage ( "contact-admin" ) );
-			$this->initialize_schedule_delay ( $this, "KickExecute", 100, [ 
-					$player 
-			] );
+			$this->initialize_schedule_delay ( $this, "KickExecute", 100, [ $player ] );
 			return;
 		}
 		if (isset ( $this->ban_data [$player->getName ()] )) {
@@ -105,9 +99,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$player->sendMessage ( $this->getMessage ( "warning_banned" ) . "(" . $player->getName () . ")" );
 			$player->sendMessage ( $this->getMessage ( "warning-disconnected" ) );
 			$player->sendMessage ( $this->getMessage ( "contact-admin" ) );
-			$this->initialize_schedule_delay ( $this, "KickExecute", 100, [ 
-					$player 
-			] );
+			$this->initialize_schedule_delay ( $this, "KickExecute", 100, [ $player ] );
 			return;
 		}
 		$e = explode ( ".", $player->getAddress () );
@@ -118,9 +110,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$player->sendMessage ( $this->getMessage ( "warning_subnetbanned" ) . "(" . $e [0] . "." . $e [1] . ")" );
 			$player->sendMessage ( $this->getMessage ( "warning-disconnected" ) );
 			$player->sendMessage ( $this->getMessage ( "contact-admin" ) );
-			$this->initialize_schedule_delay ( $this, "KickExecute", 100, [ 
-					$player 
-			] );
+			$this->initialize_schedule_delay ( $this, "KickExecute", 100, [ $player ] );
 			return;
 		}
 		$this->onlinelist [] = $player->getName ();
@@ -129,13 +119,11 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 		$player = $event->getPlayer ();
 		
 		$onlinekey = array_search ( $player->getName (), $this->onlinelist );
-		if ($onlinekey !== false)
-			array_splice ( $this->onlinelist, $onlinekey, 1 );
+		if ($onlinekey !== false) array_splice ( $this->onlinelist, $onlinekey, 1 );
 		
 		$offlinekey = array_search ( $player->getName (), $this->offlinelist );
 		if ($offlinekey === false) {
-			if (count ( $this->offlinelist ) >= 5)
-				array_shift ( $this->offlinelist );
+			if (count ( $this->offlinelist ) >= 5) array_shift ( $this->offlinelist );
 			$this->offlinelist [] = $player->getName ();
 		}
 		
@@ -161,15 +149,12 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 		$player = $event->getPlayer ();
 		
 		$onlinekey = array_search ( $player->getName (), $this->onlinelist );
-		if ($onlinekey !== false)
-			array_splice ( $this->onlinelist, $onlinekey, 1 );
+		if ($onlinekey !== false) array_splice ( $this->onlinelist, $onlinekey, 1 );
 		
 		$offlinekey = array_search ( $player->getName (), $this->offlinelist );
 		if ($offlinekey === false) {
-			if (count ( $this->offlinelist ) >= 5)
-				array_shift ( $this->offlinelist );
-			if (count ( $this->offline_iplist ) >= 5)
-				array_shift ( $this->offlinelist );
+			if (count ( $this->offlinelist ) >= 5) array_shift ( $this->offlinelist );
+			if (count ( $this->offline_iplist ) >= 5) array_shift ( $this->offlinelist );
 			$this->offlinelist [] = $player->getName ();
 			$this->offline_iplist [] = $player->getAddress ();
 		}
@@ -192,13 +177,32 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			return;
 		}
 	}
+	public function onChat(PlayerChatEvent $event) {
+		$player = $event->getPlayer ();
+		if ((is_numeric ( $player->getName () )) or (isset ( $player_d_name [1] ) and is_numeric ( $player_d_name [1] ))) {
+			$event->setCancelled ();
+			return;
+		}
+		if (isset ( $this->ipban_data [$player->getAddress ()] )) {
+			$event->setCancelled ();
+			return;
+		}
+		if (isset ( $this->ban_data [$player->getName ()] )) {
+			$event->setCancelled ();
+			return;
+		}
+		if (isset ( $this->subban_data [$player->getAddress ()] )) {
+			$event->setCancelled ();
+			return;
+		}
+	}
 	public function onCommand(CommandSender $sender, Command $command, $label, Array $args) {
 		switch (strtolower ( $command->getName () )) {
 			case "b" :
 				if (isset ( $args [0] )) {
 					if (isset ( $this->onlinelist [$args [0]] )) {
 						// 인덱스를 통한 밴일 경우
-						$target = $this->getServer ()->getPlayerExact ( $this->onlinelist [$args [0]] );
+						$target = $this->getServer ()->getPlayer ( $this->onlinelist [$args [0]] );
 					} else {
 						$e = explode ( "d", strtolower ( $args [0] ) );
 						if (isset ( $e [1] ) and is_numeric ( $e [1] )) {
@@ -207,10 +211,8 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 						} else {
 							// 닉네임을 통한 밴일경우
 							$name_search = $this->getServer ()->getOfflinePlayer ( $args [0] );
-							if ($name_search instanceof IPlayer)
-								$target = $name_search;
-							else
-								$sender->sendMessage ( $this->getMessage ( "not-found-user" ) );
+							if ($name_search instanceof IPlayer) $target = $name_search;
+							else $sender->sendMessage ( $this->getMessage ( "not-found-user" ) );
 						}
 					}
 					if (isset ( $args [1] )) {
@@ -232,7 +234,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 				if (isset ( $args [0] )) {
 					if (isset ( $this->onlinelist [$args [0]] )) {
 						// 인덱스를 통한 밴일 경우
-						$target = $this->getServer ()->getPlayerExact ( $this->onlinelist [$args [0]] );
+						$target = $this->getServer ()->getPlayer ( $this->onlinelist [$args [0]] );
 					} else {
 						$e = explode ( "d", strtolower ( $args [0] ) );
 						if (isset ( $e [1] ) and is_numeric ( $e [1] )) {
@@ -268,7 +270,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 				if (isset ( $args [0] )) {
 					if (isset ( $this->onlinelist [$args [0]] )) {
 						// 인덱스를 통한 밴일경우
-						$target = $this->getServer ()->getPlayerExact ( $this->onlinelist [$args [0]] );
+						$target = $this->getServer ()->getPlayer ( $this->onlinelist [$args [0]] );
 					} else {
 						$name_search = $this->getServer ()->getOfflinePlayer ( $args [0] );
 						$e = explode ( "d", strtolower ( $args [0] ) );
@@ -288,8 +290,13 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 								}
 								$target = $ip;
 							} else {
-								$sender->sendMessage ( $this->getMessage ( "not-found-user" ) );
-								return true;
+								$playerSearch = $this->getServer ()->getPlayer ( $args [0] );
+								if ($playerSearch != null) {
+									$target [] = $playerSearch;
+								} else {
+									$sender->sendMessage ( $this->getMessage ( "not-found-user" ) );
+									return true;
+								}
 							}
 						}
 					}
@@ -309,10 +316,11 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 				}
 				break;
 			case "s" :
+				$target = [ ];
 				if (isset ( $args [0] )) {
 					if (isset ( $this->onlinelist [$args [0]] )) {
 						// 인덱스를 통한 밴일경우
-						$tp = $this->getServer ()->getPlayerExact ( $this->onlinelist [$args [0]] );
+						$tp = $this->getServer ()->getPlayer ( $this->onlinelist [$args [0]] );
 						foreach ( $this->getServer ()->getOnlinePlayers () as $checkip ) {
 							$e = explode ( ".", $tp->getAddress () );
 							$c = explode ( ".", $checkip->getAddress () );
@@ -321,7 +329,6 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 							}
 						}
 					} else {
-						$name_search = $this->getServer ()->getOfflinePlayer ( $args [0] );
 						$e = explode ( "d", strtolower ( $args [0] ) );
 						if (isset ( $e [1] ) and is_numeric ( $e [1] )) {
 							// 오프라인 인덱스를 통한 밴일경우
@@ -344,11 +351,15 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 										$target [] = $checkip;
 									}
 								}
-								if (! isset ( $target ))
-									$target = $e [0] . "." . $e [1];
+								if (! isset ( $target )) $target = $e [0] . "." . $e [1];
 							} else {
-								$sender->sendMessage ( $this->getMessage ( "not-found-user" ) );
-								return true;
+								$playerSearch = $this->getServer ()->getPlayer ( $args [0] );
+								if ($playerSearch != null) {
+									$target [] = $playerSearch;
+								} else {
+									$sender->sendMessage ( $this->getMessage ( "not-found-user" ) );
+									return true;
+								}
 							}
 						}
 					}
@@ -358,7 +369,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 						$cause = implode ( " ", $args );
 					} else {
 						// 사유가 없을때 기본사유 세팅
-						$cause = $this->getMessage ( "default-cause-subban" );
+						$cause = $this->getMessage ( "default-cause-subnet" );
 					}
 					if (isset ( $target )) {
 						// 타겟을 찾았을때 밴처리
@@ -388,13 +399,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 					if (isset ( $args [1] )) {
 						$this->DoBanList ( $sender, $args [0], $args [1] );
 					} else {
-						$temp_array = [ 
-								"b",
-								"k",
-								"i",
-								"s",
-								"p" 
-						];
+						$temp_array = [ "b","k","i","s","p" ];
 						foreach ( $temp_array as $temp_key ) {
 							$e = explode ( $temp_key, strtolower ( $args [0] ) );
 							if (isset ( $e [1] ) and is_numeric ( $e [1] )) {
@@ -457,8 +462,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$index_key = array_keys ( $target );
 			$full_index = floor ( $index_count / $once_print );
 			
-			if ($index_count > $full_index * $once_print)
-				$full_index ++;
+			if ($index_count > $full_index * $once_print) $full_index ++;
 			
 			if ($index <= $full_index) {
 				$executor->sendMessage ( TextFormat::RED . $targetname . " " . $this->getMessage ( "search_info" ) . " (" . $index . "/" . $full_index . ") " . $this->getMessage ( "amount" ) . ": " . $index_count );
@@ -466,13 +470,11 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 				
 				for($for_i = $once_print; $for_i >= 1; $for_i --) {
 					$now_index = $index * $once_print - $for_i;
-					if (! isset ( $index_key [$now_index] ))
-						break;
+					if (! isset ( $index_key [$now_index] )) break;
 					$now_key = $index_key [$now_index];
 					$message .= TextFormat::RED . "[" . $now_key . "] " . $this->getMessage ( "execute-time" ) . ": " . $target [$now_key] ["time"] . "\n";
 					$message .= $this->getMessage ( "executor" ) . ": " . $target [$now_key] ["executor"] . " " . $this->getMessage ( "execute-cause" ) . ": " . $target [$now_key] ["cause"] . "\n";
-					if (isset ( $target [$now_key] ["before-cause"] ))
-						$executor->sendMessage ( TextFormat::RED . "(" . $this->getMessage ( "execute-before-cause" ) . ": " . $target [$now_key] ["before-cause"] . ")" );
+					if (isset ( $target [$now_key] ["before-cause"] )) $executor->sendMessage ( TextFormat::RED . "(" . $this->getMessage ( "execute-before-cause" ) . ": " . $target [$now_key] ["before-cause"] . ")" );
 				}
 				$executor->sendMessage ( $message );
 				return;
@@ -514,10 +516,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$executor->sendMessage ( $this->getMessage ( "executed-ban" ) );
 		}
 		$this->getServer ()->broadcastMessage ( TextFormat::DARK_AQUA . $name . " " . $this->getMessage ( "broadcast-kick-info" ) . ":" . $cause );
-		if ($target instanceof Player and ! $target->closed)
-			$this->initialize_schedule_delay ( $this, "KickExecute", 100, [ 
-					$target 
-			] );
+		if ($target instanceof Player and ! $target->closed) $this->initialize_schedule_delay ( $this, "KickExecute", 100, [ $target ] );
 	}
 	public function DoKick($executor, $target, $cause) {
 		if ($target instanceof IPlayer) {
@@ -536,9 +535,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$target->sendMessage ( $this->getMessage ( "warning-disconnected" ) );
 			
 			$this->getServer ()->broadcastMessage ( TextFormat::DARK_AQUA . $name . " " . $this->getMessage ( "broadcast-kick-info" ) . ":" . $cause );
-			$this->initialize_schedule_delay ( $this, "KickExecute", 100, [ 
-					$target 
-			] );
+			$this->initialize_schedule_delay ( $this, "KickExecute", 100, [ $target ] );
 		} else {
 			$executor->sendMessage ( $this->getMessage ( "user-not-login" ) );
 		}
@@ -560,8 +557,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$executor->sendMessage ( "( " . $this->getMessage ( "executor" ) . ":" . $info_executor . $this->getMessage ( "executed-name" ) . ": " . $info_name );
 			return;
 		}
-		if ($target instanceof IPlayer)
-			$this->ipban_data [$address] ["name"] = $target->getName ();
+		if ($target instanceof IPlayer) $this->ipban_data [$address] ["name"] = $target->getName ();
 		$this->ipban_data [$address] ["time"] = date ( $this->getMessage ( "time" ) );
 		$this->ipban_data [$address] ["cause"] = $cause;
 		$this->ipban_data [$address] ["executor"] = $executor->getName ();
@@ -572,9 +568,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$target->sendMessage ( $this->getMessage ( "execute-cause" ) . ": " . $cause . " " . $this->getMessage ( "executor" ) . ": " . $executor->getName () );
 			$target->sendMessage ( $this->getMessage ( "warning-disconnected" ) );
 			$this->getServer ()->broadcastMessage ( TextFormat::DARK_AQUA . $target->getName () . " " . $this->getMessage ( "broadcast-ipban-info" ) . ":" . $cause );
-			$this->initialize_schedule_delay ( $this, "KickExecute", 100, [ 
-					$target 
-			] );
+			$this->initialize_schedule_delay ( $this, "KickExecute", 100, [ $target ] );
 		} else {
 			$executor->sendMessage ( TextFormat::DARK_AQUA . $address . " " . $this->getMessage ( "executed-ipban" ) );
 		}
@@ -597,8 +591,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$executor->sendMessage ( "( " . $this->getMessage ( "executor" ) . $info_executor . " " . $this->getMessage ( "executed-name" ) . ": " . $info_name );
 			return;
 		}
-		if ($target instanceof IPlayer)
-			$this->subban_data [$subnet] ["name"] = $target->getName ();
+		if ($target instanceof IPlayer) $this->subban_data [$subnet] ["name"] = $target->getName ();
 		$this->subban_data [$subnet] ["time"] = date ( $this->getMessage ( "time" ) );
 		$this->subban_data [$subnet] ["cause"] = $cause;
 		$this->subban_data [$subnet] ["executor"] = $executor->getName ();
@@ -610,9 +603,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$target->sendMessage ( $this->getMessage ( "warning-disconnected" ) );
 			
 			$this->getServer ()->broadcastMessage ( TextFormat::DARK_AQUA . $target->getName () . $this->getMessage ( "broadcast-subban-info" ) . ":" . $cause );
-			$this->initialize_schedule_delay ( $this, "KickExecute", 100, [ 
-					$target 
-			] );
+			$this->initialize_schedule_delay ( $this, "KickExecute", 100, [ $target ] );
 		} else {
 			$executor->sendMessage ( TextFormat::DARK_AQUA . $subnet . " " . $this->getMessage ( "executed-subban" ) );
 		}
@@ -642,7 +633,11 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			if (isset ( $this->ipban_data [$target_key] ["name"] ) and $this->ipban_data [$target_key] ["name"] == $name) {
 				
 				$this->pardon_data [$name] ["time"] = date ( $this->getMessage ( "time" ) );
-				$this->pardon_data [$name] ["before-cause"] = $this->ipban_data [$name] ["cause"];
+				if (isset ( $this->ipban_data [$name] ["cause"] )) {
+					$this->pardon_data [$name] ["before-cause"] = $this->ipban_data [$name] ["cause"];
+				} else {
+					$this->pardon_data [$name] ["before-cause"] = "";
+				}
 				$this->pardon_data [$name] ["cause"] = $cause;
 				$this->pardon_data [$name] ["executor"] = $executor->getName ();
 				
@@ -655,15 +650,19 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			}
 		}
 		$keylist = array_keys ( $this->subban_data );
-		foreach ( $keylist as $target_key ) {
+		foreach ( $keylist as $index => $target_key ) {
 			if ($this->subban_data [$target_key] ["name"] == $name) {
 				
 				$this->pardon_data [$name] ["time"] = date ( $this->getMessage ( "time" ) );
-				$this->pardon_data [$name] ["before-cause"] = $this->subban_data [$name] ["cause"];
+				if (isset ( $this->subban_data [$name] ["cause"] )) {
+					$this->pardon_data [$name] ["before-cause"] = $this->subban_data [$name] ["cause"];
+				} else {
+					$this->pardon_data [$name] ["before-cause"] = "";
+				}
 				$this->pardon_data [$name] ["cause"] = $cause;
 				$this->pardon_data [$name] ["executor"] = $executor->getName ();
 				
-				array_splice ( $this->subban_data, $target_key, 1 );
+				array_splice ( $this->subban_data, $index, 1 );
 				$success_find ++;
 				
 				$executor->sendMessage ( TextFormat::DARK_AQUA . $name . " " . $this->getMessage ( "deleted-subban" ) );
@@ -695,12 +694,10 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$executor->sendMessage ( TextFormat::DARK_AQUA . $name . " " . $this->getMessage ( "deleted-subban" ) );
 			$this->getServer ()->broadcastMessage ( TextFormat::DARK_AQUA . $name . " " . $this->getMessage ( "broadcast-pardon-subban" ) . ":" . $cause );
 		}
-		if ($success_find == 0)
-			$executor->sendMessage ( $this->getMessage ( "can-not-found-ban" ) );
+		if ($success_find == 0) $executor->sendMessage ( $this->getMessage ( "can-not-found-ban" ) );
 	}
 	public function KickExecute($target) {
-		if (! $target->closed)
-			$target->kick ();
+		if (! $target->closed) $target->kick ();
 	}
 	public function loadExecuteData() {
 		$this->log_ban = $this->initializeYML ( "log_ban.yml", [ ] );
@@ -728,95 +725,20 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 		$this->defaultTextData ();
 	}
 	public function defaultTextData() {
-		$this->language = $this->initializeYML ( "language.yml", [ 
-				"setlanguage" => "ko",
-				"ko-not-found-user" => "§3해당하는 유저를 찾을 수 없습니다.",
-				"ko-default-cause-ban" => "OP에 의한 밴",
-				"ko-default-cause-kick" => "OP에 의한 킥",
-				"ko-default-cause-ipban" => "OP에 의한 아이피밴",
-				"ko-default-cause-subnet" => "OP에 의한 서브넷밴",
-				"ko-default-cause-pardon" => "OP에 의한 밴 해제",
-				"ko-info-ban" => "§3[PSYCHOPASS] /b <인덱스 OR 유저명> -밴",
-				"ko-info-kick" => "§3[PSYCHOPASS] /k <인덱스 OR 유저명> -킥",
-				"ko-info-ipban" => "§3[PSYCHOPASS] /i <인덱스 OR 유저명> -아이피밴",
-				"ko-info-subban" => "§3[PSYCHOPASS] /s <인덱스 OR 유저명> -서브넷밴",
-				"ko-info-list" => "§3[PSYCHOPASS] /l -인덱스 조회",
-				"ko-info-banlist" => "§3[PSYCHOPASS] /l <b:k:i:s:p> - 밴리스트 조회",
-				"ko-info-pardon" => "§3[PSYCHOPASS] /p <인덱스 OR 유저명> -밴해제",
-				"ko-now-onlinelist" => "§3현재 접속중 리스트",
-				"ko-now-offlinelist" => "§3최근 오프라인된 리스트",
-				"ko-time" => "Y년 m월 d일 H시 i분 s초",
-				"ko-execute-time" => "§c처리일자",
-				"ko-execute-cause" => "§c사유",
-				"ko-execute-before-cause" => "§c이전사유",
-				"ko-executor" => "§c처리자",
-				"ko-executed-name" => "§c처리된닉네임",
-				"ko-warning-disconnected" => "§c* 5초 뒤 서버와의 연결이 종료됩니다.",
-				"ko-already-banned" => "§c이미 밴이력이 있습니다, 밴이력을 표시합니다.",
-				"ko-executed-ban+kick" => "§3대상을 밴처리했습니다, (5초 후 킥처리됩니다)",
-				"ko-executed-ban" => "§3대상을 밴처리했습니다.",
-				"ko-warning-ban" => "§c경고,  본 회원분은 밴처리되었습니다.",
-				"ko-broadcast-ban-info" => "§3님이 밴처리되었습니다, 사유",
-				"ko-executed-kick" => "§3대상을 킥처리했습니다, (5초 후 킥처리됩니다)",
-				"ko-warning-kick" => "§c경고,  본 회원분은 킥처리되었습니다.",
-				"ko-broadcast-kick-info" => "§3님이 킥처리되었습니다, 사유",
-				"ko-user-not-login" => "§3해당 유저가 접속 중이 아닙니다.",
-				"ko-already-ipbanned" => "§c이미 아이피밴이력이 있습니다, 밴이력을 표시합니다.",
-				"ko-executed-ipban+kick" => "§3대상을 아이피밴처리했습니다, (5초 후 킥처리됩니다)",
-				"ko-executed-ipban" => "§3대상을 아이피밴처리했습니다.",
-				"ko-warning-ipban" => "§c경고,  본 회원분은 아이피밴처리되었습니다.",
-				"ko-broadcast-ipban-info" => "§3님이 아이피밴처리되었습니다, 사유",
-				"ko-already-subbanned" => "§c이미 서브넷밴이력이 있습니다, 밴이력을 표시합니다.",
-				"ko-executed-subban+kick" => "§3대상을 서브넷밴처리했습니다, (5초 후 킥처리됩니다)",
-				"ko-executed-subban" => "§3대상을 서브넷밴처리했습니다.",
-				"ko-warning-subban" => "§c경고,  본 회원분은 서브넷밴처리되었습니다.",
-				"ko-broadcast-subban-info" => "§3님이 서브넷밴처리되었습니다, 사유",
-				"ko-deleted-ban" => "§3님의 밴 기록을 삭제했습니다.",
-				"ko-broadcast-pardon-ban" => "§3님이 밴해제 되었습니다, 사유",
-				"ko-deleted-ipban" => "§3님의 아이피밴 기록을 삭제했습니다.",
-				"ko-broadcast-pardon-ipban" => "§3님이 아이피밴 해제 되었습니다, 사유",
-				"ko-deleted-subban" => "§3님의 서브넷밴 기록을 삭제했습니다.",
-				"ko-broadcast-pardon-subban" => "§3님이 서브넷밴 해제 되었습니다, 사유",
-				"ko-deleted-ipban" => "§3해당 아이피밴 기록을 삭제했습니다.",
-				"ko-broadcast-pardon-ipbban" => "§3아이피밴 해제 되었습니다, 사유",
-				"ko-can-not-found-ban" => "§3해당되는 밴이력을 찾을 수없습니다",
-				"ko-warning_banned" => "§c해당 닉네임은 밴처리되어있습니다,",
-				"ko-warning_ipbanned" => "§c해당 아아피는 밴처리되어있습니다",
-				"ko-warning_subnetbanned" => "§c해당 서브넷아이피는 밴처리되어있습니다",
-				"ko-contact-admin" => "§c관련문의는 서버 관리자에게 해주세요.",
-				"ko-index_name_caution1" => "§c숫자로 된 닉네임이나 d<숫자>",
-				"ko-index_name_caution2" => "§c닉네임은 사용이 불가능합니다.",
-				"ko-index_name_caution3" => "§c(다른 닉네임을 사용해주세요.)",
-				"ko-search_info" => "§c내역을 출력합니다.",
-				"ko-info-banlist-1" => "§3[PSYCHOPASS] /l b<인덱스> -밴 내역 조회",
-				"ko-info-kicklist" => "§3[PSYCHOPASS] /l k<인덱스> -킥 내역 조회",
-				"ko-info-ipbanlist" => "§3[PSYCHOPASS] /l i<인덱스> -아이피밴 내역 조회",
-				"ko-info-subbanlist" => "§3[PSYCHOPASS] /l s<인덱스> -서브넷밴 내역 조회",
-				"ko-info-pardonlist" => "§3[PSYCHOPASS] /l p<인덱스> -밴해제 내역 조회",
-				"ko-amount" => "총",
-				"ko-not-found-list" => "§3검색되는 리스트가 없습니다." 
-		] )->getAll ();
+		$this->language = $this->initializeYML ( "language.yml", [ "setlanguage" => "ko","ko-not-found-user" => "§3해당하는 유저를 찾을 수 없습니다.","ko-default-cause-ban" => "OP에 의한 밴","ko-default-cause-kick" => "OP에 의한 킥","ko-default-cause-ipban" => "OP에 의한 아이피밴","ko-default-cause-subnet" => "OP에 의한 서브넷밴","ko-default-cause-pardon" => "OP에 의한 밴 해제","ko-info-ban" => "§3[PSYCHOPASS] /b <인덱스 OR 유저명> -밴","ko-info-kick" => "§3[PSYCHOPASS] /k <인덱스 OR 유저명> -킥","ko-info-ipban" => "§3[PSYCHOPASS] /i <인덱스 OR 유저명> -아이피밴","ko-info-subban" => "§3[PSYCHOPASS] /s <인덱스 OR 유저명> -서브넷밴","ko-info-list" => "§3[PSYCHOPASS] /l -인덱스 조회","ko-info-banlist" => "§3[PSYCHOPASS] /l <b:k:i:s:p> - 밴리스트 조회","ko-info-pardon" => "§3[PSYCHOPASS] /p <인덱스 OR 유저명> -밴해제","ko-now-onlinelist" => "§3현재 접속중 리스트","ko-now-offlinelist" => "§3최근 오프라인된 리스트","ko-time" => "Y년 m월 d일 H시 i분 s초","ko-execute-time" => "§c처리일자","ko-execute-cause" => "§c사유","ko-execute-before-cause" => "§c이전사유","ko-executor" => "§c처리자","ko-executed-name" => "§c처리된닉네임","ko-warning-disconnected" => "§c* 5초 뒤 서버와의 연결이 종료됩니다.","ko-already-banned" => "§c이미 밴이력이 있습니다, 밴이력을 표시합니다.","ko-executed-ban+kick" => "§3대상을 밴처리했습니다, (5초 후 킥처리됩니다)","ko-executed-ban" => "§3대상을 밴처리했습니다.","ko-warning-ban" => "§c경고,  본 회원분은 밴처리되었습니다.","ko-broadcast-ban-info" => "§3님이 밴처리되었습니다, 사유","ko-executed-kick" => "§3대상을 킥처리했습니다, (5초 후 밴처리됩니다)","ko-warning-kick" => "§c경고,  본 회원분은 킥처리되었습니다.","ko-broadcast-kick-info" => "§3님이 킥처리되었습니다, 사유","ko-user-not-login" => "§3해당 유저가 접속 중이 아닙니다.","ko-already-ipbanned" => "§c이미 아이피밴이력이 있습니다, 밴이력을 표시합니다.","ko-executed-ipban+kick" => "§3대상을 아이피밴처리했습니다, (5초 후 킥처리됩니다)","ko-executed-ipban" => "§3대상을 아이피밴처리했습니다.","ko-warning-ipban" => "§c경고,  본 회원분은 아이피밴처리되었습니다.","ko-broadcast-ipban-info" => "§3님이 아이피밴처리되었습니다, 사유","ko-already-subbanned" => "§c이미 서브넷밴이력이 있습니다, 밴이력을 표시합니다.","ko-executed-subban+kick" => "§3대상을 서브넷밴처리했습니다, (5초 후 킥처리됩니다)","ko-executed-subban" => "§3대상을 서브넷밴처리했습니다.","ko-warning-subban" => "§c경고,  본 회원분은 서브넷밴처리되었습니다.","ko-broadcast-subban-info" => "§3님이 서브넷밴처리되었습니다, 사유","ko-deleted-ban" => "§3님의 밴 기록을 삭제했습니다.","ko-broadcast-pardon-ban" => "§3님이 밴해제 되었습니다, 사유","ko-deleted-ipban" => "§3님의 아이피밴 기록을 삭제했습니다.","ko-broadcast-pardon-ipban" => "§3님이 아이피밴 해제 되었습니다, 사유","ko-deleted-subban" => "§3님의 서브넷밴 기록을 삭제했습니다.","ko-broadcast-pardon-subban" => "§3님이 서브넷밴 해제 되었습니다, 사유","ko-deleted-ipban" => "§3해당 아이피밴 기록을 삭제했습니다.","ko-broadcast-pardon-ipbban" => "§3아이피밴 해제 되었습니다, 사유","ko-can-not-found-ban" => "§3해당되는 밴이력을 찾을 수없습니다","ko-warning_banned" => "§c해당 닉네임은 밴처리되어있습니다,","ko-warning_ipbanned" => "§c해당 아아피는 밴처리되어있습니다","ko-warning_subnetbanned" => "§c해당 서브넷아이피는 밴처리되어있습니다","ko-contact-admin" => "§c관련문의는 서버 관리자에게 해주세요.","ko-index_name_caution1" => "§c숫자로 된 닉네임이나 d<숫자>","ko-index_name_caution2" => "§c닉네임은 사용이 불가능합니다.","ko-index_name_caution3" => "§c(다른 닉네임을 사용해주세요.)","ko-search_info" => "§c내역을 출력합니다.","ko-info-banlist-1" => "§3[PSYCHOPASS] /l b<인덱스> -밴 내역 조회","ko-info-kicklist" => "§3[PSYCHOPASS] /l k<인덱스> -킥 내역 조회","ko-info-ipbanlist" => "§3[PSYCHOPASS] /l i<인덱스> -아이피밴 내역 조회","ko-info-subbanlist" => "§3[PSYCHOPASS] /l s<인덱스> -서브넷밴 내역 조회","ko-info-pardonlist" => "§3[PSYCHOPASS] /l p<인덱스> -밴해제 내역 조회","ko-amount" => "총","ko-not-found-list" => "§3검색되는 리스트가 없습니다." ] )->getAll ();
 	}
 	public function getMessage($var) {
-		if (isset ( $this->language [$this->language ["setlanguage"] . "-" . $var] ))
-			return $this->language [$this->language ["setlanguage"] . "-" . $var];
-		else
-			return $var . " NOT FOUND LANGUAGE DATA";
+		if (isset ( $this->language [$this->language ["setlanguage"] . "-" . $var] )) return $this->language [$this->language ["setlanguage"] . "-" . $var];
+		else return $var . " NOT FOUND LANGUAGE DATA";
 	}
 	public function initializeYML($path, $array) {
 		return new Config ( $this->getDataFolder () . $path, Config::YAML, $array );
 	}
 	public function initialize_schedule_repeat($class, $method, $second, $param) {
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
-				$class,
-				$method 
-		], $param ), $second );
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ $class,$method ], $param ), $second );
 	}
 	public function initialize_schedule_delay($class, $method, $second, $param) {
-		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
-				$class,
-				$method 
-		], $param ), $second );
+		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $class,$method ], $param ), $second );
 	}
 }
 
