@@ -96,16 +96,13 @@ class poolTax extends PluginBase implements Listener {
 	// ----------------------------------------------------------------------------------
 	public function poolTax() {
 		$paid = 0;
-		$failed = 0;
 		foreach ( $this->economyAPI->getAllMoney ()["money"] as $player => $money ) {
-			if ($money >= $this->db ["taxPrice"]) {
+			if ($money >= $this->db ["taxPrice"] and $money > 4500) {
 				$this->economyAPI->reduceMoney ( $player, $this->db ["taxPrice"] );
 				$paid ++;
-			} else {
-				$failed ++;
 			}
 		}
-		$this->getServer ()->getLogger ()->info ( TextFormat::DARK_AQUA . $this->get("prefix") . " "  . $paid . $this->get ( "paid" ) . " " . $failed . $this->get ( "failed" ) );
+		$this->getServer ()->getLogger ()->info ( TextFormat::DARK_AQUA . $this->get("prefix") . " "  . $paid . $this->get ( "paid" ));
 	}
 }
 
