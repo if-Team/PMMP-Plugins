@@ -1,0 +1,9 @@
+name: Chatty
+main: Chatty\Chatty
+version: 0.1-Alpha
+author: hm
+api: [1.4.1]
+
+permissions:
+ Chatty.commands:
+  default: true
