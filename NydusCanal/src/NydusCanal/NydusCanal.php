@@ -19,6 +19,7 @@ use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\math\Vector3;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\scheduler\CallbackTask;
+use pocketmine\event\player\PlayerChatEvent;
 
 class NydusCanal extends PluginBase implements Listener {
 	public $NydusCanal, $NydusCanal_List;
@@ -100,6 +101,32 @@ class NydusCanal extends PluginBase implements Listener {
 				}
 			}
 		}
+	}
+	public function onChat(PlayerChatEvent $event) {
+		$nearPoint = null;
+		$nearRange = null;
+		$player = $event->getPlayer ();
+		
+		foreach ( $this->NydusCanal_List ["warp"] as $index => $data ) {
+			$wx = $this->NydusCanal_List ["warp"] [$index] ['x'];
+			$wy = $this->NydusCanal_List ["warp"] [$index] ['y'];
+			$wz = $this->NydusCanal_List ["warp"] [$index] ['z'];
+			
+			$diff = abs ( $player->x - $wx );
+			$diff += abs ( $player->y - $wy );
+			$diff += abs ( $player->z - $wz );
+			
+			if ($nearPoint == null) {
+				$nearPoint = $index;
+				$nearRange = $diff;
+			}
+			if ($nearRange > $diff) {
+				$nearPoint = $index;
+				$nearRange = $diff;
+			}
+		}
+		if ($nearPoint == null) return;
+		$event->setFormat ( TextFormat::GOLD . "[ " . $nearPoint . " ] " . $event->getFormat () );
 	}
 	public function onMove(PlayerMoveEvent $event) {
 		if (! $event->getPlayer ()->hasPermission ( "nyduscanal.portal" )) return;
@@ -317,11 +344,7 @@ class NydusCanal extends PluginBase implements Listener {
 			if (! isset ( $this->timeout [$warp] [$player->getName ()] )) {
 				$this->timeout [$warp] [$player->getName ()] = $player->add ( 2 );
 				$player->sendMessage ( TextFormat::RED . "[ 주의 ] [ 시간제한 ] " . $this->NydusCanal_List ["warp"] [$warp] ["timeout"] . "초 뒤에 이전 위치로 복귀됩니다!" );
-				$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
-						$this,
-						"warpTimeout" ], [ 
-						$player,
-						$warp ] ), 20 * $this->NydusCanal_List ["warp"] [$warp] ["timeout"] );
+				$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"warpTimeout" ], [ $player,$warp ] ), 20 * $this->NydusCanal_List ["warp"] [$warp] ["timeout"] );
 			}
 		}
 		if (isset ( $this->NydusCanal_List ["warp"] [$warp] ["price"] ) and $this->checkEconomyAPI ()) {
@@ -338,7 +361,7 @@ class NydusCanal extends PluginBase implements Listener {
 		}
 		$player->teleport ( new Position ( $x, $y, $z, $level ), $yaw, $pitch );
 		$player->addEntityMotion ( 0, 0, 0.6, 0 );
-		$player->sendMessage ( TextFormat::LIGHT_PURPLE . "[ 서버 ] " . $warp . " 로 워프 되었습니다" );
+		$player->sendMessage ( TextFormat::LIGHT_PURPLE . "[ 서버 ] " . $warp . " (으)로 워프 되었습니다" );
 		if (isset ( $this->NydusCanal_List ["warp"] [$warp] ["price"] ) and $this->checkEconomyAPI ()) {
 			if (isset ( explode ( "+", $this->NydusCanal_List ["warp"] [$warp] ["price"] )[1] )) {
 				$player->sendMessage ( TextFormat::DARK_AQUA . "[ 서버 ] 보상금액 " . $this->NydusCanal_List ["warp"] [$warp] ["price"] . "$ 가 지급되었습니다." );

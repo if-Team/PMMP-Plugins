@@ -1,6 +1,6 @@
 name: NydusCanal
 main: NydusCanal\NydusCanal
-version: 1.5-alpha
+version: 1.6-alpha
 author: hm
 api: [1.4.1]
 
