@@ -208,7 +208,7 @@ class Chatty extends PluginBase implements Listener {
 				break;
 			case $this->get ( "local-CHAT" ) :
 				if (isset ( $this->db [$player->getName ()] ["localCHAT"] )) {
-					if (isset ( $this->db [$player->getName ()] ["localCHAT"] )) {
+					if ($this->db [$player->getName ()] ["localCHAT"] == true) {
 						$this->db [$player->getName ()] ["localCHAT"] = false;
 						$this->message ( $player, "localCHAT-DISABLED" );
 					} else {
@@ -222,7 +222,7 @@ class Chatty extends PluginBase implements Listener {
 				break;
 			case $this->get ( "NameTAG-CHAT" ) :
 				if (isset ( $this->db [$player->getName ()] ["NameTAG"] )) {
-					if (isset ( $this->db [$player->getName ()] ["NameTAG"] )) {
+					if ($this->db [$player->getName ()] ["NameTAG"] == true) {
 						$this->db [$player->getName ()] ["NameTAG"] = false;
 						$this->message ( $player, "NameTAG-DISABLED" );
 					} else {
