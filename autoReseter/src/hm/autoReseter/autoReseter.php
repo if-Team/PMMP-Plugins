@@ -16,14 +16,10 @@ use pocketmine\utils\Config;
 
 class autoReseter extends PluginBase implements Listener {
 	public function onEnable() {
+		@mkdir ( $this->getDataFolder () );
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
-		$this->resetTimer = (new Config ( $this->getDataFolder () . "resetTimer.yml", Config::YAML, [ 
-				"resetCycle" => 36000 
-		] ))->getAll ();
-		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
-				$this,
-				"Reset" 
-		] ), $this->resetTimer ["resetCycle"] );
+		$this->resetTimer = (new Config ( $this->getDataFolder () . "resetTimer.yml", Config::YAML, [ "resetCycle" => 36000 ] ))->getAll ();
+		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"Reset" ] ), $this->resetTimer ["resetCycle"] );
 	}
 	/**
 	 *
@@ -31,16 +27,21 @@ class autoReseter extends PluginBase implements Listener {
 	 */
 	public function Reset() {
 		$this->getServer ()->broadcastMessage ( TextFormat::DARK_PURPLE . "[안내] 서버가 10초뒤 5~10초간 재부팅됩니다 *자동재부팅*" );
-		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
-				$this,
-				"Shutdown" 
-		] ), 20 * 10 );
+		$this->getServer ()->broadcastMessage ( TextFormat::DARK_PURPLE . "[안내] 서버가 10초뒤 5~10초간 재부팅됩니다 *자동재부팅*" );
+		$this->getServer ()->broadcastMessage ( TextFormat::DARK_PURPLE . "[안내] 서버가 10초뒤 5~10초간 재부팅됩니다 *자동재부팅*" );
+		$this->getServer ()->broadcastMessage ( TextFormat::DARK_PURPLE . "[안내] 서버가 10초뒤 5~10초간 재부팅됩니다 *자동재부팅*" );
+		$this->getServer ()->broadcastMessage ( TextFormat::DARK_PURPLE . "[안내] 서버가 10초뒤 5~10초간 재부팅됩니다 *자동재부팅*" );
+		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"Shutdown" ] ), 20 * 10 );
 	}
 	/**
 	 *
 	 * @var execute autoReset
 	 */
 	public function Shutdown() {
+		$this->getServer ()->broadcastMessage ( TextFormat::DARK_PURPLE . "[안내] 서버가 재부팅됩니다.." );
+		$this->getServer ()->broadcastMessage ( TextFormat::DARK_PURPLE . "[안내] 서버가 재부팅됩니다.." );
+		$this->getServer ()->broadcastMessage ( TextFormat::DARK_PURPLE . "[안내] 서버가 재부팅됩니다.." );
+		$this->getServer ()->broadcastMessage ( TextFormat::DARK_PURPLE . "[안내] 서버가 재부팅됩니다.." );
 		$this->getServer ()->broadcastMessage ( TextFormat::DARK_PURPLE . "[안내] 서버가 재부팅됩니다.." );
 		/**
 		 *
