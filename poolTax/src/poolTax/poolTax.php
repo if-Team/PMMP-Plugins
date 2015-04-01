@@ -16,7 +16,7 @@ class poolTax extends PluginBase implements Listener {
 	private static $instance = null; // 인스턴스 변수
 	public $economyAPI = null;
 	public $messages, $db; // 메시지 변수, DB변수
-	public $m_version = 1; // 현재 메시지 버전
+	public $m_version = 2; // 현재 메시지 버전
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () ); // 플러그인 폴더생성
 		
@@ -26,7 +26,7 @@ class poolTax extends PluginBase implements Listener {
 		$this->db = (new Config ( $this->getDataFolder () . "pluginDB.yml", Config::YAML, [ "taxPrice" => 1 ] ))->getAll ();
 		
 		// 플러그인의 명령어 등록
-		// $this->registerCommand ( "명령어이름", "등록실패시 보조 명령어이름", "퍼미션명", "명령어설명", "쓰는법" );
+		$this->registerCommand ( $this->get ( "taxControl" ), $this->get ( "taxControl" ), "taxControl", $this->get ( "taxHelp" ), $this->get ( "taxControl-help" ) );
 		
 		// 이코노미 API 이용
 		if ($this->getServer ()->getPluginManager ()->getPlugin ( "EconomyAPI" ) != null) {
@@ -93,16 +93,14 @@ class poolTax extends PluginBase implements Listener {
 		}
 		return true;
 	}
-	// ----------------------------------------------------------------------------------
 	public function poolTax() {
+		if ($this->db ["taxPrice"] == 0) return;
 		$paid = 0;
 		foreach ( $this->economyAPI->getAllMoney ()["money"] as $player => $money ) {
-			if ($money >= $this->db ["taxPrice"] and $money > 4500) {
-				$this->economyAPI->reduceMoney ( $player, $this->db ["taxPrice"] );
-				$paid ++;
-			}
+			$this->economyAPI->reduceMoney ( $player, $this->db ["taxPrice"] );
+			$paid ++;
 		}
-		$this->getServer ()->getLogger ()->info ( TextFormat::DARK_AQUA . $this->get("prefix") . " "  . $paid . $this->get ( "paid" ));
+		$this->getServer ()->getLogger ()->info ( TextFormat::DARK_AQUA . $this->get ( "prefix" ) . " " . $paid . $this->get ( "paid" ) );
 	}
 }
 

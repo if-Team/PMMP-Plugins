@@ -3,3 +3,8 @@ main: poolTax\poolTax
 version: 0.1-Alpha
 author: hm
 api: [1.4.1]
+
+
+permissions:
+ taxControl:
+  default: op
