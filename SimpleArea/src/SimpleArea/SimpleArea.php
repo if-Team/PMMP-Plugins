@@ -36,6 +36,8 @@ use SimpleArea\Event\AreaModifyEvent;
 use pocketmine\event\entity\EntityCombustEvent;
 use pocketmine\event\entity\EntityCombustByBlockEvent;
 use pocketmine\block\Fire;
+use pocketmine\event\player\PlayerBucketFillEvent;
+use pocketmine\event\server\DataPacketReceiveEvent;
 
 class SimpleArea extends PluginBase implements Listener {
 	private static $instance = null;
@@ -66,9 +68,7 @@ class SimpleArea extends PluginBase implements Listener {
 			$this->db [$level->getFolderName ()] = new SimpleArea_Database ( $this->getServer ()->getDataPath () . "worlds/" . $level->getFolderName () . "/", $level, $this->config_Data ["default-wall-type"] );
 		
 		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ $this,"autoSave" ] ), 2400 );
-		
-		foreach ( $this->getServer ()->getLevels () as $level )
-			$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ $this,"hourTaxCheck" ] ), 20 * 60 * 60 );
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ $this,"hourTaxCheck" ] ), 20 * 60 * 60 );
 		
 		$this->registerCommand ( $this->get ( "commands-area" ), "simplearea.commands.area", $this->get ( "commands-area-desc" ) );
 		$this->registerCommand ( $this->get ( "commands-setarea" ), "simplearea.commands.setarea", $this->get ( "commands-setarea-desc" ) );
@@ -179,6 +179,17 @@ class SimpleArea extends PluginBase implements Listener {
 			}
 		}
 	}
+	public function onBucket(PlayerBucketFillEvent $event) {
+		$player = $event->getPlayer ();
+		if ($player->isOp ()) return;
+		
+		$area = $this->db [$event->getPlayer ()->level->getFolderName ()]->getArea ( $player->x, $player->z );
+		
+		if ($area != false) {
+			if (isset ( $area ["resident"] [0] )) if ($this->db [$player->level->getFolderName ()]->checkResident ( $area ["ID"], $player->getName () )) return;
+			$event->setCancelled ();
+		}
+	}
 	public function onBreak(BlockBreakEvent $event) {
 		$player = $event->getPlayer ();
 		$block = $event->getBlock ();
@@ -287,7 +298,19 @@ class SimpleArea extends PluginBase implements Listener {
 				$this->player_pos [$player->getName ()] ["x"] = ( int ) round ( $player->x );
 				$this->player_pos [$player->getName ()] ["z"] = ( int ) round ( $player->z );
 				$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
-				if (! isset ( $area ["is-home"] ) or $area ["is-home"] == false) return;
+				if (! isset ( $area ["is-home"] ) or $area ["is-home"] == false) {
+					if ($area != null) {
+						if (! isset ( $this->checkMove [$event->getPlayer ()->getName ()] )) {
+							$this->checkMove [$event->getPlayer ()->getName ()] = $area ["ID"];
+						} else {
+							if ($this->checkMove [$event->getPlayer ()->getName ()] == $area ["ID"]) return;
+						}
+						$this->checkMove [$event->getPlayer ()->getName ()] = $area ["ID"];
+						$welcome = $this->db [$player->getLevel ()->getFolderName ()]->getWelcome ( $area ["ID"] );
+						if ($welcome != null) if ($this->checkShowPreventMessage ()) $this->message ( $player, $welcome, $this->config_Data ["welcome-prefix"] );
+					}
+					return;
+				}
 				if ($area != null) {
 					if (! isset ( $this->checkMove [$event->getPlayer ()->getName ()] )) {
 						$this->checkMove [$event->getPlayer ()->getName ()] = $area ["ID"];
@@ -341,7 +364,7 @@ class SimpleArea extends PluginBase implements Listener {
 	public function onCombust(EntityCombustEvent $event) {
 		if ($event instanceof EntityCombustByBlockEvent) {
 			if ($event->getEntity () instanceof Player and $event->getCombuster () instanceof Fire) {
-				$area = $this->db [$event->getEntity ()->getFolderName ()]->getArea ( $event->getEntity ()->x, $event->getEntity ()->z );
+				$area = $this->db [$event->getEntity ()->getLevel ()->getFolderName ()]->getArea ( $event->getEntity ()->x, $event->getEntity ()->z );
 				if ($area != null) if (! $this->db [$event->getEntity ()->getLevel ()->getFolderName ()]->isPvpAllow ( $area ["ID"] )) {
 					$event->setCancelled ();
 				}
@@ -390,27 +413,31 @@ class SimpleArea extends PluginBase implements Listener {
 				break;
 			case $this->get ( "commands-givearea" ) :
 				if (isset ( $args [0] )) {
-					$this->giveHome ( $player, $args [0] );
+					$this->giveHome ( $player, implode ( " ", $args ) );
 				} else {
 					$this->giveHome ( $player );
 				}
 				break;
 			case $this->get ( "commands-buyarea" ) :
-				$this->buyhome ( $player );
+				if ($this->checkHomeLimit ( $player )) {
+					$this->buyhome ( $player );
+				} else {
+					$this->message ( $player, $this->get ( "no-more-buying-area" ) );
+				}
 				break;
 			case $this->get ( "commands-arealist" ) :
 				$this->homelist ( $player );
 				break;
 			case $this->get ( "commands-rent" ) :
 				if (isset ( $args [0] )) {
-					$this->rent ( $player, $args [0] );
+					$this->rent ( $player, implode ( " ", $args ) );
 				} else {
 					$this->rent ( $player );
 				}
 				break;
 			case $this->get ( "commands-invite" ) :
 				if (isset ( $args [0] )) {
-					$this->invite ( $player, $args [0] );
+					$this->invite ( $player, implode ( " ", $args ) );
 				} else {
 					$this->message ( $player, $this->get ( "commands-invite-help" ) );
 				}
@@ -623,23 +650,38 @@ class SimpleArea extends PluginBase implements Listener {
 	}
 	public function hourTaxCheck() {
 		if ($this->config_Data ["hour-tax-price"] <= 0) return;
+		$taken = "";
+		$takenCount = 0;
 		foreach ( $this->getServer ()->getLevels () as $level )
-			foreach ( $this->db [$level->getFolderName ()]->getAll () as $area )
+			foreach ( $this->db [$level->getFolderName ()]->getAll () as $areaid => $area )
 				if (isset ( $area ["is-home"] ) and $area ["is-home"] == true and $area ["resident"] [0] != null) {
 					if ($this->checkEconomyAPI ()) {
 						$money = $this->economyAPI->myMoney ( $area ["resident"] [0] );
-						if ($money == false) return;
+						if ($money === false) continue;
 						if ($money >= $this->config_Data ["hour-tax-price"]) {
 							$this->economyAPI->reduceMoney ( $area ["resident"] [0], $this->config_Data ["hour-tax-price"] );
 							$player = $this->getServer ()->getPlayerExact ( $area ["resident"] [0] );
 							if ($player != null) $this->message ( $player, $this->get ( "hourtax-is-paid-1" ) . $this->config_Data ["hour-tax-price"] . $this->get ( "hourtax-is-paid-2" ) );
 						} else {
+							$taken .= $area ["ID"] . "번영역(" . $area ["resident"] [0] . ") ";
+							$takenCount ++;
 							$player = $this->getServer ()->getPlayerExact ( $area ["resident"] [0] );
 							if ($player != null) $this->message ( $player, $this->get ( "sequestrated-1" ) . $area ["ID"] . $this->get ( "sequestrated-2" ) );
-							$this->db [$level->getFolderName ()]->setResident ( $area ["ID"], [ null ] );
+							$this->db [$level->getFolderName ()]->removeUserProperty ( $area ["resident"] [0], $area ["ID"] );
+							$this->db [$level->getFolderName ()]->setResident ( $areaid, [ null ] );
 						}
 					}
 				}
+		if ($taken != null) $this->getServer ()->getLogger ()->info ( TextFormat::DARK_AQUA . $taken . "\n총" . $takenCount . "개의 영역들을 환수했습니다 !" );
+		$allhomeCount = 0;
+		$homeUsage = 0;
+		foreach ( $this->getServer ()->getLevels () as $level )
+			foreach ( $this->db [$level->getFolderName ()]->getAll () as $area )
+				if (isset ( $area ["is-home"] ) and $area ["is-home"] == true) {
+					$allhomeCount ++;
+					if ($area ["resident"] [0] != null) $homeUsage ++;
+				}
+		$this->getServer ()->getLogger ()->info ( TextFormat::DARK_AQUA . "총" . $allhomeCount . "개의 활성화영역 중 " . $homeUsage . "개의 개인영역이 사용중입니다 !" );
 	}
 	public function setFenceType(Player $player, $fenceType = null) {
 		if ($fenceType == null) {
@@ -729,10 +771,10 @@ class SimpleArea extends PluginBase implements Listener {
 				return false;
 			}
 			$this->db [$player->getLevel ()->getFolderName ()]->removeUserProperty ( $player->getName (), $area ["ID"] );
-			$this->db [$player->getLevel ()->getFolderName ()]->setResident ( $area ["ID"], [ $target ] );
+			$this->db [$player->getLevel ()->getFolderName ()]->setResident ( $area ["ID"], [ $target->getName () ] );
 			$this->db [$player->getLevel ()->getFolderName ()]->addUserProperty ( $target->getName (), $area ["ID"] );
-			if ($this->checkEconomyAPI ()) $this->economyAPI->addMoney ( $player, $this->config_Data ["economy-reward-price"] );
-			$this->message ( $player, $target . $this->get ( "givearea-success" ) );
+			if ($this->checkEconomyAPI ()) $this->economyAPI->addMoney ( $player, $this->config_Data ["economy-home-reward-price"] );
+			$this->message ( $player, $target->getName () . $this->get ( "givearea-success" ) );
 		}
 		return true;
 	}
@@ -823,10 +865,6 @@ class SimpleArea extends PluginBase implements Listener {
 		return true;
 	}
 	public function buyHome(Player $player) {
-		if (! $this->checkHomeLimit ( $player )) {
-			$this->alert ( $player, $this->get ( "no-more-buying-area" ) );
-			return;
-		}
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
 			$this->alert ( $player, $this->get ( "area-doesent-exist" ) );
@@ -1417,10 +1455,6 @@ class SimpleArea extends PluginBase implements Listener {
 		return true;
 	}
 	public function SimpleArea(Player $player) {
-		if (! $this->checkHomeLimit ( $player )) {
-			$this->alert ( $player, $this->get ( "no-more-buying-area" ) );
-			return;
-		}
 		$size = ( int ) round ( $this->getHomeSize () / 2 );
 		$startX = ( int ) round ( $player->x - $size );
 		$endX = ( int ) round ( $player->x + $size );
