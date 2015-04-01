@@ -297,7 +297,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 							} else {
 								$playerSearch = $this->getServer ()->getPlayer ( $args [0] );
 								if ($playerSearch != null) {
-									$target [] = $playerSearch;
+									$target = $playerSearch;
 								} else {
 									$sender->sendMessage ( $this->getMessage ( "not-found-user" ) );
 									return true;
