@@ -14,10 +14,15 @@ use pocketmine\level\Level;
 
 class ChestGuard extends PluginBase implements Listener {
 	public $config, $configData;
+	public $simpleArea = null;
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		$this->config = new Config ( $this->getDataFolder () . "chestList.yml", Config::YAML );
 		$this->configData = $this->config->getAll ();
+		
+		if ($this->getServer ()->getPluginManager ()->getPlugin ( "SimpleArea" ) != null) {
+			$this->simpleArea = \SimpleArea\SimpleArea::getInstance ();
+		}
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
 	public function onDisable() {
@@ -50,6 +55,12 @@ class ChestGuard extends PluginBase implements Listener {
 			$event->setCancelled ();
 		} else {
 			if ($event->getPlayer ()->isOp ()) return;
+			if ($this->simpleArea != null) {
+				$area = $this->simpleArea->db [$block->getLevel ()->getFolderName ()]->getArea ( $block->x, $block->z );
+				if ($area != null) {
+					if (isset ( $area ["resident"] [0] ) and $area ["resident"] [0] == $event->getPlayer ()->getName ()) {return;}
+				}
+			}
 			$event->getPlayer ()->sendMessage ( TextFormat::RED . "이 상자는 " . $this->configData ["{$block->x}:{$block->y}:{$block->z}"] . " 님의 소유입니다, 파괴 불가 !" );
 			$event->setCancelled ();
 		}
@@ -60,6 +71,12 @@ class ChestGuard extends PluginBase implements Listener {
 		if (! isset ( $this->configData ["{$block->x}:{$block->y}:{$block->z}"] )) return;
 		if ($this->configData ["{$block->x}:{$block->y}:{$block->z}"] != $event->getPlayer ()->getName ()) {
 			if ($event->getPlayer ()->isOp ()) return;
+			if ($this->simpleArea != null) {
+				$area = $this->simpleArea->db [$block->getLevel ()->getFolderName ()]->getArea ( $block->x, $block->z );
+				if ($area != null) {
+					if (isset ( $area ["resident"] [0] ) and $area ["resident"] [0] == $event->getPlayer ()->getName ()) {return;}
+				}
+			}
 			$event->getPlayer ()->sendMessage ( TextFormat::RED . "이 상자는 " . $this->configData ["{$block->x}:{$block->y}:{$block->z}"] . " 님의 소유입니다, 터치 불가 !" );
 			$event->setCancelled ();
 		}
