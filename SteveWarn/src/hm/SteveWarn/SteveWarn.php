@@ -19,6 +19,7 @@ class SteveWarn extends PluginBase implements Listener {
 	public function PlayerJoin(PlayerJoinEvent $event) {
 		$player = $event->getPlayer ();
 		if (strtolower ( $player->getName () ) == "steve") {
+			$event->setJoinMessage ( "" );
 			$pk = new ChatPacket ();
 			$pk->message = "[경고] 닉네임이 Steve입니다, 해당닉네임은 사용불가능합니다\n[경고] 자동으로 킥처리되며 닉네임 변경시 정상이용가능합니다";
 			$player->dataPacket ( $pk );
