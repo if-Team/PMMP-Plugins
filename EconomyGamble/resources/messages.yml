@@ -7,40 +7,6 @@ m_version: 1
 
 #(EN) ENGLISH
 
-en-mustnumberic: The second line (any amount) is must be numeric
-en-GambleSetupFinish: successful in setting gamble !
-en-ItemGambleSetupFinish: successful in setting item gamble !
-en-LotterySetupFinish: successful in setting lottery !
-en-RandomGambleSetupFinish: successful in setting random gamble !
-en-WrongFormat-Sign: The signs of the wrong type! No Gambling !
-en-LacenfhMoney: "Money is not enough ! No Gambling ! Retention amount:0"
-en-SuccessGamble: Gambling was successful ! (≥∀≤)/
-en-SuccessGamble-a: acquisition !
-en-FailGamble: Failed gamble ! (づ_ど)
-en-FailGamble-a: loss !
-en-noitem: Please Touch to have an item !
-en-SuccessitemGamble: Gambling was successful ! (≥∀≤)/ One more item acquisition !
-en-FailitemGamble: Failed gamble ! (づ_ど) One Item loss !
-en-LotteryPayment: 'Purchased a lottery ! (≥∀≤)/ Amount:'
-en-LotteryPayment-a: Connect to the next day  will you know the result !
-en-AskAgain: 'Are you sure you want to gamble? To proceed please tap again. [Amount:'
-en-LotteryCheck: Reports the results of last day lottery !
-en-LotteryCheck-a: lottery
-en-LotteryCheck-b: ' lottery failed ! (づ_ど)'
-en-SuccessLottery: won the lottery!(≥∀≤)/
-en-SuccessLottery-a: Amount
-en-SuccessLottery-b: ' more lottery was successful'
-en-SuccessLottery-c: Received !
-en-Gamblehow-a: When installed according to the form of signs
-en-Gamblehow-b: You can install Gamble signs
-en-Gamblehow-c: With the following command check the form
-en-Gamblehow-d: 1.Please install the Sign
-en-Gamblehow-Gamble-a: 2.Put in the first line [gamble]
-en-Gamblehow-Gamble-b: "3.Put in the first line price"
-en-Gamblehow-ItemGamble: 2.Put in the first line [itemgamble]
-en-Gamblehow-Lottery: 2.Put in the first line [lottery]
-en-Gamblehow-Random: 2.Put in the first line [randomgamble]
-
 #(KO) KOREAN
 ko-commands-gamble: "겜블"
 ko-commands-gamble-usage: "/겜블 - 이코노미겜블안내"
@@ -49,19 +15,22 @@ ko-sub-commands-create: "생성"
 ko-sub-commands-cancel: "중단"
 ko-sub-commands-seegamble: "진행표시"
 
+ko-commands-ce-help1: "/겜블 생성 - 겜블기기를 설치합니다 !"
+ko-commands-ce-help2: "/겜블 중단 - 겜블설치 작업을 중단합니다 !"
+ko-commands-ce-help3: "/겜블 진행표시 - 진행중인 겜블을 표시합니다 !"
+
 ko-default-prefix: "[ 서버 ]"
 
 ko-there-are-no-economyapi: "이코노미 API 플러그인이 없습니다! 플러그인 비활성화 됨!"
 ko-gamble-cannot-break: "도박장은 OP만이 파괴할 수 있습니다 !"
-ko-market-completely-destroyed: "도박장이 성공적으로 파괴되었습니다 !"
-ko-market-completely-created: "도박장이 성공적으로 설치되었습니다 !"
-ko-pos1-is-selected: "pos1이 지정되었습니다 ! 한 부분을 더 지정해주세요"
-ko-pos2-is-selected: "pos2가 지정되었습니다 !"
-ko-please-select-pos1: "pos1을 지정해주세요 !"
-ko-please-select-pos2: "pos2을 지정해주세요 !"
-ko-are-you-want-continue: "진행하려면 이전 명령어를 다시 입력해주세요 !"
+ko-gamble-completely-destroyed: "도박장이 성공적으로 파괴되었습니다 !"
+ko-gamble-completely-created: "도박장이 성공적으로 설치되었습니다 !"
+ko-which-you-want-place-choose-pos: "설치를 시작합니다, 설치를 원하는 부분을 터치해주세요 !"
+ko-are-you-want-continue: "설치하려면 이전 명령어를 다시 입력해주세요 !"
 ko-you-can-possible-to-cancel: "/겜블 중단 으로 작업 중단가능 !"
 ko-all-processing-is-stopped: "진행 중이던 작업들이 중단되었습니다 !"
+
+
 
 ko-mustnumberic: 2번째줄(원하는금액)은 무조건 숫자여야합니다
 ko-GambleSetupFinish: 도박기 세팅에 성공했습니다 !
@@ -98,42 +67,6 @@ ko-Gamblehow-Lottery: 2.첫번째줄에 lottery 를 쓰세요
 ko-Gamblehow-Random: 2.첫번째줄에 randomgamble 을 쓰세요
 
 #(JP) JAPAN
-jp-mustnumberic: 2番目の列(望む価格)は無条件に数字でなければなりません
-jp-GambleSetupFinish: 賭博機設置に成功しました !
-jp-ItemGambleSetupFinish: アイテム賭博機設置に成功しました !
-jp-LotterySetupFinish: 宝くじ機器設置に成功しました !
-jp-RandomGambleSetupFinish: ランダム賭博機設置に成功しました !
-jp-WrongFormat-Sign: 誤った形式の表示板です!賭博不可 !
-jp-LacjpfhMoney: "お金が不足です ! 賭博不可 ! 保有金額 : 0"
-jp-SuccessGamble: 賭博に勝ちました ! (≥∀≤)/
-jp-SuccessGamble-a: ゲット !
-jp-FailGamble: 賭博に負けました ! (づ_ど)
-jp-FailGamble-a: 損失 !
-jp-noitem: アイテムを持ってタッチしてください !
-jp-SuccessitemGamble: 賭博に勝ちました ! (≥∀≤)/ アイテムもう一つ獲得 !
-jp-FailitemGamble: 賭博に負けました ! (づ_ど) アイテム一つ損失 !
-jp-LotteryPayment: '宝くじを購買しました ! (≥∀≤)/ 本数:'
-jp-LotteryPayment-a: 当選の結果は翌日接続時にお知らせします !
-jp-AskAgain: '賭博をしますか? 進めるためには再タッチしてください。[保有金額:'
-jp-LotteryCheck: 過ぎたことロットに当たった結果を確認します !
-jp-LotteryCheck-a: 宝くじ
-jp-LotteryCheck-b: 個すべて失敗 ! (づ_ど)
-jp-SuccessLottery: さんが宝くじに当たった!(≥∀≤)/
-jp-SuccessLottery-a: 全部
-jp-SuccessLottery-b: つの宝くじが当たって、
-jp-SuccessLottery-c: ドルを受けました !
-jp-Gamblehow-a: 表示板を様式に合わせてインストールすれば
-jp-Gamblehow-b: 賭博機の表示板を設置することができます
-jp-Gamblehow-c: 下記の命令語で様式確認可能
-jp-Gamblehow-d: 1.の表示板を設置してください
-jp-Gamblehow-Gamble-a: 2.最初の行に[賭博]を書いてください
-jp-Gamblehow-Gamble-b: 3.2列目に[賭け金の量]を書いてください
-jp-Gamblehow-ItemGamble: 2.最初の行に[アイテム賭博]を書いてください
-jp-Gamblehow-Lottery: 2.最初の行に[復権]を書いてください
-jp-Gamblehow-Random: 2.最初の行に[ランダム賭博]を書いてください
-en-LackOfMoney: "Money is not enough ! No Gambling ! Retention amount:0"
-jp-LackOfMoney: "お金が不足です ! 賭博不可 ! 保有金額:0"
-
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/blob/master/EconomyGamble/resources/messages.yml

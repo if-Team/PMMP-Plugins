@@ -27,6 +27,7 @@ use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
 use pocketmine\Player;
 use pocketmine\entity\Entity;
+use pocketmine\event\player\PlayerJoinEvent;
 
 class EconomyGamble extends PluginBase implements Listener {
 	public $messages, $db; // 메시지, DB
@@ -34,6 +35,7 @@ class EconomyGamble extends PluginBase implements Listener {
 	public $economyAPI = null; // 이코노미 API
 	public $m_version = 1; // 메시지 버전 변수
 	public $packetQueue = [ ]; // 아이템 패킷 큐
+	public $createQueue = [ ]; // 생성 큐
 	public $packet = [ ]; // 전역 패킷 변수
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
@@ -49,14 +51,14 @@ class EconomyGamble extends PluginBase implements Listener {
 			$this->getServer ()->getPluginManager ()->disablePlugin ( $this );
 		}
 		
-		$this->registerCommand ( $this->get ( "commands-gamble" ), "ce", "economygamble.commands.gamble", $this->get ( "commands-gamble-usage" ) );
-		
+		$this->registerCommand ( $this->get ( "commands-gamble" ), $this->get ( "commands-gamble" ), "economygamble.commands.gamble", $this->get ( "commands-gamble-usage" ) );
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 		
 		$this->packet ["AddItemEntityPacket"] = new AddItemEntityPacket ();
 		$this->packet ["AddItemEntityPacket"]->yaw = 0;
 		$this->packet ["AddItemEntityPacket"]->pitch = 0;
 		$this->packet ["AddItemEntityPacket"]->roll = 0;
+		$this->packet ["AddItemEntityPacket"]->item = Item::get ( Item::GOLD_INGOT );
 		
 		$this->packet ["RemoveEntityPacket"] = new RemoveEntityPacket ();
 		
@@ -64,7 +66,6 @@ class EconomyGamble extends PluginBase implements Listener {
 		$this->packet ["AddPlayerPacket"]->clientID = 0;
 		$this->packet ["AddPlayerPacket"]->yaw = 0;
 		$this->packet ["AddPlayerPacket"]->pitch = 0;
-		$this->packet ["AddPlayerPacket"]->item = Item::GOLD_INGOT;
 		$this->packet ["AddPlayerPacket"]->meta = 0;
 		$this->packet ["AddPlayerPacket"]->metadata = [ 0 => [ "type" => 0,"value" => 0 ],1 => [ "type" => 1,"value" => 0 ],16 => [ "type" => 0,"value" => 0 ],17 => [ "type" => 6,"value" => [ 0,0,0 ] ] ];
 		
@@ -161,24 +162,8 @@ class EconomyGamble extends PluginBase implements Listener {
 			$gamble = $this->createQueue [$player->getName ()];
 			$this->db ["showCase"] ["{$pos->x}.{$pos->y}.{$pos->z}"] = $gamble;
 			$block->getLevel ()->setBlock ( $pos, Block::get ( Item::GLASS ), true );
-			unset ( $this->createQueue [$player->getName ()] );
 			$this->message ( $player, $this->get ( "gamble-completely-created" ) );
-		}
-		if (isset ( $this->autoCreateQueue [$player->getName ()] ) and $this->autoCreateQueue [$player->getName ()] ["pos1"] === null) {
-			$event->setCancelled ();
-			$this->autoCreateQueue [$player->getName ()] ["pos1"] = $block->getSide ( 1 );
-			// POS1 지정완료
-			$this->message ( $player, $this->get ( "pos1-is-selected" ) );
-			return;
-		}
-		if (isset ( $this->autoCreateQueue [$player->getName ()] ) and $this->autoCreateQueue [$player->getName ()] ["pos2"] === null) {
-			$event->setCancelled ();
-			$this->autoCreateQueue [$player->getName ()] ["pos2"] = $block->getSide ( 1 );
-			// POS2 지정완료
-			$this->message ( $player, $this->get ( "pos2-is-selected" ) );
-			$this->message ( $player, $this->get ( "are-you-want-continue" ) );
-			$this->message ( $player, $this->get ( "you-can-possible-to-cancel" ) );
-			return;
+			unset ( $this->createQueue [$player->getName ()] );
 		}
 	}
 	public function onCommand(CommandSender $player, Command $command, $label, Array $args) {
@@ -230,13 +215,15 @@ class EconomyGamble extends PluginBase implements Listener {
 	public function GambleCreateQueue(Player $player, $gamble = null) {
 		// TODO 예외사항 처리
 		$this->message ( $player, $this->get ( "which-you-want-place-choose-pos" ) );
+		// 종류 저장 및 예외추가
+		$gamble = "test";
 		$this->createQueue [$player->getName ()] = $gamble;
 	}
-	public function CreativeEconomy() {
+	public function EconomyGamble() {
 		// 스케쥴로 매번 위치확인하면서 생성작업시작
 		if (! isset ( $this->db ["showCase"] )) return;
 		foreach ( $this->getServer ()->getOnlinePlayers () as $player ) {
-			foreach ( $this->db ["showCase"] as $gamblePos => $item ) {
+			foreach ( $this->db ["showCase"] as $gamblePos => $type ) {
 				$explode = explode ( ".", $gamblePos );
 				if (! isset ( $explode [2] )) continue; // 좌표가 아닐경우 컨티뉴
 				$dx = abs ( $explode [0] - $player->x );
@@ -260,16 +247,10 @@ class EconomyGamble extends PluginBase implements Listener {
 					continue;
 				} else {
 					if (! isset ( $this->packetQueue [$player->getName ()] [$gamblePos] )) {
-						$itemCheck = explode ( ".", $item );
-						if (isset ( $itemCheck [1] )) {
-							$itemClass = Item::get ( $itemCheck [0], $itemCheck [1] );
-						} else {
-							$itemClass = Item::get ( $item );
-						}
+						
 						// 반경 25블럭 내일경우 생성패킷 전송 후 생성패킷큐에 추가
 						$this->packetQueue [$player->getName ()] [$gamblePos] = Entity::$entityCount ++;
 						$this->packet ["AddItemEntityPacket"]->eid = $this->packetQueue [$player->getName ()] [$gamblePos];
-						$this->packet ["AddItemEntityPacket"]->item = $itemClass;
 						$this->packet ["AddItemEntityPacket"]->x = $explode [0] + 0.5;
 						$this->packet ["AddItemEntityPacket"]->y = $explode [1];
 						$this->packet ["AddItemEntityPacket"]->z = $explode [2] + 0.5;
@@ -278,21 +259,13 @@ class EconomyGamble extends PluginBase implements Listener {
 					// 네임택 비활성화 상태이면 네임택비출력
 					if (isset ( $this->db ["settings"] ["nametagEnable"] )) if (! $this->db ["settings"] ["nametagEnable"]) continue;
 					
-					if (! isset ( $this->itemName [$item] )) {
-						$explodeItem = explode ( ".", $item );
-						if (isset ( $this->itemName [$explodeItem [0]] )) {
-							$itemName = $this->itemName [$explodeItem [0]];
-						} else {
-							continue;
-						}
-					} else {
-						$itemName = $this->itemName [$item];
-					}
-					
-					// 반경 6블럭 내일경우 유저 패킷을 상점밑에 보내서 네임택 출력
-					if ($dx <= 6 and $dy <= 6 and $dz <= 6) {
+					// 반경 5블럭 내일경우 유저 패킷을 상점밑에 보내서 네임택 출력
+					if ($dx <= 5 and $dy <= 5 and $dz <= 5) {
 						if (isset ( $this->packetQueue [$player->getName ()] ["nametag"] [$gamblePos] )) continue;
-						$nameTag = ""; // TODO 도박알림띄우기
+						// TODO 도박알림띄우기
+						// type에 따라 메시지 각각다르게 세팅
+						$nameTag = "테스트";
+						
 						$this->packetQueue [$player->getName ()] ["nametag"] [$gamblePos] = Entity::$entityCount ++;
 						$this->packet ["AddPlayerPacket"]->eid = $this->packetQueue [$player->getName ()] ["nametag"] [$gamblePos];
 						$this->packet ["AddPlayerPacket"]->username = $nameTag;
@@ -343,6 +316,7 @@ class EconomyGamble extends PluginBase implements Listener {
 	}
 	public function onQuit(PlayerQuitEvent $event) {
 		if (isset ( $this->createQueue [$event->getPlayer ()->getName ()] )) unset ( $this->createQueue [$event->getPlayer ()->getName ()] );
+		if (isset ( $this->packetQueue [$event->getPlayer ()->getName ()] )) unset ( $this->packetQueue [$event->getPlayer ()->getName ()] );
 	}
 }
 
