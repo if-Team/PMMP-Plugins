@@ -87,6 +87,7 @@ class Chatty extends PluginBase implements Listener {
 	public function onLogin(PlayerLoginEvent $event) {
 		$this->messageStack [$event->getPlayer ()->getName ()] = [ ];
 		if (! isset ( $this->db [$event->getPlayer ()->getName ()] )) $this->db [$event->getPlayer ()->getName ()] = [ ];
+		$this->db [$event->getPlayer ()->getName ()] ["CHAT"] = true;
 	}
 	public function onQuit(PlayerQuitEvent $event) {
 		unset ( $this->messageStack [$event->getPlayer ()->getName ()] );
@@ -114,7 +115,7 @@ class Chatty extends PluginBase implements Listener {
 			}
 			if (isset ( $this->db [$event->getPlayer ()->getName ()] ["localCHAT"] )) {
 				if ($this->db [$event->getPlayer ()->getName ()] ["localCHAT"] == false) {
-					if ($this->localChatQueue ["Player"] instanceof Player) {
+					if (isset ( $this->localChatQueue ["Player"] )) if ($this->localChatQueue ["Player"] instanceof Player) {
 						if ($this->localChatQueue ["Message"] == null) {
 							$this->localChatQueue ["Message"] = $event->getPacket ()->message;
 						} // 보내는 메시지가 동일할때만
@@ -230,6 +231,9 @@ class Chatty extends PluginBase implements Listener {
 						$this->message ( $player, "NameTAG-ENABLED" );
 					}
 				} else {
+					$packet = new MessagePacket ();
+					$packet->message = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
+					$player->directDataPacket ( $packet );
 					$this->db [$player->getName ()] ["NameTAG"] = true;
 					$this->message ( $player, "NameTAG-ENABLED" );
 				}
