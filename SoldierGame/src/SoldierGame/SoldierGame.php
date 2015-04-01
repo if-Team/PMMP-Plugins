@@ -95,7 +95,7 @@ class SoldierGame extends PluginBase implements Listener {
 	}
 	public function SoldierGame(Entity $entity) {
 		if ($this->checkEnableSoldierGame () and $entity->shootingEntity instanceof Player) {
-			$this->getServer ()->getPluginManager ()->callEvent ( $ev = new ExplosionPrimeEvent ( $entity, 3.2 ) );
+			$this->getServer ()->getPluginManager ()->callEvent ( $ev = new ExplosionPrimeEvent ( $entity, 2.5 ) );
 			if (! $ev->isCancelled ()) {
 				$explosion = new Explosion ( $entity, $ev->getForce (), $entity->shootingEntity );
 				$explosion->explodeB ();
@@ -106,7 +106,7 @@ class SoldierGame extends PluginBase implements Listener {
 		$player = $event->getPlayer ();
 		$block = $event->getBlock ();
 		
-		if ($block->getId () == Block::SNOW_LAYER or $block->getId () == Block::SNOW_BLOCK) $player->getInventory ()->addItem ( Item::get ( Item::SNOWBALL, 0, 4 ) );
+		if ($block->getId () == Block::SNOW_LAYER or $block->getId () == Block::SNOW_BLOCK) $player->getInventory ()->addItem ( Item::get ( Item::SNOWBALL, 0, 1 ) );
 	}
 }
 
