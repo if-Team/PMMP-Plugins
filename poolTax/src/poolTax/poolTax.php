@@ -68,11 +68,9 @@ class poolTax extends PluginBase implements Listener {
 		$commandMap->register ( $fallback, $command );
 	}
 	public function message($player, $text = "", $mark = null) {
-		if ($mark == null) $mark = $this->messages ["default-language"];
 		$player->sendMessage ( TextFormat::DARK_AQUA . $mark . " " . $text );
 	}
 	public function alert($player, $text = "", $mark = null) {
-		if ($mark == null) $mark = $this->messages ["default-language"];
 		$player->sendMessage ( TextFormat::RED . $mark . " " . $text );
 	}
 	public function onDisable() {
