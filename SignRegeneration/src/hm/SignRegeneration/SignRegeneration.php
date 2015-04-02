@@ -96,15 +96,15 @@ class SignRegeneration extends PluginBase implements Listener {
 		$index = $count / $this->config ["DivisionProcess_Count"];
 		
 		if ($count > $this->config ["DivisionProcess_Count"] * $index) $index ++;
-		echo "[ 사인리제너레이터 ] 인덱싱 작업중...\n";
+		// echo "[ 사인리제너레이터 ] 인덱싱 작업중...\n";
 		if ($count < $this->config ["DivisionProcess_Count"]) {
-			echo "[ 사인리제너레이터 ] 인덱싱 모드 심플 진행 \n";
+			// echo "[ 사인리제너레이터 ] 인덱싱 모드 심플 진행 \n";
 			$this->SignSpawn_Array ( $poslist );
 		} else if ($count >= $this->config ["DivisionProcess_Count"]) {
-			echo "[ 사인리제너레이터 ] 인덱싱 모드 배분 시작\n";
+			// echo "[ 사인리제너레이터 ] 인덱싱 모드 배분 시작\n";
 			$a_f = 0;
 			for($i = 1; $i <= $index; $i ++) {
-				echo "[ 사인리제너레이터 ] 인덱싱 완료 스케쥴 등록 시작\n";
+				// echo "[ 사인리제너레이터 ] 인덱싱 완료 스케쥴 등록 시작\n";
 				$cutpos = [ ];
 				for($b = $a_f; $b < $a_f + $this->config ["DivisionProcess_Count"]; $b ++) {
 					if (! isset ( $poslist [$a_f + $b] )) break;
@@ -118,7 +118,7 @@ class SignRegeneration extends PluginBase implements Listener {
 	public function SignSpawn_Array(array $cutpos) {
 		foreach ( $cutpos as $pos ) {
 			$e = explode ( ".", $pos );
-			$this->SignSpawn ( [ $this->list [$pos] ['t0'],$this->list [$pos] ['t1'],$this->list [$pos] ['t2'],$this->list [$pos] ['t3'] ], $e );
+			if (isset ( $this->list [$pos] )) $this->SignSpawn ( [ $this->list [$pos] ['t0'],$this->list [$pos] ['t1'],$this->list [$pos] ['t2'],$this->list [$pos] ['t3'] ], $e );
 		}
 	}
 	public function SignSpawn($text, $pos) {
