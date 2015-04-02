@@ -160,7 +160,7 @@ class EconomyGamble extends PluginBase implements Listener {
 						if ($event->getItem ()->isPlaceable ()) $this->placeQueue [$player->getName ()] = true;
 						return;
 					}
-					$rand = mt_rand ( 1, $this->getProbability ( "ItemGambleProbability", 1 ) );
+					$rand = mt_rand ( 0, $this->getProbability ( "ItemGambleProbability", 1 ) );
 					if ($rand <= $this->getProbability ( "ItemGambleProbability", 0 )) {
 						$player->getInventory ()->addItem ( Item::get ( $event->getItem ()->getID (), $event->getItem ()->getDamage (), 1 ) );
 						$this->message ( $player, $this->get ( "SuccessitemGamble" ) );
@@ -177,8 +177,8 @@ class EconomyGamble extends PluginBase implements Listener {
 						if ($event->getItem ()->isPlaceable ()) $this->placeQueue [$player->getName ()] = true;
 						return 0;
 					}
-					$pay = mt_rand ( 1, $mymoney );
-					$rand = mt_rand ( 1, $this->getProbability ( "RandomGambleProbability", 1 ) );
+					$pay = mt_rand ( 0, $mymoney );
+					$rand = mt_rand ( 0, $this->getProbability ( "RandomGambleProbability", 1 ) );
 					if ($rand <= $this->getProbability ( "RandomGambleProbability", 0 )) {
 						$this->economyAPI->addMoney ( $player, $pay );
 						$this->message ( $player, $this->get ( "SuccessGamble" ) . " $" . $pay . $this->get ( "SuccessGamble-a" ) );
@@ -216,7 +216,7 @@ class EconomyGamble extends PluginBase implements Listener {
 							if ($event->getItem ()->isPlaceable ()) $this->placeQueue [$player->getName ()] = true;
 							return;
 						}
-						$rand = mt_rand ( 1, $this->getProbability ( "GambleProbability", 1 ) );
+						$rand = mt_rand ( 0, $this->getProbability ( "GambleProbability", 1 ) );
 						if ($rand <= $this->getProbability ( "GambleProbability", 0 )) {
 							$this->economyAPI->addMoney ( $player, $money );
 							$this->message ( $player, $this->get ( "SuccessGamble" ) );
@@ -406,7 +406,7 @@ class EconomyGamble extends PluginBase implements Listener {
 				$this->message ( $player, $this->get ( "LotteryCheck" ) );
 				$resultCount = $count;
 				for($i = 1; $i <= $count; $i ++) {
-					$rand = mt_rand ( 1, $this->getProbability ( "LotteryProbability", 1 ) );
+					$rand = mt_rand ( 0, $this->getProbability ( "LotteryProbability", 1 ) );
 					if (! ($rand <= $this->getProbability ( "LotteryProbability", 0 ))) -- $resultCount;
 				}
 				if ($resultCount == 0) {
