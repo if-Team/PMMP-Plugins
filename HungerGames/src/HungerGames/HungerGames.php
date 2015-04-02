@@ -80,10 +80,22 @@ class HungerGames extends PluginBase implements Listener {
 			$this->touchedQueue [$player->getName ()] [$blockPos] = 0;
 			$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"setBlockPacket" ], [ $player,$block->x,$block->y,$block->z,Block::GLOWING_OBSIDIAN ] ), 2 );
 			
-			$armorRand = rand ( 1, 5 );
+			$armorRand = rand ( 1, 4 );
 			if ($armorRand == 1) {
 				$armorContents = $player->getInventory ()->getArmorContents ();
-				if ($armorContents [0] == Item::get ( Item::AIR )) {
+				$check = 0;
+				foreach ( $player->getInventory ()->getContents () as $invenItem )
+					foreach ( $this->armorItem as $armorSet ) {
+						foreach ( $armorSet as $armorItem ) {
+							if ($invenItem->getID () == $armorItem->getID ()) {
+								$check = 1;
+								break;
+							}
+							if ($check == 1) break;
+						}
+						if ($check == 1) break;
+					}
+				if ($check != 1) {
 					$armorRand = mt_rand ( 0, 4 );
 					$player->getInventory ()->setArmorContents ( $this->armorItem [$armorRand] );
 					$player->getInventory ()->sendArmorContents ( $player );
