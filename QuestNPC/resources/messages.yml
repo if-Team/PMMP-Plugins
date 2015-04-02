@@ -1,0 +1,29 @@
+# IF YOU NEED A SOME OTHER LANGUAGE SETTINGS #
+# YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
+
+#PLEASE SET HERE TO YOUR LANGUAGE PREFIX
+default-language: ko
+
+#(EN) ENGLISH
+en-default-prefix: "[ SERVER ]"
+en-QuestNPC-line0: "tagblock"
+en-QuestNPC-added: "QuestNPC Added !"
+en-QuestNPC-deleted: "QuestNPC Deleted !"
+
+#(KO) KOREAN
+ko-default-prefix: "[ 서버 ]"
+ko-QuestNPC-line0: "npc"
+ko-QuestNPC-added: "NPC가 추가되었습니다 !"
+ko-QuestNPC-deleted: "NPC가 삭제되었습니다 !"
+
+ko-PleaseChooseType = "2번째 줄에 종류를 선택해주세요 !"
+ko-TypeList: "힐링형 |  수집형 | 탐색형 | 문제형 | 능력형"
+ko-Type-Heal: "힐링형"
+ko-Type-Coll: "수집형"
+ko-Type-Find: "탐색형"
+ko-Type-Question: "문제형"
+ko-Type-Abil: "능력형"
+
+
+# AND YOU CAN PROVIDE YOUR TRANSLATION       #
+# https://github.com/if-Team/PMMP-Plugins/blob/master/QuestNPC/resources/messages.yml
