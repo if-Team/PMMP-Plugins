@@ -120,7 +120,7 @@ class Chatty extends PluginBase implements Listener {
 						continue;
 					}
 				}
-				$player->sendMessage($message);
+				$player->sendMessage($myEvent->getFormat());
 			}
 		}
 	}
