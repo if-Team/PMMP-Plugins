@@ -16,5 +16,17 @@ ko-TAGBlock-line0: "태그블럭"
 ko-TAGBlock-added: "태그블럭이 추가되었습니다 !"
 ko-TAGBlock-deleted: "태그블럭이 삭제되었습니다 !"
 
+#(ZH-TW) CHINESE(TRADITUONAL)
+ko-default-prefix: "[ 伺服器 ]"
+ko-TAGBlock-line0: "標註方塊"
+ko-TAGBlock-added: "已添加標註方塊 !"
+ko-TAGBlock-deleted: "已刪除標註方塊 !"
+
+#(ZH-CN) CHINESE(SIMPLIFIED)
+ko-default-prefix: "[ 伺服器 ]"
+ko-TAGBlock-line0: "标注方块"
+ko-TAGBlock-added: "已添加标注方块 !"
+ko-TAGBlock-deleted: "已删除标注方块 !"
+
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/blob/master/TAGBlock/resources/messages.yml
