@@ -24,9 +24,8 @@ use pocketmine\event\player\PlayerChatEvent;
 class Chatty extends PluginBase implements Listener {
 	public $packet = [ ]; // 전역 패킷 변수
 	public $packetQueue = [ ]; // 패킷 큐
-	public $messages, $db; // 메시지 변수, DB변수
+	public $messages, $db; // 메시지 변수, DB 변수
 	public $messageStack = [ ]; // 메시지 스택
-	public $localChatQueue = [ ]; // 근거리대화 큐
 	public $nameTag = "";
 	public $m_version = 1; // 현재 메시지 버전
 	public function onEnable() {
@@ -34,7 +33,7 @@ class Chatty extends PluginBase implements Listener {
 		
 		$this->initMessage (); // 기본언어메시지 초기화
 		                       
-		// YAML 형식의 DB생성 후 불러오기
+		// YAML 형식의 DB 생성 후 불러오기
 		$this->db = (new Config ( $this->getDataFolder () . "pluginDB.yml", Config::YAML, [ ] ))->getAll ();
 		
 		$this->packet ["AddPlayerPacket"] = new AddPlayerPacket ();
@@ -100,8 +99,17 @@ class Chatty extends PluginBase implements Listener {
 		if (count ( $this->messageStack [$name] ) > 4) array_shift ( $this->messageStack [$name] );
 	}
 	public function onChat(PlayerChatEvent $event) {
-		$this->localChatQueue ["Player"] = $event->getPlayer ();
-		$this->localChatQueue ["Message"] = null;
+		$event->setCancelled(true);
+		$sender = $event->getPlayer();
+
+		foreach($this->getServer()->getOnlinePlayers() as $player){
+			if(isset($this->db[$player->getName()]["localCHAT"]) and $this->db[$player->getName()]["localCHAT"] === true){
+				if($sender->distance($player) > 25){
+					continue;
+				}
+			}
+			$player->sendMessage($event->getFormat());
+		}
 	}
 	public function onDataPacket(DataPacketSendEvent $event) {
 		if ($event->getPacket () instanceof MessagePacket) {
@@ -113,25 +121,7 @@ class Chatty extends PluginBase implements Listener {
 					return;
 				}
 			}
-			if (isset ( $this->db [$event->getPlayer ()->getName ()] ["localCHAT"] )) {
-				if ($this->db [$event->getPlayer ()->getName ()] ["localCHAT"] == false) {
-					if (isset ( $this->localChatQueue ["Player"] )) if ($this->localChatQueue ["Player"] instanceof Player) {
-						if ($this->localChatQueue ["Message"] == null) {
-							$this->localChatQueue ["Message"] = $event->getPacket ()->message;
-						} // 보내는 메시지가 동일할때만
-						if ($this->localChatQueue ["Message"] == $event->getPacket ()->message) {
-							$dx = abs ( $event->getPlayer ()->x - $this->localChatQueue ["Player"]->x );
-							$dy = abs ( $event->getPlayer ()->y - $this->localChatQueue ["Player"]->y );
-							$dz = abs ( $event->getPlayer ()->z - $this->localChatQueue ["Player"]->z );
-							// 거리가 멀면 패킷보내지않음
-							if ($dx > 25 or $dy > 25 or $dz > 25) {
-								$event->setCancelled ();
-								return;
-							}
-						}
-					}
-				}
-			}
+
 			if (isset ( $this->db [$event->getPlayer ()->getName ()] ["NameTAG"] )) {
 				if ($this->db [$event->getPlayer ()->getName ()] ["NameTAG"] == true) {
 					$event->setCancelled ();
@@ -157,10 +147,10 @@ class Chatty extends PluginBase implements Listener {
 			}
 			if (($OnlinePlayer->pitch / 180 * M_PI) < - 0.2) continue; // 하늘을 볼경우 패킷보내지않음
 			
-			$allmessage = "";
+			$allMessages = "";
 			if (! isset ( $this->messageStack [$OnlinePlayer->getName ()] )) continue;
 			foreach ( $this->messageStack [$OnlinePlayer->getName ()] as $message )
-				$allmessage .= TextWrapper::wrap ( TextFormat::clean ( $message ) ) . "\n"; // 색상표시시 \n이 작동안됨
+				$allMessages .= TextWrapper::wrap ( TextFormat::clean ( $message ) ) . "\n"; // 색상표시시 \n이 작동안됨
 			
 			$this->packetQueue [$OnlinePlayer->getName ()] ["x"] = round ( $px );
 			$this->packetQueue [$OnlinePlayer->getName ()] ["y"] = round ( $py );
@@ -168,7 +158,7 @@ class Chatty extends PluginBase implements Listener {
 			$this->packetQueue [$OnlinePlayer->getName ()] ["eid"] = Entity::$entityCount ++;
 			
 			$this->packet ["AddPlayerPacket"]->eid = $this->packetQueue [$OnlinePlayer->getName ()] ["eid"];
-			$this->packet ["AddPlayerPacket"]->username = $this->nameTag . $allmessage;
+			$this->packet ["AddPlayerPacket"]->username = $this->nameTag . $allMessages;
 			$this->packet ["AddPlayerPacket"]->x = $px + (-\sin ( ($OnlinePlayer->yaw / 180 * M_PI) - 0.4 )) * 7;
 			$this->packet ["AddPlayerPacket"]->y = $py + 10;
 			$this->packet ["AddPlayerPacket"]->z = $pz + (\cos ( ($OnlinePlayer->yaw / 180 * M_PI) - 0.4 )) * 7; // *\cos ( $OnlinePlayer->pitch / 180 * M_PI )
@@ -184,7 +174,7 @@ class Chatty extends PluginBase implements Listener {
 		$player->sendMessage ( TextFormat::RED . $mark . " " . $this->get ( $text ) );
 	}
 	public function onCommand(CommandSender $player, Command $command, $label, Array $args) {
-		if (strtolower ( $command->getName () ) != $this->get ( "Chatty" )) return;
+		if (strtolower ( $command->getName () ) != $this->get ( "Chatty" )) return true;
 		if (! isset ( $args [0] )) {
 			helpPage:
 			$this->message ( $player, "help-on" );
