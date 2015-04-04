@@ -2,6 +2,7 @@
 
 namespace Chatty;
 
+use pocketmine\event\player\PlayerCommandPreprocessEvent;
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\utils\Config;
@@ -98,17 +99,26 @@ class Chatty extends PluginBase implements Listener {
 		array_push ( $this->messageStack [$name], $message );
 		if (count ( $this->messageStack [$name] ) > 4) array_shift ( $this->messageStack [$name] );
 	}
-	public function onChat(PlayerChatEvent $event) {
+	public function prePlayerCommand(PlayerCommandPreprocessEvent $event) {
+		if(strpos($event->getMessage(), "/") === 0){
+			return;
+		}
+
 		$event->setCancelled(true);
 		$sender = $event->getPlayer();
+		$message = $event->getMessage();
 
-		foreach($this->getServer()->getOnlinePlayers() as $player){
-			if(isset($this->db[$player->getName()]["localCHAT"]) and $this->db[$player->getName()]["localCHAT"] === true){
-				if($sender->distance($player) > 25){
-					continue;
+		$this->getServer()->getPluginManager()->callEvent($myEvent = new PlayerChatEvent($sender, $message));
+
+		if(!$myEvent->isCancelled()){
+			foreach($this->getServer()->getOnlinePlayers() as $player){
+				if(isset($this->db[$player->getName()]["localCHAT"]) and $this->db[$player->getName()]["localCHAT"] === true){
+					if($sender->distance($player) > 25){
+						continue;
+					}
 				}
+				$player->sendMessage($message);
 			}
-			$player->sendMessage($event->getFormat());
 		}
 	}
 	public function onDataPacket(DataPacketSendEvent $event) {
