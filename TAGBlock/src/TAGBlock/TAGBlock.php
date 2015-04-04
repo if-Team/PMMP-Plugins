@@ -19,6 +19,7 @@ use pocketmine\event\player\PlayerQuitEvent;
 class TAGBlock extends PluginBase implements Listener {
 	public $messages, $db, $temp;
 	public $packet = [ ]; // 전역 패킷 변수
+	public $m_version = 1; // 현재 메시지 버전
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		
@@ -118,7 +119,16 @@ class TAGBlock extends PluginBase implements Listener {
 	}
 	public function initMessage() {
 		$this->saveResource ( "messages.yml", false );
+		$this->messagesUpdate ( "messages.yml" );
 		$this->messages = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
+	}
+	public function messagesUpdate($targetYmlName) {
+		$targetYml = (new Config ( $this->getDataFolder () . $targetYmlName, Config::YAML ))->getAll ();
+		if (! isset ( $targetYml ["m_version"] )) {
+			$this->saveResource ( $targetYmlName, true );
+		} else if ($targetYml ["m_version"] < $this->m_version) {
+			$this->saveResource ( $targetYmlName, true );
+		}
 	}
 	public function message($player, $text = "", $mark = null) {
 		if ($mark == null) $mark = $this->get ( "default-prefix" );
