@@ -119,7 +119,7 @@ class Chatty extends PluginBase implements Listener {
 			$this->getLogger()->info($format);
 			foreach($this->getServer()->getOnlinePlayers() as $player){
 				if(isset($this->db[$player->getName()]["localCHAT"]) and $this->db[$player->getName()]["localCHAT"] === true){
-					if($sender->distance($player) > 25){
+					if($sender->distance($player) > 50){
 						continue;
 					}
 				}
