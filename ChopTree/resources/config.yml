@@ -1,0 +1,19 @@
+maxWorldHeight: 128
+
+floors: [2, 3]
+woods: [17, 162]
+leaves: [18, 161]
+
+break:
+  enabled: true
+  tools: [275, 258, 286, 279]
+  plantSaplingAfter: true
+  costPerBlock: false
+  cost: 10
+
+doubleTouch:
+  enabled: true
+  tools: [286, 279]
+  plantSaplingAfter: true
+  costPerBlock: false
+  cost: 20

@@ -1,0 +1,11 @@
+name: ChopTree
+main: chalk\choptree\ChopTree
+version: 0.1
+author: ChalkPE
+api: [1.4.1]
+depend: [EconomyAPI]
+
+permissions:
+  ChopTree:
+    default: true
+    description: "Permission for ChopTree"
