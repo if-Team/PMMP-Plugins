@@ -139,13 +139,15 @@ class ChopTree extends PluginBase implements Listener {
         }
 
         $cost = $config["cost"];
-        if($config["costPerBlock"]){
-            $cost *= $treetop - $stump->getY();
-        }
+        if($cost > 0){
+            if($config["costPerBlock"]){
+                $cost *= $treetop - $stump->getY();
+            }
 
-        $paymentResult = $this->economyAPI->reduceMoney($player, $cost, false, "ChopTree");
-        if($paymentResult !== EconomyAPI::RET_SUCCESS){
-            return false;
+            $paymentResult = $this->economyAPI->reduceMoney($player, $cost, false, "ChopTree");
+            if($paymentResult !== EconomyAPI::RET_SUCCESS){
+                return false;
+            }
         }
 
         $level = $stump->getLevel();
