@@ -136,7 +136,7 @@ class EDGE extends PluginBase implements Listener {
 	// ----------------------------------------------------------------------------------
 	public function EDGE() {
 		foreach ( $this->getServer ()->getOnlinePlayers () as $OnlinePlayer ) {
-			if (! $OnlinePlayer->hasPermission ( "edge.showingnametag" )) return;
+			if (! $OnlinePlayer->hasPermission ( "edge.showingnametag" )) continue;
 			$px = round ( $OnlinePlayer->x );
 			$py = round ( $OnlinePlayer->y );
 			$pz = round ( $OnlinePlayer->z );
