@@ -22,6 +22,7 @@
  */
 namespace chalk\choptree;
 
+use onebone\economyapi\EconomyAPI;
 use pocketmine\block\Block;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\Listener;
@@ -35,6 +36,11 @@ class ChopTree extends PluginBase implements Listener {
      * @var null|ChopTree
      */
     private static $instance = null;
+
+    /**
+     * @var EconomyAPI
+     */
+    private $economyAPI = null;
 
     /**
      * @var array
@@ -67,15 +73,24 @@ class ChopTree extends PluginBase implements Listener {
         $this->config = $this->getConfig()->getAll();
 
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
+        $this->economyAPI = EconomyAPI::getInstance();
     }
 
     public function onBlockBreak(BlockBreakEvent $event){
+        if($event->isCancelled()){
+            return;
+        }
+
         if($this->chopTree($event->getPlayer(), $event->getBlock(), $event->getItem(), self::TYPE_BREAK)){
             $event->setCancelled(true);
         };
     }
 
     public function onPlayerInteract(PlayerInteractEvent $event){
+        if($event->isCancelled()){
+            return;
+        }
+
         $player = $event->getPlayer();
         $block = $event->getBlock();
 
@@ -104,7 +119,17 @@ class ChopTree extends PluginBase implements Listener {
      * @return bool
      */
     public function chopTree(Player $player, Block $stump, Item $item, $type){
-        if($player->hasPermission("ChopTree")){
+        if($player->hasPermission("ChopTree.{$type}")){
+            return false;
+        }
+
+        $config = $this->config[$type];
+        if($config === null or $config["enabled"] === false){
+            return false;
+        }
+
+        $itemId = $item->getId();
+        if(!in_array($itemId, $config["tools"])){
             return false;
         }
 
@@ -113,7 +138,25 @@ class ChopTree extends PluginBase implements Listener {
             return false;
         }
 
-        //TODO: Implements ChopTree stuffs
+        $cost = $config["cost"];
+        if($config["costPerBlock"]){
+            $cost *= $treetop - $stump->getY();
+        }
+
+        $paymentResult = $this->economyAPI->reduceMoney($player, $cost, false, "ChopTree");
+        if($paymentResult !== EconomyAPI::RET_SUCCESS){
+            return false;
+        }
+
+        $level = $stump->getLevel();
+        $drops = $stump->getDrops($item);
+
+        for($y = $stump->getY(); $y < $treetop; $y++){
+            $level->setBlock($stump->add(0, $y, 0), Block::get(Block::AIR));
+            foreach($drops as $drop){
+                $level->dropItem($stump, $drop);
+            }
+        }
         return true;
     }
 
