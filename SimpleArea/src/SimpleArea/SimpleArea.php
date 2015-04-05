@@ -40,6 +40,7 @@ use pocketmine\event\player\PlayerBucketFillEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\item\Item;
 use pocketmine\item\Tool;
+use pocketmine\event\inventory\InventoryPickupItemEvent;
 
 class SimpleArea extends PluginBase implements Listener {
 	private static $instance = null;
@@ -374,6 +375,13 @@ class SimpleArea extends PluginBase implements Listener {
 					$event->setCancelled ();
 				} else if ($area == null) if (! $this->db [$player->getLevel ()->getFolderName ()]->isWhiteWorldPvpAllow ()) $event->setCancelled ();
 			}
+		}
+	}
+	public function onItemPickUp(InventoryPickupItemEvent $event) {
+		$area = $this->db [$event->getItem ()->getLevel ()->getFolderName ()]->getArea ( $event->getItem ()->x, $event->getItem ()->z );
+		if ($area != null) {
+			if (isset ( $area ["resident"] [0] )) if ($this->db [$event->getItem ()->getLevel ()->getFolderName ()]->checkResident ( $area ["ID"], $event->getInventory ()->getName () )) return;
+			$event->setCancelled ();
 		}
 	}
 	public function onCombust(EntityCombustEvent $event) {
