@@ -1,5 +1,5 @@
 name: SimpleArea
-main: simpleArea\SimpleArea
+main: SimpleArea\SimpleArea
 version: 1.0-Alpha
 author: hm
 api: [1.4.1]
