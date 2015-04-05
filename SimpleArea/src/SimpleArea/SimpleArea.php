@@ -280,6 +280,7 @@ class SimpleArea extends PluginBase implements Listener {
 			}
 		}
 		if ($event->getItem ()->canBeActivated ()) {
+			if ($player->isOp ()) return;
 			$area = $this->db [$event->getBlock ()->getLevel ()->getFolderName ()]->getArea ( $event->getBlock ()->x, $event->getBlock ()->z );
 			if ($area != null) {
 				if (isset ( $area ["resident"] [0] )) if ($this->db [$event->getBlock ()->getLevel ()->getFolderName ()]->checkResident ( $area ["ID"], $player->getName () )) return;
@@ -293,7 +294,7 @@ class SimpleArea extends PluginBase implements Listener {
 			}
 		}
 		// + PM missing code..?
-		// + Why every Hoe canBeActivated true?
+		// + Why every Hoe canBeActivated false?
 		if ($event->getItem () instanceof Tool) {
 			if ($event->getItem ()->isHoe ()) {
 				$area = $this->db [$event->getBlock ()->getLevel ()->getFolderName ()]->getArea ( $event->getBlock ()->x, $event->getBlock ()->z );
