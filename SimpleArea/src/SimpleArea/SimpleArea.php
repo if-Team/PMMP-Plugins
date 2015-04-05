@@ -38,6 +38,7 @@ use pocketmine\event\entity\EntityCombustByBlockEvent;
 use pocketmine\block\Fire;
 use pocketmine\event\player\PlayerBucketFillEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
+use pocketmine\item\Item;
 
 class SimpleArea extends PluginBase implements Listener {
 	private static $instance = null;
@@ -274,6 +275,19 @@ class SimpleArea extends PluginBase implements Listener {
 							$this->message ( $player, $this->get ( "areaset-success" ) );
 						}
 					}
+				}
+			}
+		}
+		if ($event->getItem ()->canBeActivated ()) {
+			$area = $this->db [$event->getBlock ()->getLevel ()->getFolderName ()]->getArea ( $event->getBlock ()->x, $event->getBlock ()->z );
+			if ($area != null) {
+				if (isset ( $area ["resident"] [0] )) if ($this->db [$event->getBlock ()->getLevel ()->getFolderName ()]->checkResident ( $area ["ID"], $player->getName () )) return;
+				$this->alert ( $player, $this->get ( "block-active-denied" ) );
+				$event->setCancelled ();
+			} else if ($this->db [$event->getBlock ()->getLevel ()->getFolderName ()]->isWhiteWorld ()) {
+				if ($this->db [$event->getBlock ()->getLevel ()->getFolderName ()]->option ["white-protect"] == true) {
+					$this->alert ( $player, $this->get ( "whiteworld-change-denied" ) );
+					$event->setCancelled ();
 				}
 			}
 		}
