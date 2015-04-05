@@ -1,0 +1,15 @@
+maxWorldHeight: 128
+
+break:
+  enabled: true
+  tools: [275, 258, 286, 279]
+  plantSaplingAfter: true
+  costPerBlock: false
+  cost: 10
+
+doubleTouch:
+  enabled: true
+  tools: [286, 279]
+  plantSaplingAfter: true
+  costPerBlock: false
+  cost: 20

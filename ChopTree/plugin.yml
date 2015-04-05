@@ -1,0 +1,18 @@
+name: ChopTree
+main: chalk\choptree\ChopTree
+version: 0.1
+author: ChalkPE
+api: [1.4.1]
+depend: [EconomyAPI]
+
+permissions:
+  ChopTree.*:
+    description: Allows player to use all features in ChopTree
+    default: true
+    children:
+      ChopTree.break:
+        description: Allows player to chop the tree by breaking the stump
+        default: true
+      ChopTree.doubleTouch:
+        description: Allows player to chop the tree by double-touching the stump
+        default: true
