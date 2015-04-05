@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright 2015 ChalkPE
  *
@@ -24,6 +25,9 @@ namespace chalk\choptree;
 
 use onebone\economyapi\EconomyAPI;
 use pocketmine\block\Block;
+use pocketmine\block\Leaves;
+use pocketmine\block\Leaves2;
+use pocketmine\block\Sapling;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerInteractEvent;
@@ -54,6 +58,10 @@ class ChopTree extends PluginBase implements Listener {
 
     const TYPE_BREAK = "break";
     const TYPE_DOUBLE_TOUCH = "doubleTouch";
+
+    private $FLOORS = [Block::DIRT, Block::GRASS];
+    private $WOODS = [Block::WOOD, Block::WOOD2];
+    private $LEAVES = [Block::LEAVES, Block::LEAVES2];
 
     /**
      * @return null|ChopTree
@@ -119,7 +127,7 @@ class ChopTree extends PluginBase implements Listener {
      * @return bool
      */
     public function chopTree(Player $player, Block $stump, Item $item, $type){
-        if($player->hasPermission("ChopTree.{$type}")){
+        if(!$player->hasPermission("ChopTree.{$type}")){
             return false;
         }
 
@@ -151,13 +159,16 @@ class ChopTree extends PluginBase implements Listener {
         }
 
         $level = $stump->getLevel();
-        $drops = $stump->getDrops($item);
-
-        for($y = $stump->getY(); $y < $treetop; $y++){
-            $level->setBlock($stump->add(0, $y, 0), Block::get(Block::AIR));
-            foreach($drops as $drop){
-                $level->dropItem($stump, $drop);
+        for($y = 0; $y < $treetop; $y++){
+            $block = $level->getBlock($stump->add(0, $y, 0));
+            $block->onBreak($item);
+            foreach($block->getDrops($item) as $drop){
+                $level->dropItem($stump->add(0.4, 0.4, 0.4), Item::get($drop[0], $drop[1], $drop[2]));
             }
+        }
+
+        if($config["plantSaplingAfter"]){
+            $level->setBlock($stump, $this->getSapling($level->getBlock($stump->add(0, $treetop, 0))), true, true);
         }
         return true;
     }
@@ -169,26 +180,51 @@ class ChopTree extends PluginBase implements Listener {
     public function getTreetop(Block $stump){
         $level = $stump->getLevel();
 
-        $floor = $level->getBlock($stump->getX(), $stump->getY() - 1, $stump->getZ());
-        if(!in_array($floor->getId(), $this->config["floors"])) {
+        $floor = $level->getBlock($stump->getSide(0));
+        if(!in_array($floor->getId(), $this->FLOORS)){
             return -1;
         }
 
-        $found = [];
-        for($y = $stump->getY(); $y < $this->config["maxWorldHeight"]; $y++){
-            $block = $level->getBlock($stump->getX(), $y++, $stump->getZ());
-            if(in_array($block->getId(), $this->config["woods"])){
-                if(count($found) === 0){
+        $found = null;
+        $maxHeight = $this->config["maxWorldHeight"] - $stump->getY();
+
+        for($height = 0; $height < $maxHeight; $height++){
+            $block = $level->getBlock($stump->add(0, $height, 0));
+            if(in_array($block->getId(), $this->WOODS)){
+                if($found === null){
                     $found = [$block->getId(), $block->getDamage()];
-                }else if($found[0] !== $block->getId() or $found[1] !== $block->getDamage()){
+                }elseif($found[0] !== $block->getId() or $found[1] !== $block->getDamage()){
                     return -1;
                 }
-            }else if(count($found) !== 0 and in_array($block->getId(), $this->config["leaves"])){
-                return $y;
+            }elseif($found !== null and in_array($block->getId(), $this->LEAVES)){
+                return $height;
             }else{
                 return -1;
             }
         }
         return -1;
+    }
+
+    /**
+     * @param Block $leaves
+     * @return Sapling
+     */
+    public function getSapling(Block $leaves){
+        if($leaves instanceof Leaves){
+            $damage = $leaves->getDamage();
+            if($leaves instanceof Leaves2){
+                switch($damage){
+                    default:
+                    case Leaves2::ACACIA:
+                        return new Sapling(Sapling::ACACIA);
+                    case Leaves2::DARK_OAK:
+                        return new Sapling(Sapling::DARK_OAK);
+                }
+            }else{
+                return new Sapling($damage);
+            }
+        }else{
+            return new Sapling();
+        }
     }
 }
