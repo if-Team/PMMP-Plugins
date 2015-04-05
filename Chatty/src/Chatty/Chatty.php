@@ -29,29 +29,32 @@ class Chatty extends PluginBase implements Listener {
 	public $messageStack = [ ]; // 메시지 스택
 	public $nameTag = "";
 	public $m_version = 1; // 현재 메시지 버전
+
+	const LOCAL_CHAT_DISTANCE = 50;
+
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
-		
+
 		$this->initMessage (); // 기본언어메시지 초기화
-		                       
+
 		// YAML 형식의 DB 생성 후 불러오기
 		$this->db = (new Config ( $this->getDataFolder () . "pluginDB.yml", Config::YAML, [ ] ))->getAll ();
-		
+
 		$this->packet ["AddPlayerPacket"] = new AddPlayerPacket ();
 		$this->packet ["AddPlayerPacket"]->clientID = 0;
 		$this->packet ["AddPlayerPacket"]->yaw = 0;
 		$this->packet ["AddPlayerPacket"]->pitch = 0;
 		$this->packet ["AddPlayerPacket"]->metadata = [ 0 => [ "type" => 0,"value" => 0 ],1 => [ "type" => 1,"value" => 0 ],16 => [ "type" => 0,"value" => 0 ],17 => [ "type" => 6,"value" => [ 0,0,0 ] ] ];
-		
+
 		// 플러그인의 명령어 등록
 		$this->registerCommand ( $this->get ( "Chatty" ), $this->get ( "Chatty" ), "Chatty.commands", $this->get ( "Chatty-command-help" ), "/" . $this->get ( "Chatty" ) );
-		
+
 		$this->packet ["RemovePlayerPacket"] = new RemovePlayerPacket ();
 		$this->packet ["RemovePlayerPacket"]->clientID = 0;
-		
+
 		for($i = 0; $i <= 35; $i ++)
 			$this->nameTag .= "\n";
-		
+
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ $this,"Chatty" ] ), 2 );
 	}
@@ -98,7 +101,7 @@ class Chatty extends PluginBase implements Listener {
 	}
 	public function putStack($name, $message) {
 		if (mb_strlen ( $message, "UTF-8" ) > 50) $message = mb_substr ( $message, 0, 50, 'utf8' );
-		
+
 		array_push ( $this->messageStack [$name], $message );
 		if (count ( $this->messageStack [$name] ) > 4) array_shift ( $this->messageStack [$name] );
 	}
@@ -119,7 +122,7 @@ class Chatty extends PluginBase implements Listener {
 			$this->getLogger()->info($format);
 			foreach($this->getServer()->getOnlinePlayers() as $player){
 				if(isset($this->db[$player->getName()]["localCHAT"]) and $this->db[$player->getName()]["localCHAT"] === true){
-					if($sender->distance($player) > 50){
+					if($sender->distance($player) > self::LOCAL_CHAT_DISTANCE){
 						continue;
 					}
 				}
@@ -156,23 +159,23 @@ class Chatty extends PluginBase implements Listener {
 			$px = round ( $OnlinePlayer->x );
 			$py = round ( $OnlinePlayer->y );
 			$pz = round ( $OnlinePlayer->z );
-			
+
 			if (isset ( $this->packetQueue [$OnlinePlayer->getName ()] ["eid"] )) {
 				$this->packet ["RemovePlayerPacket"]->eid = $this->packetQueue [$OnlinePlayer->getName ()] ["eid"];
 				$OnlinePlayer->dataPacket ( $this->packet ["RemovePlayerPacket"] ); // 네임택 제거패킷 전송
 			}
 			if (($OnlinePlayer->pitch / 180 * M_PI) < - 0.2) continue; // 하늘을 볼경우 패킷보내지않음
-			
+
 			$allMessages = "";
 			if (! isset ( $this->messageStack [$OnlinePlayer->getName ()] )) continue;
 			foreach ( $this->messageStack [$OnlinePlayer->getName ()] as $message )
 				$allMessages .= TextWrapper::wrap ( TextFormat::clean ( $message ) ) . "\n"; // 색상표시시 \n이 작동안됨
-			
+
 			$this->packetQueue [$OnlinePlayer->getName ()] ["x"] = round ( $px );
 			$this->packetQueue [$OnlinePlayer->getName ()] ["y"] = round ( $py );
 			$this->packetQueue [$OnlinePlayer->getName ()] ["z"] = round ( $pz );
 			$this->packetQueue [$OnlinePlayer->getName ()] ["eid"] = Entity::$entityCount ++;
-			
+
 			$this->packet ["AddPlayerPacket"]->eid = $this->packetQueue [$OnlinePlayer->getName ()] ["eid"];
 			$this->packet ["AddPlayerPacket"]->username = $this->nameTag . $allMessages;
 			$this->packet ["AddPlayerPacket"]->x = $px + (-\sin ( ($OnlinePlayer->yaw / 180 * M_PI) - 0.4 )) * 7;
@@ -199,7 +202,7 @@ class Chatty extends PluginBase implements Listener {
 			$this->message ( $player, "help-NameTAG-CHAT" );
 			return true;
 		}
-		
+
 		if (! $player instanceof Player) {
 			$this->alert ( $player, "onlyinGame" );
 			return true;
