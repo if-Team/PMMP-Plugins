@@ -39,6 +39,7 @@ use pocketmine\block\Fire;
 use pocketmine\event\player\PlayerBucketFillEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\item\Item;
+use pocketmine\item\Tool;
 
 class SimpleArea extends PluginBase implements Listener {
 	private static $instance = null;
@@ -288,6 +289,23 @@ class SimpleArea extends PluginBase implements Listener {
 				if ($this->db [$event->getBlock ()->getLevel ()->getFolderName ()]->option ["white-protect"] == true) {
 					$this->alert ( $player, $this->get ( "whiteworld-change-denied" ) );
 					$event->setCancelled ();
+				}
+			}
+		}
+		// + PM missing code..?
+		// + Why every Hoe canBeActivated true?
+		if ($event->getItem () instanceof Tool) {
+			if ($event->getItem ()->isHoe ()) {
+				$area = $this->db [$event->getBlock ()->getLevel ()->getFolderName ()]->getArea ( $event->getBlock ()->x, $event->getBlock ()->z );
+				if ($area != null) {
+					if (isset ( $area ["resident"] [0] )) if ($this->db [$event->getBlock ()->getLevel ()->getFolderName ()]->checkResident ( $area ["ID"], $player->getName () )) return;
+					$this->alert ( $player, $this->get ( "block-active-denied" ) );
+					$event->setCancelled ();
+				} else if ($this->db [$event->getBlock ()->getLevel ()->getFolderName ()]->isWhiteWorld ()) {
+					if ($this->db [$event->getBlock ()->getLevel ()->getFolderName ()]->option ["white-protect"] == true) {
+						$this->alert ( $player, $this->get ( "whiteworld-change-denied" ) );
+						$event->setCancelled ();
+					}
 				}
 			}
 		}
