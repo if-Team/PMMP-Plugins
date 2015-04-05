@@ -236,6 +236,7 @@ class SimpleArea extends PluginBase implements Listener {
 		}
 	}
 	public function onTouch(PlayerInteractEvent $event) {
+		$player = $event->getPlayer ();
 		if (isset ( $this->make_Queue [$event->getPlayer ()->getName ()] )) {
 			if ($this->make_Queue [$event->getPlayer ()->getName ()] ["pos1"] == false) {
 				$event->setCancelled ();
@@ -265,8 +266,6 @@ class SimpleArea extends PluginBase implements Listener {
 						
 						$endX = $event->getBlock ()->x + $size [1] - 1;
 						$endZ = $event->getBlock ()->z + $size [0] - 1;
-						
-						$player = $event->getPlayer ();
 						
 						$area_id = $this->db [$player->level->getFolderName ()]->addArea ( null, $startX, $endX, $startZ, $endZ, false );
 						if ($area_id == false) {
