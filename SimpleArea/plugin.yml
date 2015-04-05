@@ -1,38 +1,6 @@
 name: SimpleArea
-main: SimpleArea\SimpleArea
-version: 0.15.6-alpha
+main: simpleArea\SimpleArea
+version: 1.0-Alpha
 author: hm
 api: [1.4.1]
 load: STARTUP
-
-permissions:
- simplearea.commands.area:
-  default: true
- simplearea.commands.setarea:
-  default: true
- simplearea.commands.sellarea:
-  default: true
- simplearea.commands.buyarea:
-  default: true
- simplearea.commands.givearea:
-  default: true
- simplearea.commands.landinfo:
-  default: true
- simplearea.commands.arealist:
-  default: true
- simplearea.commands.rent:
-  default: true
- simplearea.commands.invite:
-  default: true
- simplearea.commands.inviteout:
-  default: true
- simplearea.commands.inviteclear:
-  default: true
- simplearea.commands.invitelist:
-  default: true
- simplearea.commands.welcome:
-  default: true
- simplearea.commands.simplearea:
-  default: true
- simplearea.commands.yap:
-  default: OP
