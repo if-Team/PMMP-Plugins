@@ -31,7 +31,7 @@ class Gentleman extends PluginBase implements Listener {
 		if (self::$instance == null) self::$instance = $this;
 		
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
-		// $this->parseXE_DB_to_YML (); //*CONVERT ONLY*
+		// $this->parseXEDatabaseToJSON (); //*CONVERT ONLY*
 	}
 	public static function getInstance() {
 		return static::$instance;
@@ -83,7 +83,6 @@ class Gentleman extends PluginBase implements Listener {
 	}
 	public function userCommand(PlayerCommandPreprocessEvent $event) {
 		$command = $event->getMessage ();
-		$sender = $event->getPlayer ();
 		
 		if ($event->getPlayer ()->isOp ()) return;
 		if (isset ( $this->preventQueue [$event->getPlayer ()->getName ()] )) {
@@ -127,8 +126,8 @@ class Gentleman extends PluginBase implements Listener {
 		if (isset ( $this->preventQueue [$event->getPlayer ()->getName ()] )) $event->setCancelled ();
 	}
 	public function cautionNotice(Player $player, $word) {
-		$this->getServer ()->getLogger ()->alert ( $this->get ( "some-badwords-found" ) );
-		$this->getServer ()->getLogger ()->alert ( $player->getName () . "> " . $word );
+		$this->getLogger ()->alert ( $this->get ( "some-badwords-found" ) );
+		$this->getLogger ()->alert ( $player->getName () . "> " . $word );
 		foreach ( $this->getServer ()->getOnlinePlayers () as $online ) {
 			if (! $online->isOp ()) continue;
 			$player->sendMessage ( TextFormat::RED . $this->get ( "some-badwords-found" ) );
@@ -137,9 +136,9 @@ class Gentleman extends PluginBase implements Listener {
 	}
 	public function initMessage() {
 		$this->saveResource ( "messages.yml", false );
-		$this->saveResource ( "badwords.yml", false );
+		$this->saveResource ( "badwords.json", false );
 		$this->messages = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
-		$this->list = (new Config ( $this->getDataFolder () . "badwords.yml", Config::YAML ))->getAll ();
+		$this->list = (new Config ( $this->getDataFolder () . "badwords.json", Config::JSON ))->getAll ();
 		$this->banPoint = (new Config ( $this->getDataFolder () . "banpoints.yml", Config::YAML ))->getAll ();
 		$this->makeQueue ();
 	}
@@ -172,7 +171,7 @@ class Gentleman extends PluginBase implements Listener {
 			}
 		}
 	}
-	public function parseXE_DB_to_YML() {
+	public function parseXEDatabaseToJSON() {
 		$parseBadwords = file_get_contents ( $this->getDataFolder () . "badwords.txt" );
 		$parseBadwords = mb_convert_encoding ( $parseBadwords, "UTF-8", "CP949" );
 		$parseBadwords = explode ( ' ', $parseBadwords );
@@ -182,7 +181,7 @@ class Gentleman extends PluginBase implements Listener {
 		foreach ( $parseBadwords as $badword )
 			$list ["badwords"] [] = $badword;
 		
-		$this->list = new Config ( $this->getDataFolder () . "badwords.yml", Config::YAML, $list );
+		$this->list = new Config ( $this->getDataFolder () . "badwords.json", Config::JSON, $list );
 		$this->list->save ();
 	}
 	public function checkSwearWord($word) {
