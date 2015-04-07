@@ -1,0 +1,5 @@
+name: Clannish
+main: chalk\clannish\Clannish
+version: 0.1
+author: ChalkPE
+api: [1.4.1]
