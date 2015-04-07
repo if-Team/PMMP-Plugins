@@ -11,6 +11,12 @@ en-TAGBlock-line0: "tagblock"
 en-TAGBlock-added: "TAGBlock Added !"
 en-TAGBlock-deleted: "TAGBlock Deleted !"
 
+#(IT) ITALIAN
+it-default-prefix: "[ SERVER ]"
+it-TAGBlock-line0: "tagblock"
+it-TAGBlock-added: "TAGBlock Aggiunto !"
+it-TAGBlock-deleted: "TAGBlock Cancellato !"
+
 #(KO) KOREAN
 ko-default-prefix: "[ 서버 ]"
 ko-TAGBlock-line0: "태그블럭"
