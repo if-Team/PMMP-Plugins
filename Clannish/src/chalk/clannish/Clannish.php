@@ -23,21 +23,50 @@
  */
 namespace chalk\clannish;
 
+use pocketmine\event\Listener;
+use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\plugin\PluginBase;
+use pocketmine\utils\Config;
 
 class Clannish extends PluginBase implements Listener {
-    /** @var Config */
-    private $data = null;
-    
+    /** @var array */
+    private $data = [];
+
+    /** @var string */
+    private $language = "en";
+
+    /** @var array */
+    private $resources = [];
+
     public function onEnable(){
         @mkdir($this->getDataFolder());
-        
+
         $dataConfig = new Config($this->getDataFolder() . "data.json", Config::JSON);
         $dataConfig->save();
-        
         $this->data = $dataConfig->getAll();
+
+        $this->saveResource("resources.json", false);
+        $resourcesConfig = new Config($this->getDataFolder() . "resources.json", Config::JSON);
+        $resourcesConfig->save();
+        $this->resources = $resourcesConfig->getAll();
+
+        $this->saveDefaultConfig();
+        $this->language = $this->getConfig()->get("current-language", $this->getConfig()->get("default-language"));
+
+        $this->getServer()->getPluginManager()->registerEvents($this, $this);
+        $this->registerCommands();
     }
-    
+
+    public function registerCommands(){
+        $map = [
+            "ChattingRoomCommand" => "chalk\\clannish\\command\\ChattingRoomCommand"
+        ];
+
+        foreach($this->getResource("commands") as $command){
+            $this->getServer()->getCommandMap()->register("clannish", new $map[$command["type"]]($this, $command));
+        }
+    }
+
     public function onPlayerChat(PlayerChatEvent $event){
         $sender = $event->getPlayer();
         if(!$sender->hasPermission("Clannish")){
@@ -51,5 +80,42 @@ class Clannish extends PluginBase implements Listener {
                 //TODO: Implements this stuff
             }
         }
+    }
+
+    /**
+     * @return array
+     */
+    public function getData(){
+        return $this->data;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLanguage(){
+        return $this->language;
+    }
+
+    /**
+     * @return array
+     */
+    public function getResources(){
+        return $this->resources;
+    }
+
+    /**
+     * @param string $key
+     * @return mixed
+     */
+    public function getResource($key){
+        $resource = $this->getResources()[$this->getLanguage()];
+        if(!isset($resource)){
+            $resource = $this->getResources()[$this->getConfig()->get("default-language")];
+        }
+
+        foreach(explode(".", $key) as $k){
+            $resource = $resource[$k];
+        }
+        return $resource;
     }
 }
