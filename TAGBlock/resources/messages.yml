@@ -17,13 +17,19 @@ it-TAGBlock-line0: "tagblock"
 it-TAGBlock-added: "TAGBlock Aggiunto !"
 it-TAGBlock-deleted: "TAGBlock Cancellato !"
 
+#(JA) JAPANESE
+ja-default-prefix: "[ サーバー ]"
+ja-TAGBlock-line0: "タグブロック"
+ja-TAGBlock-added: "タグブロックが追加されました ！"
+ja-TAGBlock-deleted: "タグブロックが削除されました ！"
+
 #(KO) KOREAN
 ko-default-prefix: "[ 서버 ]"
 ko-TAGBlock-line0: "태그블럭"
 ko-TAGBlock-added: "태그블럭이 추가되었습니다 !"
 ko-TAGBlock-deleted: "태그블럭이 삭제되었습니다 !"
 
-#(ZH-TW) CHINESE(TRADITUONAL)
+#(ZH-TW) CHINESE(TRADITIONAL)
 tw-default-prefix: "[ 伺服器 ]"
 tw-TAGBlock-line0: "標註方塊"
 tw-TAGBlock-added: "已添加標註方塊 !"
