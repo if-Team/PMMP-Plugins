@@ -25,8 +25,31 @@ namespace chalk\clannish;
 
 use pocketmine\plugin\PluginBase;
 
-class Clannish extends PluginBase {
+class Clannish extends PluginBase implements Listener {
+    /** @var Config */
+    private $data = null;
+    
     public function onEnable(){
-        //TODO: Implements this plugin
+        @mkdir($this->getDataFolder());
+        
+        $dataConfig = new Config($this->getDataFolder() . "data.json", Config::JSON);
+        $dataConfig->save();
+        
+        $this->data = $dataConfig->getAll();
+    }
+    
+    public function onPlayerChat(PlayerChatEvent $event){
+        $sender = $event->getPlayer();
+        if(!$sender->hasPermission("Clannish")){
+            return;
+        }
+        
+        $key = strToLower($sender->getName());
+        if(isset($this->data[$key]) and $this->data[$key]["room"] !== "main"){
+            $event->setCancelled(true);
+            foreach($this->data[$key]["roomMembers"] as $member){
+                //TODO: Implements this stuff
+            }
+        }
     }
 }
