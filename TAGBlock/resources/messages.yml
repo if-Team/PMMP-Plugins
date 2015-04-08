@@ -41,5 +41,12 @@ cn-TAGBlock-line0: "标注方块"
 cn-TAGBlock-added: "已添加标注方块 !"
 cn-TAGBlock-deleted: "已删除标注方块 !"
 
+#(ES) Español (SPANISH)
+cn-default-prefix: "[ SERVIDOR ]"
+cn-TAGBlock-line0: "tagblock"
+cn-TAGBlock-added: "TAGblock agregado !"
+cn-TAGBlock-deleted: "TAGblock eliminado !"
+
+
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/blob/master/TAGBlock/resources/messages.yml
