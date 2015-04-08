@@ -21,7 +21,7 @@ it-TAGBlock-deleted: "TAGBlock Cancellato !"
 ja-default-prefix: "[ サーバー ]"
 ja-TAGBlock-line0: "タグブロック"
 ja-TAGBlock-added: "タグブロックが追加されました ！"
-ja-TAGBlock-deleted: "タグブロックが削除されました！ "
+ja-TAGBlock-deleted: "タグブロックが削除されました ！"
 
 #(KO) KOREAN
 ko-default-prefix: "[ 서버 ]"
