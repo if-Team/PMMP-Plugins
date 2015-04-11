@@ -95,7 +95,7 @@ class poolTax extends PluginBase implements Listener {
 		if ($this->db ["taxPrice"] == 0) return;
 		$paid = 0;
 		foreach ( $this->economyAPI->getAllMoney ()["money"] as $player => $money ) {
-			if ($this->db ["taxPrice"] < 10000) return;
+			if ($money < 10000) return;
 			$this->economyAPI->reduceMoney ( $player, $this->db ["taxPrice"] );
 			$paid ++;
 		}
