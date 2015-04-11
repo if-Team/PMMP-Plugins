@@ -1,8 +1,8 @@
 name: EDGE
 main: EDGE\EDGE
-version: 0.2-Alpha
+version: 0.3-Alpha
 author: hm
-api: [1.4.1]
+api: [1.12.0]
 
 permission:
  edge.showingnametag:
