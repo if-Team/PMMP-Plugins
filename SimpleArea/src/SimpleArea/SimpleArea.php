@@ -281,6 +281,7 @@ class SimpleArea extends PluginBase implements Listener {
 		}
 		if ($event->getItem ()->canBeActivated () or $event->getBlock ()->canBeActivated ()) {
 			if ($player->isOp ()) return;
+			if ($event->getBlock ()->getId () == Block::CRAFTING_TABLE or $event->getBlock ()->getId () == Block::FURNACE) return;
 			$area = $this->db [$event->getBlock ()->getLevel ()->getFolderName ()]->getArea ( $event->getBlock ()->x, $event->getBlock ()->z );
 			if ($area != null) {
 				if (isset ( $area ["resident"] [0] )) if ($this->db [$event->getBlock ()->getLevel ()->getFolderName ()]->checkResident ( $area ["ID"], $player->getName () )) return;
@@ -375,13 +376,6 @@ class SimpleArea extends PluginBase implements Listener {
 					$event->setCancelled ();
 				} else if ($area == null) if (! $this->db [$player->getLevel ()->getFolderName ()]->isWhiteWorldPvpAllow ()) $event->setCancelled ();
 			}
-		}
-	}
-	public function onItemPickUp(InventoryPickupItemEvent $event) {
-		$area = $this->db [$event->getItem ()->getLevel ()->getFolderName ()]->getArea ( $event->getItem ()->x, $event->getItem ()->z );
-		if ($area != null) {
-			if (isset ( $area ["resident"] [0] )) if ($this->db [$event->getItem ()->getLevel ()->getFolderName ()]->checkResident ( $area ["ID"], $event->getInventory ()->getName () )) return;
-			$event->setCancelled ();
 		}
 	}
 	public function onCombust(EntityCombustEvent $event) {
