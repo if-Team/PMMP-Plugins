@@ -11,13 +11,25 @@ en-TAGBlock-line0: "tagblock"
 en-TAGBlock-added: "TAGBlock Added !"
 en-TAGBlock-deleted: "TAGBlock Deleted !"
 
+#(IT) ITALIAN
+it-default-prefix: "[ SERVER ]"
+it-TAGBlock-line0: "tagblock"
+it-TAGBlock-added: "TAGBlock Aggiunto !"
+it-TAGBlock-deleted: "TAGBlock Cancellato !"
+
+#(JA) JAPANESE
+ja-default-prefix: "[ サーバー ]"
+ja-TAGBlock-line0: "タグブロック"
+ja-TAGBlock-added: "タグブロックが追加されました ！"
+ja-TAGBlock-deleted: "タグブロックが削除されました ！"
+
 #(KO) KOREAN
 ko-default-prefix: "[ 서버 ]"
 ko-TAGBlock-line0: "태그블럭"
 ko-TAGBlock-added: "태그블럭이 추가되었습니다 !"
 ko-TAGBlock-deleted: "태그블럭이 삭제되었습니다 !"
 
-#(ZH-TW) CHINESE(TRADITUONAL)
+#(ZH-TW) CHINESE(TRADITIONAL)
 tw-default-prefix: "[ 伺服器 ]"
 tw-TAGBlock-line0: "標註方塊"
 tw-TAGBlock-added: "已添加標註方塊 !"
@@ -28,6 +40,12 @@ cn-default-prefix: "[ 伺服器 ]"
 cn-TAGBlock-line0: "标注方块"
 cn-TAGBlock-added: "已添加标注方块 !"
 cn-TAGBlock-deleted: "已删除标注方块 !"
+
+#(ES) Español (SPANISH)
+es-default-prefix: "[ SERVIDOR ]"
+es-TAGBlock-line0: "tagblock"
+es-TAGBlock-added: "TAGblock agregado !"
+es-TAGBlock-deleted: "TAGblock eliminado !"
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/blob/master/TAGBlock/resources/messages.yml

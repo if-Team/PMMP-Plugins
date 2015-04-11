@@ -1,0 +1,17 @@
+{
+  "en": {
+    "messages": {
+      "error": {
+        "inGameCommand": "Please run this command in-game!"
+      }
+    },
+    "commands": [
+      {
+        "type": "ChattingRoomCommand",
+        "command": "room",
+        "permission": "",
+        "description": "Command for create, join or delete chatting rooms."
+      }
+    ]
+  }
+}
