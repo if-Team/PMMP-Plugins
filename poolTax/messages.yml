@@ -1,0 +1,19 @@
+# IF YOU NEED A SOME OTHER LANGUAGE SETTINGS #
+# YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
+
+#PLEASE SET HERE TO YOUR LANGUAGE PREFIX
+default-language: ko
+m_version: 2
+
+#(EN) ENGLISH
+
+#(KO) KOREAN
+ko-taxControl: "세금"
+ko-taxControl-help: "/세금 <원하는금액>"
+ko-taxChanged: "세금액이 변경되었습니다 !"
+ko-taxHelp: "1분마다 걷을 세금을 설정합니다 !"
+ko-prefix: "[ 세금 ]"
+ko-paid: "명에게 세금을 걷었습니다 !"
+
+# AND YOU CAN PROVIDE YOUR TRANSLATION       #
+# https://github.com/if-Team/PMMP-Plugins/blob/master/poolTax/resources/messages.yml
