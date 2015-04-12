@@ -34,6 +34,7 @@ class poolTax extends PluginBase implements Listener {
 		} else {
 			$this->getLogger ()->error ( $this->get ( "there-are-no-economyapi" ) );
 			$this->getServer ()->getPluginManager ()->disablePlugin ( $this );
+			return;
 		}
 		
 		// 서버이벤트를 받아오게끔 플러그인 리스너를 서버에 등록
