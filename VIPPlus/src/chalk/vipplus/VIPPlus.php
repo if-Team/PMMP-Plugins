@@ -40,6 +40,13 @@ class VIPPlus extends PluginBase implements Listener {
         $this->saveVips();
     }
 
+    /**
+     * @param CommandSender $sender
+     * @param Command $command
+     * @param string $commandAlias
+     * @param array $args
+     * @return bool
+     */
     public function onCommand(CommandSender $sender, Command $command, $commandAlias, array $args){
         if(!$sender->hasPermission("vip") or $sender instanceof Player){
             return false;
