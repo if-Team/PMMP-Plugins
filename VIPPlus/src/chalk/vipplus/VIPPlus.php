@@ -37,7 +37,7 @@ class VIPPlus extends PluginBase implements Listener {
             return false;
         }
 
-        if(count($args) < 2 or !is_string($args[1])){
+        if(!is_array($args) or count($args) < 2 or !is_string($args[1])){
             $sender->sendMessage($this->getCommand("vip")->getUsage());
             return true;
         }
