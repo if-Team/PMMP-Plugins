@@ -3,13 +3,21 @@ default-language: en
 
 messages:
   vip-added:
-    ko: {%0}님을 VIP 목록에 추가했어요!
-    en: Added {%0} to VIP list!
+    en: "Added {%0} to VIP list!"
+    ko: "{%0}님을 VIP 목록에 추가했어요!"
 
   vip-removed:
-    ko: {%0}님을 VIP 목록에서 제거했어요!
-    en: Removed {%0} from VIP list!
+    en: "Removed {%0} from VIP list!"
+    ko: "{%0}님을 VIP 목록에서 제거했어요!"
 
   vip-list-info:
-    ko: 총 {%0}/{%1}명의 VIP가 있습니다:
-    en: There are {%0}/{%1} vips:
+    en: "There are {%0}/{%1} vips:\n{%2}"
+    ko: "총 {%0}/{%1}명의 VIP가 있습니다:\n{%2}"
+
+  vip-already-vip:
+    en: "The player {%0} is already VIP!"
+    ko: "{%0}님은 이미 VIP예요!"
+
+  vip-not-vip:
+    en: "The player {%0} isn't VIP!"
+    ko: "{%0}님은 VIP가 아니에요!"

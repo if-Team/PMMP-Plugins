@@ -54,10 +54,11 @@ class Messages {
 
     /**
      * @param string $key
+     * @param string[] $format
      * @param string $language
      * @return null|string
      */
-    public function getMessage($key, $language = ""){
+    public function getMessage($key, $format = [], $language = ""){
         if($language === ""){
             $language = $this->getDefaultLanguage();
         }
@@ -68,13 +69,16 @@ class Messages {
         }
 
         $string = $message[$language];
-        return !isset($string) and $language !== $this->getDefaultLanguage() ? $message[$this->getDefaultLanguage()] : $string;
-    }
-
-    public static function format($string, array $args){
-        foreach($args as $key => $value){
-            $string = str_replace("{%" . $key . "}", $value, $string);
+        if(!isset($string) and $language !== $this->getDefaultLanguage()){
+            $string = $message[$this->getDefaultLanguage()];
         }
-        return $string;
+
+        if(isset($string)){
+            foreach($format as $key => $value){
+                $string = str_replace("{%" . $key . "}", $value, $string);
+            }
+            return $string;
+        }
+        return null;
     }
 }

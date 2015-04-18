@@ -7,6 +7,7 @@
 
 namespace chalk\vipplus;
 
+use chalk\utils\Messages;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\event\Listener;
@@ -18,12 +19,19 @@ class VIPPlus extends PluginBase implements Listener {
     /** @var array */
     private $vips = [];
 
+    /** @var Messages */
+    private $messages;
+
     public function onEnable(){
         @mkdir($this->getDataFolder());
         $this->saveDefaultConfig();
 
         $vipsConfig = new Config($this->getDataFolder() . "vips.yml", Config::YAML);
         $this->vips = $vipsConfig->getAll();
+
+        $this->saveResource("messages.yml");
+        $messagesConfig = new Config($this->getDataFolder() . "messages.yml", Config::YAML);
+        $this->messages = new Messages($messagesConfig->getAll());
 
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
     }
@@ -46,29 +54,29 @@ class VIPPlus extends PluginBase implements Listener {
 
         switch($args[0]){
             case "list":
-                $sender->sendMessage("There are " . count($this->getOnlineVips()) . "/" . count($this->getVips()) . " vips in server: \n" . implode(", ", $this->vips));
+                $sender->sendMessage($this->getMessages()->getMessage("vip-list-info", [count($this->getOnlineVips()), count($this->getVips()), implode(", ", $this->vips)]));
                 break;
 
             case "add":
                 if(in_array($player, $this->getVips())){
-                    $sender->sendMessage("The player " . $player . " is already vip!");
+                    $sender->sendMessage($this->getMessages()->getMessage("vip-already-vip", [$player]));
                     return true;
                 }
                 array_push($this->getVips(), $player);
                 $this->saveVips();
 
-                $sender->sendMessage("Added " . $player . " to vip list!");
+                $sender->sendMessage($this->getMessages()->getMessage("vip-added", [$player]));
                 break;
 
             case "remove":
                 if(!in_array($player, $this->getVips())){
-                    $sender->sendMessage("The player " . $player . " is not vip!");
+                    $sender->sendMessage($this->getMessages()->getMessage("vip-not-vip", [$player]));
                     return true;
                 }
                 unset($this->getVips()[array_search($player, $this->getVips())]);
                 $this->saveVips();
 
-                $sender->sendMessage("Removed " . $player . " from vip list!");
+                $sender->sendMessage($this->getMessages()->getMessage("vip-removed", [$player]));
                 break;
 
             default:
@@ -105,5 +113,12 @@ class VIPPlus extends PluginBase implements Listener {
         $vipsConfig = new Config($this->getDataFolder() . "vips.yml", Config::YAML);
         $vipsConfig->setAll($this->getVips());
         $vipsConfig->save();
+    }
+
+    /**
+     * @return Messages
+     */
+    public function getMessages(){
+        return $this->messages;
     }
 }
