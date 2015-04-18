@@ -16,7 +16,7 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
 
 class VIPPlus extends PluginBase implements Listener {
-    /** @var array */
+    /** @var VIP[] */
     private $vips = [];
 
     /** @var Messages */
@@ -27,7 +27,9 @@ class VIPPlus extends PluginBase implements Listener {
         $this->saveDefaultConfig();
 
         $vipsConfig = new Config($this->getDataFolder() . "vips.yml", Config::YAML);
-        $this->vips = $vipsConfig->getAll();
+        foreach($vipsConfig->getAll() as $key => $value){
+            array_push($this->vips, new VIP($key, $value));
+        }
 
         $this->saveResource("messages.yml");
         $messagesConfig = new Config($this->getDataFolder() . "messages.yml", Config::YAML);
@@ -80,56 +82,63 @@ class VIPPlus extends PluginBase implements Listener {
     }
 
     /**
-     * @return array
+     * @return VIP[]
      */
     public function getVips(){
         return $this->vips;
     }
 
     /**
-     * @return array
+     * @return VIP[]
      */
     public function getOnlineVips(){
-        $vips = $this->getVips();
-        $onlineVips = [];
+        return array_filter($this->getVips(), function(VIP $vip){
+            return $vip->getPlayer() !== null;
+        });
+    }
 
-        foreach($this->getServer()->getOnlinePlayers() as $onlinePlayer){
-            $player = strToLower($onlinePlayer->getName());
-            if(in_array($player, $vips)){
-                array_push($onlineVips, $player);
+    /**
+     * @param string $name
+     * @return int
+     */
+    public function indexOfVip($name){
+        foreach($this->getVips() as $index => $vip){
+            if($name === $vip->getName()){
+                return $index;
             }
         }
-        return $onlineVips;
+        return -1;
     }
 
     /**
-     * @param string $player
+     * @param string $name
      * @return null|string
      */
-    public function addVip($player){
-        if(in_array($player, $this->getVips())){
-            return $this->getMessages()->getMessage("vip-already-vip", [$player]);
+    public function addVip($name){
+        $index = $this->indexOfVip($name);
+        if($index >= 0){
+            return $this->getMessages()->getMessage("vip-already-vip", [$name]);
         }
-        array_push($this->getVips(), $player);
+        array_push($this->getVips(), $name);
         $this->saveVips();
 
-        return $this->getMessages()->getMessage("vip-added", [$player]);
+        return $this->getMessages()->getMessage("vip-added", [$name]);
     }
 
     /**
-     * @param string $player
+     * @param string $name
      * @return null|string
      */
-    public function removeVip($player){
-        if(!in_array($player, $this->getVips())){
-            return $this->getMessages()->getMessage("vip-not-vip", [$player]);
+    public function removeVip($name){
+        $index = $this->indexOfVip($name);
+        if($index < 0){
+            return $this->getMessages()->getMessage("vip-not-vip", [$name]);
         }
-        unset($this->getVips()[array_search($player, $this->getVips())]);
+        unset($this->getVips()[$index]);
         $this->saveVips();
 
-        return $this->getMessages()->getMessage("vip-removed", [$player]);
+        return $this->getMessages()->getMessage("vip-removed", [$name]);
     }
-
 
     public function saveVips(){
         $vipsConfig = new Config($this->getDataFolder() . "vips.yml", Config::YAML);
