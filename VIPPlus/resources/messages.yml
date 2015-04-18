@@ -12,7 +12,7 @@ messages:
 
   vip-list-info:
     en: "There are {%0}/{%1} vips:\n{%2}"
-    ko: "총 {%0}/{%1}명의 VIP가 있습니다:\n{%2}"
+    ko: "총 {%0}/{%1}명의 VIP가 있어요:\n{%2}"
 
   vip-already-vip:
     en: "The player {%0} is already VIP!"
