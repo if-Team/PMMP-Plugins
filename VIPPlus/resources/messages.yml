@@ -1,0 +1,15 @@
+version: 0
+default-language: en
+
+messages:
+  vip-added:
+    ko: {%0}님을 VIP 목록에 추가했어요!
+    en: Added {%0} to VIP list!
+
+  vip-removed:
+    ko: {%0}님을 VIP 목록에서 제거했어요!
+    en: Removed {%0} from VIP list!
+
+  vip-list-info:
+    ko: 총 {%0}/{%1}명의 VIP가 있습니다:
+    en: There are {%0}/{%1} vips:
