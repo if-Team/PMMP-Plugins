@@ -53,35 +53,21 @@ class VIPPlus extends PluginBase implements Listener {
         $player = strToLower($args[1]);
 
         switch($args[0]){
+            default:
+                $sender->sendMessage($this->getCommand("vip")->getUsage());
+                break;
+
             case "list":
                 $sender->sendMessage($this->getMessages()->getMessage("vip-list-info", [count($this->getOnlineVips()), count($this->getVips()), implode(", ", $this->vips)]));
                 break;
 
             case "add":
-                if(in_array($player, $this->getVips())){
-                    $sender->sendMessage($this->getMessages()->getMessage("vip-already-vip", [$player]));
-                    return true;
-                }
-                array_push($this->getVips(), $player);
-                $this->saveVips();
-
-                $sender->sendMessage($this->getMessages()->getMessage("vip-added", [$player]));
+                $sender->sendMessage($this->addVip($player));
                 break;
 
             case "remove":
-                if(!in_array($player, $this->getVips())){
-                    $sender->sendMessage($this->getMessages()->getMessage("vip-not-vip", [$player]));
-                    return true;
-                }
-                unset($this->getVips()[array_search($player, $this->getVips())]);
-                $this->saveVips();
-
-                $sender->sendMessage($this->getMessages()->getMessage("vip-removed", [$player]));
+                $sender->sendMessage($this->removeVip($player));
                 break;
-
-            default:
-                $sender->sendMessage($this->getCommand("vip")->getUsage());
-                return true;
         }
         return true;
     }
@@ -108,6 +94,35 @@ class VIPPlus extends PluginBase implements Listener {
         }
         return $onlineVips;
     }
+
+    /**
+     * @param string $player
+     * @return null|string
+     */
+    public function addVip($player){
+        if(in_array($player, $this->getVips())){
+            return $this->getMessages()->getMessage("vip-already-vip", [$player]);
+        }
+        array_push($this->getVips(), $player);
+        $this->saveVips();
+
+        return $this->getMessages()->getMessage("vip-added", [$player]);
+    }
+
+    /**
+     * @param string $player
+     * @return null|string
+     */
+    public function removeVip($player){
+        if(!in_array($player, $this->getVips())){
+            return $this->getMessages()->getMessage("vip-not-vip", [$player]);
+        }
+        unset($this->getVips()[array_search($player, $this->getVips())]);
+        $this->saveVips();
+
+        return $this->getMessages()->getMessage("vip-removed", [$player]);
+    }
+
 
     public function saveVips(){
         $vipsConfig = new Config($this->getDataFolder() . "vips.yml", Config::YAML);
