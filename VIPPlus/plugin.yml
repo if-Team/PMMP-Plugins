@@ -1,0 +1,16 @@
+name: VIPPlus
+main: chalk\vipplus\VIPPlus
+version: 0.1
+api: [1.12.0]
+author: ChalkPE
+depend: [EconomyAPI]
+
+commands:
+  vip:
+    permisson: vip
+    description: Management for VIP+ plugin
+    usage: /vip <list | add | remove> [name]
+
+permissons:
+  vip:
+    default: op
