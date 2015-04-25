@@ -12,6 +12,8 @@ use onebone\economyapi\EconomyAPI;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\event\Listener;
+use pocketmine\event\player\PlayerJoinEvent;
+use pocketmine\item\Item;
 use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
@@ -26,6 +28,9 @@ class VIPPlus extends PluginBase implements Listener {
     /** @var Messages */
     private $messages;
 
+    /** @var Item[] */
+    private $armorContents = [];
+
     /**
      * @return VIPPlus
      */
@@ -39,8 +44,8 @@ class VIPPlus extends PluginBase implements Listener {
 
     public function onEnable(){
         @mkdir($this->getDataFolder());
-        $this->saveDefaultConfig();
 
+        $this->loadConfig();
         $this->loadVips();
         $this->loadMessages();
 
@@ -89,6 +94,110 @@ class VIPPlus extends PluginBase implements Listener {
         return $this->messages;
     }
 
+
+    public function loadConfig(){
+        $this->saveDefaultConfig();
+
+        $this->armorContents = [];
+        foreach($this->getConfig()->get("vip-armor-contents", []) as $index => $itemId){
+            $this->armorContents[$index] = Item::get($itemId);
+        }
+    }
+
+    /**
+     * @return VIP[]
+     */
+    public function getVips(){
+        return $this->vips;
+    }
+
+    /**
+     * @return VIP[]
+     */
+    public function getOnlineVips(){
+        return array_filter($this->getVips(), function(VIP $vip){
+            return $vip->getPlayer() !== null;
+        });
+    }
+
+    /**
+     * @param string $name
+     * @return int
+     */
+    private function indexOfVip($name){
+        $name = strToLower($name);
+
+        foreach($this->getVips() as $index => $vip){
+            if($name === $vip->getName()){
+                return $index;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * @param $name
+     * @return bool
+     */
+    public function isVip($name){
+        $name = strToLower($name);
+
+        return $this->indexOfVip($name) >= 0;
+    }
+
+    public function getVip($name){
+        $name = strToLower($name);
+
+        $index = $this->indexOfVip($name);
+        if($index < 0){
+            return null;
+        }else{
+            return $this->getVips()[$index];
+        }
+    }
+
+    /**
+     * @param string $name
+     * @return null|string
+     */
+    public function addVip($name){
+        $name = strToLower($name);
+
+        if($this->isVip($name)){
+            return $this->getMessages()->getMessage("vip-already-vip", [$name]);
+        }
+        array_push($this->getVips(), $name);
+        $this->saveVips();
+
+        $gratuityAmount = $this->getConfig()->get("vip-gratuity-amount", 0);
+        if($gratuityAmount > 0){
+            EconomyAPI::getInstance()->addMoney($name, $gratuityAmount, true, "VIPPlus");
+        }
+
+        return $this->getMessages()->getMessage("vip-added", [$name]);
+    }
+
+    /**
+     * @param string $name
+     * @return null|string
+     */
+    public function removeVip($name){
+        $name = strToLower($name);
+
+        $vip = $this->getVip($name);
+        if($vip === null){
+            return $this->getMessages()->getMessage("vip-not-vip", [$name]);
+        }
+        unset($vip);
+        $this->saveVips();
+
+        return $this->getMessages()->getMessage("vip-removed", [$name]);
+    }
+
+    /* ====================================================================================================================== *
+     *                                Below methods are non-API part. Please do not call them!                                *
+     * ====================================================================================================================== */
+
     /**
      * @param CommandSender $sender
      * @param Command $command
@@ -128,73 +237,10 @@ class VIPPlus extends PluginBase implements Listener {
         return true;
     }
 
-    /**
-     * @return VIP[]
-     */
-    public function getVips(){
-        return $this->vips;
-    }
-
-    /**
-     * @return VIP[]
-     */
-    public function getOnlineVips(){
-        return array_filter($this->getVips(), function(VIP $vip){
-            return $vip->getPlayer() !== null;
-        });
-    }
-
-    /**
-     * @param string $name
-     * @return int
-     */
-    public function indexOfVip($name){
-        $name = strToLower($name);
-
-        foreach($this->getVips() as $index => $vip){
-            if($name === $vip->getName()){
-                return $index;
-            }
+    public function onPlayerJoin(PlayerJoinEvent $event){
+        $vip = $this->getVip($event->getPlayer()->getName());
+        if($vip !== null){
+            $vip->setArmor($this->armorContents);
         }
-        return -1;
-    }
-
-    /**
-     * @param string $name
-     * @return null|string
-     */
-    public function addVip($name){
-        $name = strToLower($name);
-
-        $index = $this->indexOfVip($name);
-        if($index >= 0){
-            return $this->getMessages()->getMessage("vip-already-vip", [$name]);
-        }
-        array_push($this->getVips(), $name);
-        $this->saveVips();
-
-        $gratuityAmount = $this->getConfig()->get("vip-gratuity-amount", 0);
-        if($gratuityAmount > 0){
-            EconomyAPI::getInstance()->addMoney($name, $gratuityAmount, true, "VIPPlus");
-        }
-
-        return $this->getMessages()->getMessage("vip-added", [$name]);
-    }
-
-    /**
-     * @param string $name
-     * @return null|string
-     */
-    public function removeVip($name){
-        $name = strToLower($name);
-
-        $index = $this->indexOfVip($name);
-        if($index < 0){
-            return $this->getMessages()->getMessage("vip-not-vip", [$name]);
-        }
-        unset($this->getVips()[$index]);
-        $this->saveVips();
-
-        return $this->getMessages()->getMessage("vip-removed", [$name]);
     }
 }
