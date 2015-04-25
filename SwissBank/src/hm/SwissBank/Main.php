@@ -13,6 +13,7 @@ use pocketmine\command\PluginCommand;
 use pocketmine\event\server\ServerCommandEvent;
 use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
+use pocketmine\Player;
 
 class Main extends PluginBase implements Listener {
 	private static $instance = null; // 인스턴스 변수
@@ -308,11 +309,20 @@ class Main extends PluginBase implements Listener {
 			}
 		} else {
 			// 슬레이브 서버 코딩
+			$player = $this->getServer ()->getPlayer ( $data [1] );
+			if (! $player instanceof Player) break;
+			
 			switch ($data [1]) {
 				case "createBank" :
-					// slave->master = [0패스코드, 1createBank, 2계좌명, 3username, 4비용]
 					// master->slave = [0패스코드, 1createBank, 2계좌명, 3username, 4true:success|false:failed]
-					
+					// TODO 4번값 fail시 -> 계좌 생성에 실패하였습니다 : 요청반환됨
+					// failed-createBank
+					if ($data [4] == false) {
+						$this->message ( $player );
+					}
+					$this->db ["bank"] [$args [0]] ["price"] = $args [1];
+					$this->db ["bank"] [$args [0]] ["username"] = $player->getName ();
+					$this->message ( $player, $this->get ( "passcode-created" ) );
 					break;
 				case "useBank" :
 					// slave->master = [0패스코드, 1useBank, 2계좌명, 3username]

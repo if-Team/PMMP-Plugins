@@ -39,6 +39,7 @@ ko-success: "수표를 사용해서 돈을 찾았습니다 !"
 ko-failed: "해당 계좌의 돈이 부족해서 수표 사용 불가능합니다 !"
 ko-try-createBank: "계좌 생성을 신청했습니다, 결과 통보예정"
 ko-try-useBank: "계좌 사용을 신청했습니다, 결과 통보 예정"
+ko-failed-createBank: "계좌 생성에 실패하였습니다 ! : 요청반환됨"
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/blob/master/SwissBank/resources/messages.yml
