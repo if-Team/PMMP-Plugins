@@ -7,6 +7,7 @@
 
 namespace chalk\vipplus;
 
+use pocketmine\item\Item;
 use pocketmine\Player;
 use pocketmine\Server;
 
@@ -60,5 +61,25 @@ class VIP {
             }
         }
         return $this->player;
+    }
+
+    /**
+     * @param Item[] $armorContents
+     * @param bool $override
+     */
+    public function setArmor(array $armorContents, $override = false){
+        $player = $this->getPlayer();
+        if($player === null){
+            return;
+        }
+
+        $currentArmorContents = $player->getInventory()->getArmorContents();
+        foreach($currentArmorContents as $index => $slot){
+            if($slot->getId() === Item::AIR or $override){
+                $currentArmorContents[$index] = $armorContents[$index];
+            }
+        }
+        $player->getInventory()->setArmorContents($currentArmorContents);
+        $player->getInventory()->sendArmorContents($player);
     }
 }
