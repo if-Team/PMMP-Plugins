@@ -4,12 +4,7 @@ namespace CommandDefender;
 
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
-use pocketmine\utils\Config;
-use pocketmine\command\PluginCommand;
-use pocketmine\utils\TextFormat;
 use pocketmine\event\player\PlayerCommandPreprocessEvent;
-use pocketmine\Player;
-use pocketmine\scheduler\CallbackTask;
 
 class CommandDefender extends PluginBase implements Listener {
 	public $queue = [ ];
@@ -17,7 +12,7 @@ class CommandDefender extends PluginBase implements Listener {
 		@mkdir ( $this->getDataFolder () ); // 플러그인 폴더생성
 		
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ $this,"removeQueue" ] ), 40 );
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask (new RemoveQueueTask($this), 40 );
 	}
 	public function removeQueue() { // 2초마다 큐제거
 		foreach ( $this->queue as $index => $data )

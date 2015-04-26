@@ -1,6 +1,6 @@
 name: EDGE
 main: EDGE\EDGE
-version: 0.3-Alpha
+version: 0.4-Alpha
 author: hm
 api: [1.12.0]
 

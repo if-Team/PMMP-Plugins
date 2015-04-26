@@ -8,7 +8,6 @@ use pocketmine\utils\Config;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\block\Block;
 use pocketmine\entity\Entity;
-use pocketmine\scheduler\CallbackTask;
 use pocketmine\network\protocol\AddPlayerPacket;
 use pocketmine\network\protocol\RemovePlayerPacket;
 use pocketmine\Player;
@@ -54,7 +53,7 @@ class EDGE extends PluginBase implements Listener {
 		$this->packet ["RemovePlayerPacket"]->clientID = 0;
 		
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ $this,"EDGE" ] ), 20 );
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask (new EDGETask($this), 20 );
 	}
 	public function get($var) {
 		return $this->messages [$this->messages ["default-language"] . "-" . $var];
