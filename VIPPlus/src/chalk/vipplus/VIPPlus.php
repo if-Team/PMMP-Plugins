@@ -48,6 +48,9 @@ class VIPPlus extends PluginBase implements Listener {
     /** @var Item[] */
     private $armorContents = [];
 
+    /** @var string */
+    private $prefix = "";
+
     /* ====================================================================================================================== *
      *                         Below methods are plugin implementation part. Please do not call them!                         *
      * ====================================================================================================================== */
@@ -66,6 +69,18 @@ class VIPPlus extends PluginBase implements Listener {
 
     public function onDisable(){
         $this->saveVips();
+    }
+
+    public function loadConfig(){
+        @mkdir($this->getDataFolder());
+        $this->saveDefaultConfig();
+
+        $this->armorContents = [];
+        foreach($this->getConfig()->get("vip-armor-contents", []) as $index => $itemId){
+            $this->armorContents[$index] = Item::get($itemId);
+        }
+
+        $this->prefix = $this->getConfig()->get("vip-prefix", "");
     }
 
     /**
@@ -107,17 +122,6 @@ class VIPPlus extends PluginBase implements Listener {
      */
     public function getMessages(){
         return $this->messages;
-    }
-
-
-    public function loadConfig(){
-        @mkdir($this->getDataFolder());
-        $this->saveDefaultConfig();
-
-        $this->armorContents = [];
-        foreach($this->getConfig()->get("vip-armor-contents", []) as $index => $itemId){
-            $this->armorContents[$index] = Item::get($itemId);
-        }
     }
 
     /* ====================================================================================================================== *
@@ -162,16 +166,6 @@ class VIPPlus extends PluginBase implements Listener {
         return -1;
     }
 
-    /**
-     * @param $name
-     * @return bool
-     */
-    public function isVip($name){
-        $name = strToLower($name);
-
-        return $this->getVip($name) !== 0;
-    }
-
     public function getVip($name){
         $name = strToLower($name);
 
@@ -181,6 +175,16 @@ class VIPPlus extends PluginBase implements Listener {
         }else{
             return $this->getVips()[$index];
         }
+    }
+
+    /**
+     * @param $name
+     * @return bool
+     */
+    public function isVip($name){
+        $name = strToLower($name);
+
+        return $this->getVip($name) !== 0;
     }
 
     /**
@@ -266,8 +270,11 @@ class VIPPlus extends PluginBase implements Listener {
 
     public function onPlayerJoin(PlayerJoinEvent $event){
         $vip = $this->getVip($event->getPlayer()->getName());
-        if($vip !== null){
-            $vip->setArmor($this->armorContents);
+        if($vip === null){
+            return;
         }
+
+        $vip->setArmor($this->armorContents);
+        $vip->setPrefix($this->prefix);
     }
 }

@@ -82,4 +82,14 @@ class VIP {
         $player->getInventory()->setArmorContents($currentArmorContents);
         $player->getInventory()->sendArmorContents($player);
     }
+
+    public function setPrefix($prefix, $override = false){
+        $player = $this->getPlayer();
+        if($player === null){
+            return;
+        }
+
+        $currentDisplayName = $player->getDisplayName();
+        $player->setDisplayName($prefix . ($override ? $player->getName() : $currentDisplayName));
+    }
 }
