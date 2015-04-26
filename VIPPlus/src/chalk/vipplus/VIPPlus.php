@@ -87,14 +87,13 @@ class VIPPlus extends PluginBase implements Listener {
      * @param bool $override
      */
     public function loadVips($override = true){
-        $vipsConfig = new Config($this->getDataFolder() . "vips.yml", Config::YAML);
-
         if($override){
             $this->vips = [];
         }
 
-        foreach($vipsConfig->getAll() as $key => $value){
-            array_push($this->vips, new VIP($key, $value));
+        $vipsConfig = new Config($this->getDataFolder() . "vips.yml", Config::YAML);
+        foreach($vipsConfig->getAll() as $name => $data){
+            array_push($this->vips, new VIP($name, $data));
         }
     }
 
@@ -103,7 +102,10 @@ class VIPPlus extends PluginBase implements Listener {
      */
     public function saveVips(){
         $vipsConfig = new Config($this->getDataFolder() . "vips.yml", Config::YAML);
-        $vipsConfig->setAll($this->getVips());
+        foreach($this->getVips() as $vip){
+            $vipsConfig->set($vip->getName(), $vip->getData());
+        }
+
         return $vipsConfig->save();
     }
 
