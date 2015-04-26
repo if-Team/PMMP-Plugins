@@ -91,7 +91,7 @@ class Chatty extends PluginBase implements Listener {
 		$this->messageStack [$name] = [ ];
 		if (! isset ( $this->db [$name] )) $this->db [$name] = [ ];
 		$this->db [$name] ["CHAT"] = true;
-		$this->db [$name] ["localCHAT"] = true;
+		$this->db [$name] ["localCHAT"] = false;
 	}
 	public function onQuit(PlayerQuitEvent $event) {
 		unset ( $this->messageStack [$event->getPlayer ()->getName ()] );
