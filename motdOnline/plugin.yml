@@ -1,5 +1,5 @@
 name: motdOnline
 main: hm\motdOnline\motdOnline
-version: 0.1-Alpha
+version: 0.2-Alpha
 author: hm
 api: [1.12.0]
