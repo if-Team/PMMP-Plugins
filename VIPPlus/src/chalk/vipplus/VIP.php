@@ -64,6 +64,25 @@ class VIP {
     }
 
     /**
+     * @param $distance
+     * @return Player[]
+     */
+    public function getNearbyPlayers($distance){
+        $nearby = [];
+
+        $player = $this->getPlayer();
+        if($player !== null){
+            foreach($this->getPlayer()->getLevel()->getPlayers() as $levelPlayer){
+                if($player !== $levelPlayer and $player->distance($levelPlayer) <= $distance){
+                    array_push($nearby, $levelPlayer);
+                }
+            }
+        }
+
+        return $nearby;
+    }
+
+    /**
      * @return bool
      */
     public function refuseToPvp(){
