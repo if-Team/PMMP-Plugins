@@ -64,6 +64,14 @@ class VIP {
     }
 
     /**
+     * @return bool
+     */
+    public function refuseToPvp(){
+        $option = $this->getData()["refuse-to-pvp"];
+        return isset($option) and $option === true;
+    }
+
+    /**
      * @param Item[] $armorContents
      * @param bool $override
      */

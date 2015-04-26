@@ -28,6 +28,8 @@ use chalk\utils\Messages;
 use onebone\economyapi\EconomyAPI;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\event\entity\EntityDamageByEntityEvent;
+use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerJoinEvent;
@@ -159,11 +161,23 @@ class VIPPlus extends PluginBase implements Listener {
     }
 
     /**
-     * @param string $name
+     * @param string|Player $name
+     * @return string
+     */
+    private static function validateName($name){
+        if($name instanceof Player){
+            $name = $name->getName();
+        }
+
+        return strToLower($name);
+    }
+
+    /**
+     * @param string|Player $name
      * @return int
      */
     private function indexOfVip($name){
-        $name = strToLower($name);
+        $name = VIPPlus::validateName($name);
 
         foreach($this->getVips() as $index => $vip){
             if($name === $vip->getName()){
@@ -173,8 +187,12 @@ class VIPPlus extends PluginBase implements Listener {
         return -1;
     }
 
+    /**
+     * @param string|Player $name
+     * @return null|VIP
+     */
     public function getVip($name){
-        $name = strToLower($name);
+        $name = VIPPlus::validateName($name);
 
         $index = $this->indexOfVip($name);
         if($index < 0){
@@ -185,21 +203,21 @@ class VIPPlus extends PluginBase implements Listener {
     }
 
     /**
-     * @param $name
+     * @param string|Player $name
      * @return bool
      */
     public function isVip($name){
-        $name = strToLower($name);
+        $name = VIPPlus::validateName($name);
 
         return $this->getVip($name) !== 0;
     }
 
     /**
-     * @param string $name
+     * @param string|Player $name
      * @return null|string
      */
     public function addVip($name){
-        $name = strToLower($name);
+        $name = VIPPlus::validateName($name);
 
         if($this->isVip($name)){
             return $this->getMessages()->getMessage("vip-already-vip", [$name]);
@@ -216,11 +234,11 @@ class VIPPlus extends PluginBase implements Listener {
     }
 
     /**
-     * @param string $name
+     * @param string|Player $name
      * @return null|string
      */
     public function removeVip($name){
-        $name = strToLower($name);
+        $name = VIPPlus::validateName($name);
 
         $vip = $this->getVip($name);
         if($vip === null){
@@ -253,7 +271,7 @@ class VIPPlus extends PluginBase implements Listener {
             return true;
         }
 
-        $playerName = strToLower($args[1]);
+        $playerName = VIPPlus::validateName($args[1]);
 
         switch($args[0]){
             default:
@@ -275,7 +293,7 @@ class VIPPlus extends PluginBase implements Listener {
         return true;
     }
 
-    public function onPlayerJoin(PlayerJoinEvent $event){
+    public function onVipJoin(PlayerJoinEvent $event){
         $vip = $this->getVip($event->getPlayer()->getName());
         if($vip === null){
             return;
@@ -285,11 +303,36 @@ class VIPPlus extends PluginBase implements Listener {
         $vip->setPrefix($this->prefix);
     }
 
-    public function onPlayerChat(PlayerChatEvent $event){
+    public function onVipChat(PlayerChatEvent $event){
         if($this->isVip($event->getPlayer()->getName()) === false){
             return;
         }
 
         $event->setFormat($this->colorFormat . $event->getFormat());
+    }
+
+    public function onVipDamaged(EntityDamageEvent $event){
+        if(!($event instanceof EntityDamageByEntityEvent)){
+            return;
+        }
+
+        $attacker = $event->getDamager();
+        $victim = $event->getEntity();
+
+        if(!($attacker instanceof Player and $victim instanceof Player)){
+            return;
+        }
+
+        $vipAttacker = $this->getVip($attacker);
+        $vipVictim = $this->getVip($victim);
+
+        if($vipAttacker === null and $vipVictim === null){
+            return;
+        }
+
+        if($vipAttacker->refuseToPvp() or $vipVictim->refuseToPvp()){
+            $event->setDamage(0);
+            $event->setCancelled(true);
+        }
     }
 }
