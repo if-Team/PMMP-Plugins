@@ -2,21 +2,21 @@
 
 /**
  * @author ChalkPE <amato0617@gmail.com>
- * @since 2015-04-26 17:37
+ * @since 2015-04-26 18:23
  */
 
-namespace AnnouncePro;
+namespace hm\autoReseter;
 
 use pocketmine\scheduler\PluginTask;
 
-class AnnounceProTask extends PluginTask {
-    function __construct(AnnouncePro $owner){
+class ResetTask extends PluginTask {
+    function __construct(autoReseter $owner){
         parent::__construct($owner);
     }
 
     public function onRun($currentTick){
-        /** @var $owner AnnouncePro */
+        /** @var $owner autoReseter */
         $owner = $this->getOwner();
-        $owner->AnnouncePro();
+        $owner->Reset();
     }
 }

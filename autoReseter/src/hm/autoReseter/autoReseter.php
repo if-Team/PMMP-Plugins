@@ -11,15 +11,17 @@ namespace hm\autoReseter;
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\utils\TextFormat;
-use pocketmine\scheduler\CallbackTask;
 use pocketmine\utils\Config;
 
 class autoReseter extends PluginBase implements Listener {
+    /** @var array */
+    private $resetTimer;
+
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 		$this->resetTimer = (new Config ( $this->getDataFolder () . "resetTimer.yml", Config::YAML, [ "resetCycle" => 36000 ] ))->getAll ();
-		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"Reset" ] ), $this->resetTimer ["resetCycle"] );
+		$this->getServer ()->getScheduler ()->scheduleDelayedTask (new ResetTask($this), $this->resetTimer ["resetCycle"] );
 	}
 	/**
 	 *
@@ -31,7 +33,7 @@ class autoReseter extends PluginBase implements Listener {
 		$this->getServer ()->broadcastMessage ( TextFormat::DARK_PURPLE . "[안내] 서버가 10초뒤 5~10초간 재부팅됩니다 *자동재부팅*" );
 		$this->getServer ()->broadcastMessage ( TextFormat::DARK_PURPLE . "[안내] 서버가 10초뒤 5~10초간 재부팅됩니다 *자동재부팅*" );
 		$this->getServer ()->broadcastMessage ( TextFormat::DARK_PURPLE . "[안내] 서버가 10초뒤 5~10초간 재부팅됩니다 *자동재부팅*" );
-		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"Shutdown" ] ), 20 * 10 );
+		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new ShutdownTask($this), 20 * 10 );
 	}
 	/**
 	 *

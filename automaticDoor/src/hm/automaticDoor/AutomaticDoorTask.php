@@ -5,9 +5,8 @@
  * @since 2015-04-26 17:45
  */
 
-namespace src\hm\automaticDoor;
+namespace hm\automaticDoor;
 
-use hm\automaticDoor\automaticDoor;
 use pocketmine\scheduler\PluginTask;
 
 class AutomaticDoorTask extends PluginTask {
