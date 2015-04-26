@@ -2,6 +2,7 @@
 
 namespace hm\SwissBank;
 
+use onebone\economyapi\EconomyAPI;
 use pocketmine\event\Listener;
 use pocketmine\plugin\PluginBase;
 use ifteam\CustomPacket\event\CustomPacketReceiveEvent;
@@ -17,8 +18,10 @@ use pocketmine\Player;
 
 class Main extends PluginBase implements Listener {
 	private static $instance = null; // 인스턴스 변수
+
+    /** @var EconomyAPI */
 	public $economyAPI = null;
-	public $messages, $db; // 메시지 변수, DB변수
+	public $messages, $db; // 메시지 변수, DB 변수
 	public $m_version = 1; // 현재 메시지 버전
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () ); // 플러그인 폴더생성
@@ -31,13 +34,13 @@ class Main extends PluginBase implements Listener {
 		// 커스텀 패킷 이용
 		// 마스터모드시 커스텀패킷 없어도 사용가능하게끔
 		if ($this->getServer ()->getPluginManager ()->getPlugin ( "CustomPacket" ) === null) {
-			$this->getServer ()->getLogger ()->critical ( "[CustomPacket Example] CustomPacket plugin was not found. This plugin will be disabled." );
+			$this->getLogger ()->critical ( "[CustomPacket Example] CustomPacket plugin was not found. This plugin will be disabled." );
 			$this->getServer ()->getPluginManager ()->disablePlugin ( $this );
 			return;
 		}
 		// 이코노미 API 이용
 		if ($this->getServer ()->getPluginManager ()->getPlugin ( "EconomyAPI" ) != null) {
-			$this->economyAPI = \onebone\economyapi\EconomyAPI::getInstance ();
+			$this->economyAPI = EconomyAPI::getInstance ();
 		} else {
 			$this->getLogger ()->error ( $this->get ( "there-are-no-economyapi" ) );
 			$this->getServer ()->getPluginManager ()->disablePlugin ( $this );
@@ -51,7 +54,7 @@ class Main extends PluginBase implements Listener {
 		
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 		
-		if (! isset ( $this->db ["mode"] )) $this->getServer ()->getLogger ()->info ( TextFormat::DARK_AQUA . $this->get ( "please-choose-mode" ) );
+		if (! isset ( $this->db ["mode"] )) $this->getLogger ()->info ( TextFormat::DARK_AQUA . $this->get ( "please-choose-mode" ) );
 	}
 	public function serverCommand(ServerCommandEvent $event) {
 		$command = $event->getCommand ();
@@ -231,11 +234,11 @@ class Main extends PluginBase implements Listener {
 		$command->setUsage ( $usage );
 		$commandMap->register ( $name, $command );
 	}
-	public function message($player, $text = "", $mark = null) {
+	public function message(CommandSender $player, $text = "", $mark = null) {
 		if ($mark == null) $mark = $this->get ( "default-prefix" );
 		$player->sendMessage ( TextFormat::DARK_AQUA . $mark . " " . $text );
 	}
-	public function alert($player, $text = "", $mark = null) {
+	public function alert(CommandSender $player, $text = "", $mark = null) {
 		if ($mark == null) $mark = $this->get ( "default-prefix" );
 		$player->sendMessage ( TextFormat::RED . $mark . " " . $text );
 	}
@@ -298,11 +301,9 @@ class Main extends PluginBase implements Listener {
 						$this->economyAPI->addMoney ( $data [3], $price );
 						$data [4] = true;
 						CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, $data ) );
-						break;
 					} else {
 						$data [4] = false;
 						CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, $data ) );
-						break;
 					}
 					unset ( $this->db ["bank"] [$data [2]] );
 					break;
@@ -310,7 +311,7 @@ class Main extends PluginBase implements Listener {
 		} else {
 			// 슬레이브 서버 코딩
 			$player = $this->getServer ()->getPlayer ( $data [1] );
-			if (! $player instanceof Player) break;
+			if (! $player instanceof Player) return;
 			
 			switch ($data [1]) {
 				case "createBank" :
@@ -320,8 +321,8 @@ class Main extends PluginBase implements Listener {
 					if ($data [4] == false) {
 						$this->message ( $player );
 					}
-					$this->db ["bank"] [$args [0]] ["price"] = $args [1];
-					$this->db ["bank"] [$args [0]] ["username"] = $player->getName ();
+					$this->db ["bank"] [$data [0]] ["price"] = $data [1];
+					$this->db ["bank"] [$data [0]] ["username"] = $player->getName ();
 					$this->message ( $player, $this->get ( "passcode-created" ) );
 					break;
 				case "useBank" :
