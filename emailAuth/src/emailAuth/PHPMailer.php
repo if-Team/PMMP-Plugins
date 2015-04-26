@@ -3399,15 +3399,3 @@ class PHPMailer
         }
     }
 }
-
-/**
- * PHPMailer exception handler
- * @package PHPMailer
- */
-class phpmailerException extends \InvalidStateException
-{
-    /**
-     * Prettify error message output
-     * @return string
-     */
-}
