@@ -57,8 +57,6 @@ class VIPPlus extends PluginBase implements Listener {
     }
 
     public function onEnable(){
-        @mkdir($this->getDataFolder());
-
         $this->loadConfig();
         $this->loadVips();
         $this->loadMessages();
@@ -85,10 +83,13 @@ class VIPPlus extends PluginBase implements Listener {
         }
     }
 
+    /**
+     * @return bool
+     */
     public function saveVips(){
         $vipsConfig = new Config($this->getDataFolder() . "vips.yml", Config::YAML);
         $vipsConfig->setAll($this->getVips());
-        $vipsConfig->save();
+        return $vipsConfig->save();
     }
 
     /**
@@ -110,6 +111,7 @@ class VIPPlus extends PluginBase implements Listener {
 
 
     public function loadConfig(){
+        @mkdir($this->getDataFolder());
         $this->saveDefaultConfig();
 
         $this->armorContents = [];
