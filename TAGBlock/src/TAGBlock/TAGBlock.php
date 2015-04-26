@@ -7,7 +7,6 @@ use pocketmine\event\Listener;
 use pocketmine\utils\Config;
 use pocketmine\network\protocol\AddPlayerPacket;
 use pocketmine\network\protocol\RemovePlayerPacket;
-use pocketmine\scheduler\CallbackTask;
 use pocketmine\utils\TextFormat;
 use pocketmine\event\block\SignChangeEvent;
 use pocketmine\level\Level;
@@ -15,6 +14,7 @@ use pocketmine\block\Block;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\entity\Entity;
 use pocketmine\event\player\PlayerQuitEvent;
+use TAGBlock\task\TAGBlockTask;
 
 class TAGBlock extends PluginBase implements Listener {
 	public $messages, $db, $temp;
@@ -32,12 +32,14 @@ class TAGBlock extends PluginBase implements Listener {
 		$this->packet ["AddPlayerPacket"]->pitch = 0;
 		$this->packet ["AddPlayerPacket"]->item = 0;
 		$this->packet ["AddPlayerPacket"]->meta = 0;
-		$this->packet ["AddPlayerPacket"]->metadata = [ 0 => [ "type" => 0,"value" => 0 ],1 => [ "type" => 1,"value" => 0 ],16 => [ "type" => 0,"value" => 0 ],17 => [ "type" => 6,"value" => [ 0,0,0 ] ] ];
+		$this->packet ["AddPlayerPacket"]->slim = \false;
+		$this->packet ["AddPlayerPacket"]->skin = \str_repeat ( "\x00", 64 * 32 * 4 );
+		$this->packet ["AddPlayerPacket"]->metadata = [ Entity::DATA_FLAGS => [ Entity::DATA_TYPE_BYTE,1 << Entity::DATA_FLAG_INVISIBLE ],Entity::DATA_AIR => [ Entity::DATA_TYPE_SHORT,300 ],Entity::DATA_SHOW_NAMETAG => [ Entity::DATA_TYPE_BYTE,1 ],Entity::DATA_NO_AI => [ Entity::DATA_TYPE_BYTE,1 ] ];
 		
 		$this->packet ["RemovePlayerPacket"] = new RemovePlayerPacket ();
 		$this->packet ["RemovePlayerPacket"]->clientID = 0;
 		
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ $this,"TAGBlock" ] ), 20 );
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new TAGBlockTask ( $this ), 60 );
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
 	public function onDisable() {
@@ -60,8 +62,6 @@ class TAGBlock extends PluginBase implements Listener {
 		$blockPos = "{$block->x}.{$block->y}.{$block->z}";
 		
 		$this->db ["TAGBlock"] [$block->level->getFolderName ()] [$blockPos] = $message;
-		$block->level->setBlock ( $block->getSide ( 1 ), Block::get ( Block::AIR ) );
-		
 		$this->message ( $event->getPlayer (), $this->get ( "TAGBlock-added" ) );
 	}
 	public function BlockBreak(BlockBreakEvent $event) {
