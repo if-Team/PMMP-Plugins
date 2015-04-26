@@ -4,10 +4,6 @@ namespace hm\motdOnline;
 
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
-use pocketmine\utils\Config;
-use pocketmine\command\PluginCommand;
-use pocketmine\utils\TextFormat;
-use pocketmine\scheduler\CallbackTask;
 
 class motdOnline extends PluginBase implements Listener {
 	public $m_version = 1; // 현재 메시지 버전
