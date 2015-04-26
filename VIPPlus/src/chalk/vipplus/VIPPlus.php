@@ -29,6 +29,7 @@ use onebone\economyapi\EconomyAPI;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\event\Listener;
+use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\item\Item;
 use pocketmine\Player;
@@ -50,6 +51,9 @@ class VIPPlus extends PluginBase implements Listener {
 
     /** @var string */
     private $prefix = "";
+
+    /** @var string */
+    private $colorFormat = "";
 
     /* ====================================================================================================================== *
      *                         Below methods are plugin implementation part. Please do not call them!                         *
@@ -81,6 +85,7 @@ class VIPPlus extends PluginBase implements Listener {
         }
 
         $this->prefix = $this->getConfig()->get("vip-prefix", "");
+        $this->colorFormat = $this->getConfig()->get("vip-color-format", "");
     }
 
     /**
@@ -278,5 +283,13 @@ class VIPPlus extends PluginBase implements Listener {
 
         $vip->setArmor($this->armorContents);
         $vip->setPrefix($this->prefix);
+    }
+
+    public function onPlayerChat(PlayerChatEvent $event){
+        if($this->isVip($event->getPlayer()->getName()) === false){
+            return;
+        }
+
+        $event->setFormat($this->colorFormat . $event->getFormat());
     }
 }
