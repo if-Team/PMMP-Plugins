@@ -15,7 +15,6 @@ use pocketmine\network\protocol\AddItemEntityPacket;
 use pocketmine\network\protocol\RemoveEntityPacket;
 use pocketmine\network\protocol\AddPlayerPacket;
 use pocketmine\network\protocol\RemovePlayerPacket;
-use pocketmine\scheduler\CallbackTask;
 use pocketmine\command\PluginCommand;
 use pocketmine\utils\TextFormat;
 use pocketmine\event\block\BlockBreakEvent;
@@ -71,7 +70,7 @@ class EconomyGamble extends PluginBase implements Listener {
 		$this->packet ["RemovePlayerPacket"] = new RemovePlayerPacket ();
 		$this->packet ["RemovePlayerPacket"]->clientID = 0;
 		
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ $this,"EconomyGamble" ] ), 20 );
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new EconomyGambleTask($this), 20 );
 	}
 	public function onDisable() {
 		$save = new Config ( $this->getDataFolder () . "GambleDB.yml", Config::YAML );
