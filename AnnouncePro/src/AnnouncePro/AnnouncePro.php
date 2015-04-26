@@ -9,7 +9,6 @@ use pocketmine\command\Command;
 use pocketmine\utils\Config;
 use pocketmine\utils\TextFormat;
 use pocketmine\command\PluginCommand;
-use src\AnnouncePro\AnnounceProTask;
 
 class AnnouncePro extends PluginBase implements Listener {
 	public $config, $configData;

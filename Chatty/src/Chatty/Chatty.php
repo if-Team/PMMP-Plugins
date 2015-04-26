@@ -8,7 +8,6 @@ use pocketmine\event\Listener;
 use pocketmine\utils\Config;
 use pocketmine\command\PluginCommand;
 use pocketmine\utils\TextFormat;
-use pocketmine\scheduler\CallbackTask;
 use pocketmine\network\protocol\MessagePacket;
 use pocketmine\event\server\DataPacketSendEvent;
 use pocketmine\event\player\PlayerQuitEvent;
@@ -54,7 +53,7 @@ class Chatty extends PluginBase implements Listener {
 			$this->nameTag .= "\n";
 		
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ $this,"Chatty" ] ), 2 );
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new ChattyTask($this), 2 );
 	}
 	public function onDisable() {
 		$save = new Config ( $this->getDataFolder () . "pluginDB.yml", Config::YAML );

@@ -15,7 +15,6 @@ use pocketmine\item\Item;
 use pocketmine\network\protocol\LevelEventPacket;
 use pocketmine\Server;
 use pocketmine\block\Block;
-use src\hm\automaticDoor\AutomaticDoorTask;
 
 class automaticDoor extends PluginBase implements Listener {
 	public $opendoor = [ ];

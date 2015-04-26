@@ -1,6 +1,6 @@
 name: Chatty
 main: Chatty\Chatty
-version: 0.4-Alpha
+version: 0.5-Alpha
 author: hm
 api: [1.12.0]
 
