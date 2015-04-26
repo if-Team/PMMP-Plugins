@@ -8,8 +8,8 @@ use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
 use pocketmine\utils\Config;
 use pocketmine\utils\TextFormat;
-use pocketmine\scheduler\CallbackTask;
 use pocketmine\command\PluginCommand;
+use src\AnnouncePro\AnnounceProTask;
 
 class AnnouncePro extends PluginBase implements Listener {
 	public $config, $configData;
@@ -27,9 +27,7 @@ class AnnouncePro extends PluginBase implements Listener {
 				"suffix" => "",
 				"announce" => [ ] ] );
 		$this->configData = $this->config->getAll ();
-		$this->callback = $this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
-				$this,
-				"AnnouncePro" ] ), $this->configData ["repeat-second"] * 20 );
+		$this->callback = $this->getServer ()->getScheduler ()->scheduleRepeatingTask (new AnnounceProTask($this), $this->configData ["repeat-second"] * 20 );
 		
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
@@ -88,7 +86,7 @@ class AnnouncePro extends PluginBase implements Listener {
 				if (isset ( $this->configData ["announce"] [$args [1]] )) {
 					unset ( $this->configData ["announce"] [$args [1]] );
 					ksort ( $this->configData ["announce"] );
-					$match_new = array ();
+					$match_new = [];
 					$keys = array_keys ( $this->configData ["announce"] );
 					while ( $aaa = each ( $keys ) )
 						$match_new [] = $this->configData ["announce"] [$aaa [1]];
@@ -111,9 +109,7 @@ class AnnouncePro extends PluginBase implements Listener {
 				}
 				$this->configData ["repeat-second"] = $args [1];
 				$this->callback->remove ();
-				$this->callback = $this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
-						$this,
-						"AnnouncePro" ] ), $this->configData ["repeat-second"] * 20 );
+				$this->callback = $this->getServer ()->getScheduler ()->scheduleRepeatingTask (new AnnounceProTask($this), $this->configData ["repeat-second"] * 20 );
 				$player->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "repeat-complete" ) );
 				break;
 			case $this->get ( "sub-commands-prefix" ) :
