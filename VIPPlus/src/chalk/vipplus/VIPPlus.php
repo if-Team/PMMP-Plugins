@@ -28,8 +28,9 @@ use chalk\utils\Messages;
 use onebone\economyapi\EconomyAPI;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\entity\Arrow;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
-use pocketmine\event\entity\EntityDamageEvent;
+use pocketmine\event\entity\EntityShootBowEvent;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerJoinEvent;
@@ -56,6 +57,9 @@ class VIPPlus extends PluginBase implements Listener {
 
     /** @var string */
     private $colorFormat = "";
+
+    /** @var array */
+    private $arrowQueue = [];
 
     /* ====================================================================================================================== *
      *                         Below methods are plugin implementation part. Please do not call them!                         *
@@ -311,28 +315,37 @@ class VIPPlus extends PluginBase implements Listener {
         $event->setFormat($this->colorFormat . $event->getFormat());
     }
 
-    public function onVipDamaged(EntityDamageEvent $event){
-        if(!($event instanceof EntityDamageByEntityEvent)){
-            return;
-        }
-
+    public function onPlayerDamagedByEntity(EntityDamageByEntityEvent $event){
         $attacker = $event->getDamager();
         $victim = $event->getEntity();
 
-        if(!($attacker instanceof Player and $victim instanceof Player)){
+        if(!($victim instanceof Player)){
             return;
         }
 
-        $vipAttacker = $this->getVip($attacker);
-        $vipVictim = $this->getVip($victim);
-
-        if($vipAttacker === null and $vipVictim === null){
-            return;
-        }
-
-        if($vipAttacker->refuseToPvp() or $vipVictim->refuseToPvp()){
+        if((($vipVictim = $this->getVip($victim)) !== null and $vipVictim->refuseToPvp()) or (($vipAttacker = $this->getVip($attacker)) !== null and $vipAttacker->refuseToPvp())){
             $event->setDamage(0);
             $event->setCancelled(true);
+            return;
         }
+
+        if($attacker instanceof Arrow and ($arrowIndex = array_search($attacker->getId(), $this->arrowQueue)) !== false){
+            $victim->setOnFire(10);
+            unset($this->arrowQueue[$arrowIndex]);
+        }
+    }
+
+    public function onVipShootBow(EntityShootBowEvent $event){
+        $player = $event->getEntity();
+        if(!($player instanceof Player) or ($vip = $this->getVip($player)) === null){
+            return;
+        }
+
+        if($vip->refuseToPvp()){
+            $event->setCancelled(true);
+            return;
+        }
+
+        array_push($this->arrowQueue, $event->getProjectile()->getId());
     }
 }
