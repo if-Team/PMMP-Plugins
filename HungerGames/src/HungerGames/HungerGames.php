@@ -16,17 +16,18 @@ use pocketmine\network\protocol\UpdateBlockPacket;
 use pocketmine\block\Block;
 use pocketmine\event\player\PlayerDeathEvent;
 use pocketmine\event\player\PlayerRespawnEvent;
-use pocketmine\scheduler\CallbackTask;
+// use pocketmine\scheduler\CallbackTask;
 use pocketmine\event\entity\ProjectileLaunchEvent;
 use pocketmine\entity\Arrow;
 use pocketmine\event\Event;
-use pocketmine\event\entity\ExplosionPrimeEvent;
-use pocketmine\level\Explosion;
+// use pocketmine\event\entity\ExplosionPrimeEvent;
+// use pocketmine\level\Explosion;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageByChildEntityEvent;
 use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\entity\EntityCombustByBlockEvent;
+use HungerGames\task\removeArrowTask;
 
 class HungerGames extends PluginBase implements Listener {
 	public $settings, $score;
@@ -65,7 +66,7 @@ class HungerGames extends PluginBase implements Listener {
 			$event->setCancelled ();
 			if (isset ( $this->touchedQueue [$player->getName ()] [$blockPos] )) {
 				$this->alert ( $player, $this->get ( "already-touched" ) );
-				$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"setBlockPacket" ], [ $player,$block->x,$block->y,$block->z,Block::GLOWING_OBSIDIAN ] ), 2 );
+				// $this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"setBlockPacket" ], [ $player,$block->x,$block->y,$block->z,Block::GLOWING_OBSIDIAN ] ), 2 );
 				return;
 			}
 			$rand = mt_rand ( 1, 100 );
@@ -78,7 +79,7 @@ class HungerGames extends PluginBase implements Listener {
 			}
 			
 			$this->touchedQueue [$player->getName ()] [$blockPos] = 0;
-			$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"setBlockPacket" ], [ $player,$block->x,$block->y,$block->z,Block::GLOWING_OBSIDIAN ] ), 2 );
+			// $this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"setBlockPacket" ], [ $player,$block->x,$block->y,$block->z,Block::GLOWING_OBSIDIAN ] ), 2 );
 			
 			$armorRand = rand ( 1, 4 );
 			if ($armorRand == 1) {
@@ -137,9 +138,9 @@ class HungerGames extends PluginBase implements Listener {
 				$blockPos = "{$block->x}.{$block->y}.{$block->z}";
 				
 				if (! isset ( $this->fireblock [$blockPos] )) {
-					foreach ( $this->getServer ()->getOnlinePlayers () as $player )
-						$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"setBlockPacket" ], [ $player,$block->x,$block->y,$block->z,Block::FIRE ] ), 2 );
-					$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"restoreBlock" ], [ $block->x,$block->y,$block->z ] ), 80 );
+					// foreach ( $this->getServer ()->getOnlinePlayers () as $player )
+					// $this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"setBlockPacket" ], [ $player,$block->x,$block->y,$block->z,Block::FIRE ] ), 2 );
+					// $this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"restoreBlock" ], [ $block->x,$block->y,$block->z ] ), 80 );
 				} else {
 					$this->restoreBlock ( $block->x, $block->y, $block->z );
 				}
@@ -158,25 +159,9 @@ class HungerGames extends PluginBase implements Listener {
 	}
 	public function checkArrow(ProjectileLaunchEvent $event) {
 		if ($event->getEntity () instanceof Arrow) {
-			$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"removeArrow" ], [ $event ] ), 20 );
+			$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new removeArrowTask ( $event, $this->getServer () ), 20 );
+			// $this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"removeArrow" ], [ $event ] ), 20 );
 		}
-	}
-	public function removeArrow(Event $event) {
-		if ($event->isCancelled ()) return;
-		
-		$arrow = $event->getEntity ();
-		$murder = $event->getEntity ()->shootingEntity;
-		
-		$this->getServer ()->getPluginManager ()->callEvent ( $ev = new ExplosionPrimeEvent ( $arrow, 3.2 ) );
-		if (! $ev->isCancelled ()) {
-			$explosion = new Explosion ( $arrow, $ev->getForce (), $murder );
-			$explosion->explodeB ();
-		}
-		
-		$reflection_class = new \ReflectionClass ( $arrow );
-		$property = $reflection_class->getProperty ( 'age' );
-		$property->setAccessible ( true );
-		$property->setValue ( $arrow, 7000 );
 	}
 	public function restoreBlock($x, $y, $z) {
 		if (! isset ( $this->fireblock ["{$x}.{$y}.{$z}"] )) return;
