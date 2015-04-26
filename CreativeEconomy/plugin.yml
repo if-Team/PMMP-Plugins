@@ -1,8 +1,8 @@
 name: CreativeEconomy
 main: CreativeEconomy\CreativeEconomy
-version: 0.4-Alpha
+version: 0.5-Alpha
 author: hm
-api: [1.4.1]
+api: [1.12.0]
 
 permissions:
  creativeeconomy.commands.buy:
