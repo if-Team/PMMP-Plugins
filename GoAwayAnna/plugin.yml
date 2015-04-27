@@ -1,0 +1,5 @@
+name: GoAwayAnna
+main: hm\GoAwayAnna\GoAwayAnna
+version: 0.1-Non-Alpha
+author: hm
+api: [1.12.0]
