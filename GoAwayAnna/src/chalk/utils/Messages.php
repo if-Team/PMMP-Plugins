@@ -22,13 +22,13 @@ class Messages {
      */
     public function __construct(array $config){
         $version = $config["default-language"];
-        $this->version = isset($version) and is_int($version) ? $version : 0;
+        $this->version = (isset($version) and is_int($version)) ? $version : 0;
 
         $defaultLanguage = $config["default-language"];
-        $this->defaultLanguage = isset($defaultLanguage) and is_string($defaultLanguage) ? $defaultLanguage : "en";
+        $this->defaultLanguage = (isset($defaultLanguage) and is_string($defaultLanguage)) ? $defaultLanguage : "en";
 
         $messages = $config["messages"];
-        $this->messages = isset($messages) and is_array($messages) ? $messages : [];
+        $this->messages = (isset($messages) and is_array($messages)) ? $messages : [];
     }
 
     /**
