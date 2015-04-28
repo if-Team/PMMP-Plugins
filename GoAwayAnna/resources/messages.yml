@@ -1,0 +1,8 @@
+version: 0
+default-language: en
+
+messages:
+  console-only:
+    en: This command is console-only!
+    ja: このコマンドは、コンソールのみです！
+    ko: 이 명령어는 콘솔 전용입니다!
