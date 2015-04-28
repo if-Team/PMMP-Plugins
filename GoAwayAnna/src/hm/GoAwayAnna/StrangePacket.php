@@ -19,34 +19,84 @@ namespace hm\GoAwayAnna;
 
 use pocketmine\network\protocol\DataPacket;
 
-class StrangePacket extends DataPacket{
+class StrangePacket extends DataPacket {
+    /** @var string */
+    private $address;
 
-	public $address;
-	public $port = 19132;
+	/** @var int */
+    private $port;
 
-	public function pid(){
-		return 0x1b;
-	}
+    /**
+     * @param string $address
+     * @param int $port = 19132
+     */
+    public function __construct($address, $port = 19132){
+        $this->address = $address;
+        $this->port = $port;
+    }
 
-	protected function putAddress($addr, $port, $version = 4){
-		$this->putByte($version);
-		if($version === 4){
-			foreach(explode(".", $addr) as $b){
-				$this->putByte((~((int) $b)) & 0xff);
-			}
-			$this->putShort($port);
-		}else{
-			//IPv6
-		}
-	}
+    /**
+     * @return string
+     */
+    public function getAddress(){
+        return $this->address;
+    }
 
-	public function decode(){
+    /**
+     * @param string $address
+     */
+    public function setAddress($address){
+        $this->address = $address;
+    }
 
-	}
+    /**
+     * @return int
+     */
+    public function getPort(){
+        return $this->port;
+    }
+
+    /**
+     * @param int $port
+     */
+    public function setPort($port){
+        $this->port = $port;
+    }
+
+    /**
+     * @return int
+     */
+    public function pid(){
+        return 0x1b;
+    }
 
 	public function encode(){
 		$this->reset();
-		$this->putAddress($this->address, $this->port);
+		$this->putAddress();
 	}
 
+    public function decode(){
+
+    }
+
+    /**
+     * @param int $version = 4
+     */
+    protected function putAddress($version = 4){
+        $this->putByte($version);
+
+        switch($version){
+            case 4:
+                //IPv4
+                foreach(explode(".", $this->getAddress()) as $b){
+                    $this->putByte((~((int) $b)) & 0xff);
+                }
+                $this->putShort($this->getPort());
+                break;
+
+            case 6:
+                //IPv6
+                break;
+        }
+    }
 }
