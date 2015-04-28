@@ -12,9 +12,6 @@ use pocketmine\network\Network;
 use pocketmine\utils\Config;
 
 class GoAwayAnna extends PluginBase implements Listener {
-    /** @var array */
-    private $lookup = [];
-
     /** @var Messages */
     private $messages = [];
 
@@ -94,13 +91,13 @@ class GoAwayAnna extends PluginBase implements Listener {
         }
 
         if(!is_array($args) or count($args) < 1){
-            $sender->sendMessage($this->getMessages()->getMessage("invalid-command"));
-            $sender->sendMessage($this->getMessages()->getMessage("usage"), ["usage" => $command->getUsage()]);
+            $sender->sendMessage($this->getMessages()->getMessage("current-address"));
+            $sender->sendMessage($this->getMessages()->getMessage("usage", ["usage" => $command->getUsage()]));
             return true;
         }
 
         $this->ip = $args[0];
-        $this->port = is_numeric($args[1]) ? intval($args[1]) : 19132;
+        $this->port = (count($args) > 1 and is_numeric($args[1])) ? intval($args[1]) : 19132;
 
         $sender->sendMessage($this->getMessages()->getMessage("address-changed", ["ip" => $this->getIp(), "port" => $this->getPort()]));
         return true;
@@ -112,37 +109,11 @@ class GoAwayAnna extends PluginBase implements Listener {
                 return false;
             }
 
-            $ip = $this->lookupAddress($this->getIp());
-            if($ip === null){
-                return false;
-            }
-
-            $event->getPlayer()->dataPacket((new StrangePacket($ip, $this->getPort()))->setChannel(Network::CHANNEL_ENTITY_SPAWNING));
+            $event->getPlayer()->dataPacket((new StrangePacket($this->getIp(), $this->getPort()))->setChannel(Network::CHANNEL_ENTITY_SPAWNING));
             $event->setCancelled();
             return true;
         }
         return false;
-    }
-
-    private function lookupAddress($address){
-        // IPv4 address
-        if(preg_match("/^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$/", $address) > 0){
-            return $address;
-        }
-
-        $address = strtolower($address);
-
-        if(isset($this->lookup[$address])){
-            return $this->lookup[$address];
-        }
-
-        $host = gethostbyname($address);
-        if($host === $address){
-            return null;
-        }
-
-        $this->lookup[$address] = $host;
-        return $host;
     }
 }
 

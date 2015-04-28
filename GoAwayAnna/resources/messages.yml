@@ -7,10 +7,10 @@ messages:
     ja: "このコマンドは、コンソールのみです！"
     ko: "이 명령어는 콘솔 전용입니다!"
 
-  invalid-command:
-    en: "Invalid command!"
-    ja: "コマンドが無効です！"
-    ko: "잘못된 명령어입니다!"
+  current-address:
+    en: "Current address: {%ip}:{%port}"
+    ja: "現在のアドレス：　{%ip}:{%port}"
+    ko: "현재 주소: {%ip}:{%port}"
 
   usage:
     en: "Usage: {%usage}"
@@ -18,6 +18,6 @@ messages:
     ko: "사용법: {%usage}"
 
   address-changed:
-    en: "Changed the adress to {$ip}:{$port}!"
-    ja: "アドレスを{$ip}:{$port}に変更しました！"
-    ko: "주소를 {$ip}:{$port}으로 변경했습니다!"
+    en: "Changed the address to {%ip}:{%port}!"
+    ja: "アドレスを{%ip}:{%port}に変更しました！"
+    ko: "주소를 {%ip}:{%port}으로 변경했습니다!"
