@@ -100,6 +100,7 @@ class GoAwayAnna extends PluginBase implements Listener {
         $this->port = (count($args) > 1 and is_numeric($args[1])) ? intval($args[1]) : 19132;
 
         $sender->sendMessage($this->getMessages()->getMessage("address-changed", ["ip" => $this->getIp(), "port" => $this->getPort()]));
+        $this->saveConfig();
         return true;
     }
 
