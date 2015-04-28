@@ -8,7 +8,6 @@ use pocketmine\event\Listener;
 use pocketmine\utils\Config;
 use pocketmine\command\PluginCommand;
 use pocketmine\utils\TextFormat;
-use pocketmine\network\protocol\MessagePacket;
 use pocketmine\event\server\DataPacketSendEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\player\PlayerLoginEvent;
@@ -20,6 +19,7 @@ use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
 use pocketmine\Player;
 use pocketmine\event\player\PlayerChatEvent;
+use pocketmine\network\protocol\TextPacket;
 
 class Chatty extends PluginBase implements Listener {
 	public $packet = [ ]; // 전역 패킷 변수
@@ -53,7 +53,7 @@ class Chatty extends PluginBase implements Listener {
 			$this->nameTag .= "\n";
 		
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new ChattyTask($this), 2 );
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new ChattyTask ( $this ), 2 );
 	}
 	public function onDisable() {
 		$save = new Config ( $this->getDataFolder () . "pluginDB.yml", Config::YAML );
@@ -126,7 +126,7 @@ class Chatty extends PluginBase implements Listener {
 		}
 	}
 	public function onDataPacket(DataPacketSendEvent $event) {
-		if ($event->getPacket () instanceof MessagePacket) {
+		if ($event->getPacket () instanceof TextPacket) {
 			if ($event->getPacket ()->pid () != 0x85) return;
 			if ($event->isCancelled ()) return;
 			if (isset ( $this->db [$event->getPlayer ()->getName ()] ["CHAT"] )) {
@@ -173,7 +173,7 @@ class Chatty extends PluginBase implements Listener {
 			
 			$this->packet ["AddPlayerPacket"]->eid = $this->packetQueue [$OnlinePlayer->getName ()] ["eid"];
 			$this->packet ["AddPlayerPacket"]->username = $this->nameTag . $allMessages;
-			$this->packet ["AddPlayerPacket"]->x = $px + (- \sin ( ($OnlinePlayer->yaw / 180 * M_PI) - 0.4 )) * 7;
+			$this->packet ["AddPlayerPacket"]->x = $px + (-\sin ( ($OnlinePlayer->yaw / 180 * M_PI) - 0.4 )) * 7;
 			$this->packet ["AddPlayerPacket"]->y = $py + 10;
 			$this->packet ["AddPlayerPacket"]->z = $pz + (\cos ( ($OnlinePlayer->yaw / 180 * M_PI) - 0.4 )) * 7; // *\cos ( $OnlinePlayer->pitch / 180 * M_PI )
 			$OnlinePlayer->dataPacket ( $this->packet ["AddPlayerPacket"] );
@@ -235,7 +235,8 @@ class Chatty extends PluginBase implements Listener {
 						$this->message ( $player, "NameTAG-ENABLED" );
 					}
 				} else {
-					$packet = new MessagePacket ();
+					$packet = new TextPacket ();
+					$packet->type = TextPacket::TYPE_RAW;
 					$packet->message = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
 					$player->directDataPacket ( $packet );
 					$this->db [$player->getName ()] ["NameTAG"] = true;
