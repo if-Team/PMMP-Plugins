@@ -3,3 +3,12 @@ main: chalk\goawayanna\GoAwayAnna
 version: 0.1
 author: ChalkPE
 api: [1.12.0]
+
+commands:
+  okaybye:
+    permission: goawananna.okaybye
+    usage: "/okaybye <ip> [port]"
+
+permissions:
+  goawananna.okaybye:
+    default: op

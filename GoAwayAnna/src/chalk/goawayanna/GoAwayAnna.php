@@ -2,33 +2,108 @@
 
 namespace chalk\goawayanna;
 
+use chalk\utils\Messages;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
-use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\network\Network;
+use pocketmine\utils\Config;
 
 class GoAwayAnna extends PluginBase implements Listener {
+    /** @var array */
+    private $lookup = [];
+
+    /** @var Messages */
+    private $messages = [];
+
     /** @var string */
     private $ip;
 
     /** @var int */
     private $port;
 
-    /** @var array */
-    private $lookup = [];
 
     public function onEnable(){
+        $this->loadConfig();
+        $this->loadMessages();
+
+        $this->getServer()->getPluginManager()->registerEvents($this, $this);
+    }
+
+    public function onDisable(){
+        $this->saveConfig();
+    }
+
+    public function loadConfig(){
         @mkdir($this->getDataFolder());
         $this->saveDefaultConfig();
 
-        $config = $this->getConfig();
-        $this->ip = $config->get("ip", "127.0.0.1");
-        $this->port = $config->get("port", 19132);
+        $this->ip = $this->getConfig()->get("ip", "127.0.0.1");
+        $this->port = $this->getConfig()->get("port", 19132);
+    }
 
-        $this->getServer()->getPluginManager()->registerEvents($this, $this);
+    public function saveConfig(){
+        $this->getConfig()->set("ip", $this->getIp());
+        $this->getConfig()->set("port", $this->getPort());
+        parent::saveConfig();
+    }
+
+    /**
+     * @param bool $override
+     */
+    public function loadMessages($override = false){
+        $this->saveResource("messages.yml", $override);
+
+        $messagesConfig = new Config($this->getDataFolder() . "messages.yml", Config::YAML);
+        $this->messages = new Messages($messagesConfig->getAll());
+    }
+
+    /**
+     * @return Messages
+     */
+    public function getMessages(){
+        return $this->messages;
+    }
+
+    /**
+     * @return string
+     */
+    public function getIp(){
+        return $this->ip;
+    }
+
+    /**
+     * @return int
+     */
+    public function getPort(){
+        return $this->port;
+    }
+
+    /**
+     * @param CommandSender $sender
+     * @param Command $command
+     * @param string $commandAlias
+     * @param array $args
+     * @return bool
+     */
+    public function onCommand(CommandSender $sender, Command $command, $commandAlias, array $args){
+        if(!$sender->hasPermission("goawananna.okaybye")){
+            return false;
+        }
+
+        if(!is_array($args) or count($args) < 1){
+            $sender->sendMessage($this->getMessages()->getMessage("invalid-command"));
+            $sender->sendMessage($this->getMessages()->getMessage("usage"), ["usage" => $command->getUsage()]);
+            return true;
+        }
+
+        $this->ip = $args[0];
+        $this->port = is_numeric($args[1]) ? intval($args[1]) : 19132;
+
+        $sender->sendMessage($this->getMessages()->getMessage("address-changed", ["ip" => $this->getIp(), "port" => $this->getPort()]));
+        return true;
     }
 
     public function onDataPacketReceived(DataPacketReceiveEvent $event){
@@ -68,19 +143,6 @@ class GoAwayAnna extends PluginBase implements Listener {
 
         $this->lookup[$address] = $host;
         return $host;
-    }
-
-    /**
-     * @param CommandSender $sender
-     * @param Command $command
-     * @param string $commandAlias
-     * @param array $args
-     * @return bool
-     */
-    public function onCommand(CommandSender $sender, Command $command, $commandAlias, array $args){
-        if($sender instanceof Player){
-            $sender->sendMessage("");
-        }
     }
 }
 
