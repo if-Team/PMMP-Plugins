@@ -110,7 +110,7 @@ class GoAwayAnna extends PluginBase implements Listener {
                 return false;
             }
 
-            if($this->getIp() === "localhost"){
+            if($this->getIp() === null or $this->getIp() === "null"){
                 return false;
             }
 
