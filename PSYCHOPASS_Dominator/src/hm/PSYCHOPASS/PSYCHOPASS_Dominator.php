@@ -24,14 +24,17 @@ use pocketmine\event\player\PlayerChatEvent;
 
 class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 	/**
+	 *
 	 * @var PSYCHOPASS_Dominator
 	 */
 	private static $instance = null;
 	/**
+	 *
 	 * @var Config
 	 */
 	public $log_ban, $log_kick, $log_ipban, $log_subban, $log_pardon;
 	/**
+	 *
 	 * @var array
 	 */
 	public $ban_data, $kick_data, $ipban_data, $subban_data, $pardon_data;
@@ -65,7 +68,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 		$this->loadExecuteData ();
 		
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
-		$this->initialize_schedule_repeat (new SaveExecuteDataTask($this), 2000);
+		$this->initialize_schedule_repeat ( new SaveExecuteDataTask ( $this ), 2000 );
 	}
 	public function onDisable() {
 		$this->saveExecuteData ();
@@ -84,7 +87,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$player->sendMessage ( $this->getMessage ( "index_name_caution1" ) );
 			$player->sendMessage ( $this->getMessage ( "index_name_caution2" ) );
 			$player->sendMessage ( $this->getMessage ( "index_name_caution3" ) );
-			$this->initialize_schedule_delay(new KickExecuteTask($this, $player), 100);
+			$this->initialize_schedule_delay ( new KickExecuteTask ( $this, $player ), 100 );
 			return;
 		}
 		if (isset ( $this->ipban_data [$player->getAddress ()] )) {
@@ -94,7 +97,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$player->sendMessage ( $this->getMessage ( "warning_ipbanned" ) . "(" . $player->getAddress () . ")" );
 			$player->sendMessage ( $this->getMessage ( "warning-disconnected" ) );
 			$player->sendMessage ( $this->getMessage ( "contact-admin" ) );
-			$this->initialize_schedule_delay(new KickExecuteTask($this, $player), 100);
+			$this->initialize_schedule_delay ( new KickExecuteTask ( $this, $player ), 100 );
 			return;
 		}
 		if (isset ( $this->ban_data [$player->getName ()] )) {
@@ -104,7 +107,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$player->sendMessage ( $this->getMessage ( "warning_banned" ) . "(" . $player->getName () . ")" );
 			$player->sendMessage ( $this->getMessage ( "warning-disconnected" ) );
 			$player->sendMessage ( $this->getMessage ( "contact-admin" ) );
-			$this->initialize_schedule_delay(new KickExecuteTask($this, $player), 100);
+			$this->initialize_schedule_delay ( new KickExecuteTask ( $this, $player ), 100 );
 			return;
 		}
 		$e = explode ( ".", $player->getAddress () );
@@ -115,7 +118,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$player->sendMessage ( $this->getMessage ( "warning_subnetbanned" ) . "(" . $e [0] . "." . $e [1] . ")" );
 			$player->sendMessage ( $this->getMessage ( "warning-disconnected" ) );
 			$player->sendMessage ( $this->getMessage ( "contact-admin" ) );
-			$this->initialize_schedule_delay(new KickExecuteTask($this, $player), 100);
+			$this->initialize_schedule_delay ( new KickExecuteTask ( $this, $player ), 100 );
 			return;
 		}
 		$this->onlinelist [] = $player->getName ();
@@ -277,7 +280,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 						// 인덱스를 통한 밴일경우
 						$target = $this->getServer ()->getPlayer ( $this->onlinelist [$args [0]] );
 					} else {
-						//$name_search = $this->getServer ()->getOfflinePlayer ( $args [0] );
+						// $name_search = $this->getServer ()->getOfflinePlayer ( $args [0] );
 						$e = explode ( "d", strtolower ( $args [0] ) );
 						if (isset ( $e [1] ) and is_numeric ( $e [1] )) {
 							// 오프라인 인덱스를 통한 밴일경우
@@ -289,7 +292,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 								$ip = $e [0] . "." . $e [1] . "." . $e [2] . "." . $e [3];
 								foreach ( $this->getServer ()->getOnlinePlayers () as $checkip ) {
 									if ($checkip->getAddress () == $ip) {
-										//$target = $checkip;
+										// $target = $checkip;
 										break;
 									}
 								}
@@ -337,7 +340,9 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 						$e = explode ( "d", strtolower ( $args [0] ) );
 						if (isset ( $e [1] ) and is_numeric ( $e [1] )) {
 							// 오프라인 인덱스를 통한 밴일경우
-                            /** @var $tp Player */
+							/**
+							 * @var $tp Player
+							 */
 							$tp = explode ( ".", $this->offline_iplist [$e [1]] );
 							$target [] = $tp [0] . "." . $tp [1];
 							foreach ( $this->getServer ()->getOnlinePlayers () as $checkip ) {
@@ -460,9 +465,9 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 				$target = $this->pardon_data;
 				$targetname = "밴해제";
 				break;
-
-            default:
-                $targetname = "";
+			
+			default :
+				$targetname = "";
 		}
 		if (isset ( $target )) {
 			$once_print = 5;
@@ -525,7 +530,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$executor->sendMessage ( $this->getMessage ( "executed-ban" ) );
 		}
 		$this->getServer ()->broadcastMessage ( TextFormat::DARK_AQUA . $name . " " . $this->getMessage ( "broadcast-kick-info" ) . ":" . $cause );
-		if ($target instanceof Player and ! $target->closed) $this->initialize_schedule_delay ( $this, "KickExecute", 100, [ $target ] );
+		if ($target instanceof Player and ! $target->closed) $this->initialize_schedule_delay ( new KickExecuteTask ( $this, $target ), 100 );
 	}
 	public function DoKick(CommandSender $executor, $target, $cause) {
 		if ($target instanceof IPlayer) {
@@ -544,7 +549,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$target->sendMessage ( $this->getMessage ( "warning-disconnected" ) );
 			
 			$this->getServer ()->broadcastMessage ( TextFormat::DARK_AQUA . $name . " " . $this->getMessage ( "broadcast-kick-info" ) . ":" . $cause );
-			$this->initialize_schedule_delay ( $this, "KickExecute", 100, [ $target ] );
+			$this->initialize_schedule_delay ( new KickExecuteTask ( $this, $target ), 100 );
 		} else {
 			$executor->sendMessage ( $this->getMessage ( "user-not-login" ) );
 		}
@@ -577,15 +582,14 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$target->sendMessage ( $this->getMessage ( "execute-cause" ) . ": " . $cause . " " . $this->getMessage ( "executor" ) . ": " . $executor->getName () );
 			$target->sendMessage ( $this->getMessage ( "warning-disconnected" ) );
 			$this->getServer ()->broadcastMessage ( TextFormat::DARK_AQUA . $target->getName () . " " . $this->getMessage ( "broadcast-ipban-info" ) . ":" . $cause );
-			$this->initialize_schedule_delay ( $this, "KickExecute", 100, [ $target ] );
+			$this->initialize_schedule_delay ( new KickExecuteTask ( $this, $target ), 100 );
 		} else {
 			$executor->sendMessage ( TextFormat::DARK_AQUA . $address . " " . $this->getMessage ( "executed-ipban" ) );
 		}
 	}
-
 	public function DoSubnetIPBan(CommandSender $executor, $target, $cause) {
 		if ($target instanceof Player) {
-			$e = explode ( ".", $target->getAddress() );
+			$e = explode ( ".", $target->getAddress () );
 			$subnet = $e [0] . "." . $e [1];
 		} else {
 			$subnet = $target;
@@ -613,7 +617,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$target->sendMessage ( $this->getMessage ( "warning-disconnected" ) );
 			
 			$this->getServer ()->broadcastMessage ( TextFormat::DARK_AQUA . $target->getName () . $this->getMessage ( "broadcast-subban-info" ) . ":" . $cause );
-			$this->initialize_schedule_delay ( $this, "KickExecute", 100, [ $target ] );
+			$this->initialize_schedule_delay ( new KickExecuteTask ( $this, $target ), 100 );
 		} else {
 			$executor->sendMessage ( TextFormat::DARK_AQUA . $subnet . " " . $this->getMessage ( "executed-subban" ) );
 		}
@@ -753,7 +757,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 	}
 	public function registerCommand($name, $fallback, $permission, $description = "", $usage = "") {
 		$commandMap = $this->getServer ()->getCommandMap ();
-		$command = new PluginCommand( $name, $this );
+		$command = new PluginCommand ( $name, $this );
 		$command->setDescription ( $description );
 		$command->setPermission ( $permission );
 		$command->setUsage ( $usage );
@@ -763,10 +767,10 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 		return new Config ( $this->getDataFolder () . $path, Config::YAML, $array );
 	}
 	public function initialize_schedule_repeat($task, $period) {
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask($task, $period);
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( $task, $period );
 	}
 	public function initialize_schedule_delay($task, $period) {
-		$this->getServer ()->getScheduler ()->scheduleDelayedTask($task, $period);
+		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( $task, $period );
 	}
 }
 
