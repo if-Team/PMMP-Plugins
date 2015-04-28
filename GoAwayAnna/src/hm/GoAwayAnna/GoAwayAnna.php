@@ -1,6 +1,6 @@
 <?php
 
-namespace hm\GoAwayAnna;
+namespace chalk\goawayanna;
 
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;

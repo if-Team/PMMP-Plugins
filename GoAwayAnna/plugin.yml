@@ -1,5 +1,5 @@
 name: GoAwayAnna
-main: hm\GoAwayAnna\GoAwayAnna
-version: 0.1-Non-Alpha
-author: hm
+main: chalk\goawayanna\GoAwayAnna
+version: 0.1
+author: ChalkPE
 api: [1.12.0]

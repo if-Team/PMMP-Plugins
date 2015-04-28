@@ -15,7 +15,7 @@
  * GNU General Public License for more details.
  */
 
-namespace hm\GoAwayAnna;
+namespace chalk\goawayanna;
 
 use pocketmine\network\protocol\DataPacket;
 
