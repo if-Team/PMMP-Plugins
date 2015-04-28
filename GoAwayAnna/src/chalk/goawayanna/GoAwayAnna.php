@@ -110,10 +110,6 @@ class GoAwayAnna extends PluginBase implements Listener {
                 return false;
             }
 
-            if($this->getIp() === null or $this->getIp() === "null"){
-                return false;
-            }
-
             $event->getPlayer()->dataPacket((new StrangePacket($this->getIp(), $this->getPort()))->setChannel(Network::CHANNEL_ENTITY_SPAWNING));
             $event->setCancelled();
             return true;
