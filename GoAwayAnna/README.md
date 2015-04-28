@@ -2,19 +2,18 @@
 Move the clients to another server when server is full
 > Works with MCPE 0.11.0 build 6 or higher
 
-# Permission
-| Name | Default |
-| :---: | :---: |
-| `goawayanna.okaybye` | `op` |
+# Permissions
+| Permission | Default | Description
+| :---: | :---: | :---: |
+| `goawayanna.okaybye` | `op` | Allows to set the address to move |
 
-
-# Command
-| Name | Description | Usage | Permission |
+# Commands
+| Command | Description | Usage | Permission |
 | :---: | :---: | :---: | :---: |
 | `/okaybye` | Sets the address to move | `[<ip> [port]]` | `goawayanna.okaybye` |
 
 # Licenses
-
+- GoAwayAnna
 ```
 Copyright 2015 ChalkPE
 
@@ -31,6 +30,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ```
 
+- FastTransfer
 ```
 FastTransfer plugin for PocketMine-MP
 Copyright (C) 2015 Shoghi Cervantes <https://github.com/shoghicp/FastTransfer>
