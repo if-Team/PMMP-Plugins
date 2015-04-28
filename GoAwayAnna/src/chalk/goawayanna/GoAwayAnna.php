@@ -21,12 +21,12 @@ class GoAwayAnna extends PluginBase implements Listener {
     /** @var int */
     private $port;
 
-
     public function onEnable(){
         $this->loadConfig();
         $this->loadMessages();
 
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
+        $this->getLogger()->info($this->getMessages()->getMessage("current-address", ["ip" => $this->getIp(), "port" => $this->getPort()]));
     }
 
     public function onDisable(){
@@ -91,7 +91,7 @@ class GoAwayAnna extends PluginBase implements Listener {
         }
 
         if(!is_array($args) or count($args) < 1){
-            $sender->sendMessage($this->getMessages()->getMessage("current-address"));
+            $sender->sendMessage($this->getMessages()->getMessage("current-address", ["ip" => $this->getIp(), "port" => $this->getPort()]));
             $sender->sendMessage($this->getMessages()->getMessage("usage", ["usage" => $command->getUsage()]));
             return true;
         }
@@ -107,6 +107,10 @@ class GoAwayAnna extends PluginBase implements Listener {
     public function onDataPacketReceived(DataPacketReceiveEvent $event){
         if($event->getPacket()->pid() == 0x82){
             if(count($this->getServer()->getOnlinePlayers()) <= $this->getServer()->getMaxPlayers()){
+                return false;
+            }
+
+            if($this->getIp() === "localhost"){
                 return false;
             }
 
