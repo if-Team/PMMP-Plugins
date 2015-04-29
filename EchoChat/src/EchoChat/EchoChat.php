@@ -14,6 +14,7 @@ use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
 use pocketmine\Player;
 use pocketmine\event\player\PlayerChatEvent;
+use pocketmine\event\Event;
 
 class EchoChat extends PluginBase implements Listener {
 	private static $instance = null; // 인스턴스 변수
@@ -158,6 +159,9 @@ class EchoChat extends PluginBase implements Listener {
 		return true;
 	}
 	public function onChat(PlayerChatEvent $event) {
+		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new EchoChatTask ( $this, $event ), 2 );
+	}
+	public function sendPacket(Event $event) {
 		if ($event->isCancelled ()) return;
 		if (! isset ( $this->db ["name"] )) return;
 		if (! isset ( $this->db ["pass"] )) return;
@@ -165,23 +169,23 @@ class EchoChat extends PluginBase implements Listener {
 		$message = $this->getServer ()->getLanguage ()->translateString ( $event->getFormat (), [ $event->getPlayer ()->getDisplayName (),$event->getMessage () ] );
 		$send = [ $this->db ["pass"],TextFormat::GOLD . "[ " . $this->db ["name"] . " ] " . TextFormat::WHITE . $message ]; // 0-pass, 1-chat
 		if (isset ( $this->db ["echoserver"] )) foreach ( $this->db ["echoserver"] as $index => $data ) {
-			//echo $index . "로 패킷전송을 시도합니다 (" . $send [1] . ")\n";
+			// echo $index . "로 패킷전송을 시도합니다 (" . $send [1] . ")\n";
 			$address = explode ( ":", $index ); // 0-ip, 1-port
 			CPAPI::sendPacket ( new DataPacket ( $address [0], $address [1], json_encode ( $send ) ) );
 		}
 	}
 	public function onPacketReceive(CustomPacketReceiveEvent $ev) {
-		//echo "패킷받음\n";
+		// echo "패킷받음\n";
 		if (! isset ( $this->db ["name"] )) return;
 		if (! isset ( $this->db ["pass"] )) return;
 		$data = json_decode ( $ev->getPacket ()->data );
 		if (! is_array ( $data )) {
-			//echo "[테스트] 어레이가 아닌 정보 전달됨\n";
+			// echo "[테스트] 어레이가 아닌 정보 전달됨\n";
 			$ev->getPacket ()->printDump ();
 			return;
 		}
 		if ($data [0] != $this->db ["pass"]) {
-			//echo "[테스트] 패스코드가 다른 정보 전달됨\n";
+			// echo "[테스트] 패스코드가 다른 정보 전달됨\n";
 			var_dump ( $data [0] );
 			return;
 		}
