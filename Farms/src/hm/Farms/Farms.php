@@ -75,8 +75,8 @@ class Farms extends PluginBase implements Listener {
 			
 			$e = explode ( ".", $p );
 			if (! isset ( $this->farmdata [$p] ['id'] )) {
-				unset ( $this->farmdata [$p] ['id'] );
-				continue;
+				unset ( $this->farmdata [$p] );
+				return;
 			}
 			$id = $this->farmdata [$p] ['id'];
 			
@@ -85,11 +85,10 @@ class Farms extends PluginBase implements Listener {
 				case Item::CARROT_BLOCK :
 				case Item::POTATO_BLOCK :
 				case Item::BEETROOT_BLOCK :
-				case Item::CACTUS :
 					if (++ $this->farmdata [$p] ['damage'] >= 8) {
 						// GROW TIME IS OVER
 						unset ( $this->farmdata [$p] );
-						break;
+						return;
 					}
 					$vector3 = new Vector3 ( $e [0], $e [1], $e [2] );
 					$block = Block::get ( $this->farmdata [$p] ['id'], $this->farmdata [$p] ['damage'] );
@@ -101,10 +100,11 @@ class Farms extends PluginBase implements Listener {
 					$level->setBlock ( $vector3, $block );
 					break;
 				case Item::SUGARCANE_BLOCK :
+				case Item::CACTUS :
 					if (++ $this->farmdata [$p] ['damage'] >= 4) {
 						// GROW TIME IS OVER
 						unset ( $this->farmdata [$p] );
-						break;
+						return;
 					}
 					$vector3 = new Vector3 ( $e [0], $e [1] + $this->farmdata [$p] ['damage'], $e [2] );
 					$block = Block::get ( $this->farmdata [$p] ['id'], 0 );
@@ -116,7 +116,7 @@ class Farms extends PluginBase implements Listener {
 					if ($level->getBlock ( $vector3 )->getID () != Item::AIR) {
 						// THAT SUGAR CANE IS SOMETHING DIFFERENT USE..?
 						unset ( $this->farmdata [$p] );
-						break;
+						return;
 					}
 					$level->setBlock ( $vector3, $block );
 					break;
@@ -137,12 +137,12 @@ class Farms extends PluginBase implements Listener {
 								
 								$level->setBlock ( $vector3, Block::get ( Item::PUMPKIN ) );
 								unset ( $this->farmdata [$p] );
-								break;
+								return;
 							}
 						if (isset ( $this->farmdata [$p] )) {
 							// GROW TIME IS OVER
 							unset ( $this->farmdata [$p] );
-							continue;
+							return;
 						}
 					}
 					$vector3 = new Vector3 ( $e [0], $e [1], $e [2] );
@@ -165,13 +165,17 @@ class Farms extends PluginBase implements Listener {
 								
 								$level->setBlock ( $vector3, Block::get ( Item::MELON_BLOCK, 0 ) );
 								unset ( $this->farmdata [$p] );
-								break;
+								return;
 							}
 						if (isset ( $this->farmdata [$p] )) {
 							// GROW TIME IS OVER
 							unset ( $this->farmdata [$p] );
-							break;
+							return;
 						}
+					}
+					if (! isset ( $this->farmdata [$p] )) {
+						unset ( $this->farmdata [$p] );
+						return;
 					}
 					$vector3 = new Vector3 ( $e [0], $e [1], $e [2] );
 					$block = Block::get ( $this->farmdata [$p] ['id'], $this->farmdata [$p] ['damage'] );
