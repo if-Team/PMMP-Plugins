@@ -41,35 +41,21 @@ use pocketmine\plugin\PluginBase;
  * @package chalk\choptree
  */
 class ChopTree extends PluginBase implements Listener {
-    /**
-     * @var null|ChopTree
-     */
+    /** @var ChopTree|null */
     private static $instance = null;
 
-    /**
-     * @var EconomyAPI
-     */
-    private $economyAPI = null;
-
-    /**
-     * @var array
-     */
-    private $config;
-
-    /**
-     * @var array
-     */
+    /** @var array */
     private $doubleTouchQueue = [];
 
     const TYPE_BREAK = "break";
     const TYPE_DOUBLE_TOUCH = "doubleTouch";
 
-    private $FLOORS = [Block::DIRT, Block::GRASS];
-    private $WOODS = [Block::WOOD, Block::WOOD2];
-    private $LEAVES = [Block::LEAVES, Block::LEAVES2];
+    const FLOORS = [Block::DIRT, Block::GRASS];
+    const WOODS = [Block::WOOD, Block::WOOD2];
+    const LEAVES = [Block::LEAVES, Block::LEAVES2];
 
     /**
-     * @return null|ChopTree
+     * @return ChopTree|null
      */
     public static function getInstance(){
         return self::$instance;
@@ -83,10 +69,7 @@ class ChopTree extends PluginBase implements Listener {
         @mkdir($this->getDataFolder());
 
         $this->saveDefaultConfig();
-        $this->config = $this->getConfig()->getAll();
-
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
-        $this->economyAPI = EconomyAPI::getInstance();
     }
 
     public function onBlockBreak(BlockBreakEvent $event){
@@ -115,7 +98,7 @@ class ChopTree extends PluginBase implements Listener {
                 if($block->getX() === $lastBlock->getX() and $block->getY() === $lastBlock->getY() and $block->getZ() === $lastBlock->getZ()){
                     if($this->chopTree($player, $block, $event->getItem(), self::TYPE_DOUBLE_TOUCH)){
                         $event->setCancelled(true);
-                    };
+                    }
                 }
             }
             unset($this->doubleTouchQueue[$key]);
@@ -129,14 +112,14 @@ class ChopTree extends PluginBase implements Listener {
      * @param Block $stump
      * @param Item $item
      * @param string $type
-     * @return bool
+     * @return bool Succeed
      */
     public function chopTree(Player $player, Block $stump, Item $item, $type){
         if(!$player->hasPermission("ChopTree.{$type}")){
             return false;
         }
 
-        $config = $this->config[$type];
+        $config = $this->getConfig()->get($type);
         if($config === null or $config["enabled"] === false){
             return false;
         }
@@ -151,20 +134,18 @@ class ChopTree extends PluginBase implements Listener {
             return false;
         }
 
-        $cost = $config["cost"];
-        if($cost > 0){
-            if($config["costPerBlock"]){
-                $cost *= $treetop - $stump->getY();
-            }
-
-            $paymentResult = $this->economyAPI->reduceMoney($player, $cost, false, "ChopTree");
-            if($paymentResult !== EconomyAPI::RET_SUCCESS){
-                return false;
-            }
+        $cost = is_numeric($config["cost"]) ? intval($config["cost"]) : 0;
+        if($config["costPerBlock"]){
+            $cost *= $treetop - $stump->getY();
         }
 
-        $this->getServer()->getPluginManager()->callEvent($event = new ChopTreeEvent($this, $player, $stump));
+        $this->getServer()->getPluginManager()->callEvent($event = new ChopTreeEvent($this, $player, $stump, $item, $type, $cost));
         if($event->isCancelled()){
+            return false;
+        }
+
+        $paymentResult = EconomyAPI::getInstance()->reduceMoney($player, $cost, false, "ChopTree");
+        if($paymentResult !== EconomyAPI::RET_SUCCESS){
             return false;
         }
 
@@ -191,22 +172,22 @@ class ChopTree extends PluginBase implements Listener {
         $level = $stump->getLevel();
 
         $floor = $level->getBlock($stump->getSide(0));
-        if(!in_array($floor->getId(), $this->FLOORS)){
+        if(!in_array($floor->getId(), self::FLOORS)){
             return -1;
         }
 
         $found = null;
-        $maxHeight = $this->config["maxWorldHeight"] - $stump->getY();
+        $maxHeight = $this->getConfig()->get("maxWorldHeight") - $stump->getY();
 
         for($height = 0; $height < $maxHeight; $height++){
             $block = $level->getBlock($stump->add(0, $height, 0));
-            if(in_array($block->getId(), $this->WOODS)){
+            if(in_array($block->getId(), self::WOODS)){
                 if($found === null){
                     $found = [$block->getId(), $block->getDamage()];
                 }elseif($found[0] !== $block->getId() or $found[1] !== $block->getDamage()){
                     return -1;
                 }
-            }elseif($found !== null and in_array($block->getId(), $this->LEAVES)){
+            }elseif($found !== null and in_array($block->getId(), self::LEAVES)){
                 return $height;
             }else{
                 return -1;

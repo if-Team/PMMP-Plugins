@@ -27,6 +27,7 @@ namespace chalk\choptree;
 use pocketmine\block\Block;
 use pocketmine\event\Cancellable;
 use pocketmine\event\plugin\PluginEvent;
+use pocketmine\item\Item;
 use pocketmine\Player;
 use pocketmine\plugin\Plugin;
 
@@ -41,15 +42,31 @@ class ChopTreeEvent extends PluginEvent implements Cancellable {
     /** @var Block */
     private $block;
 
+    /** @var Item */
+    private $item;
+
+    /** @var string */
+    private $type;
+
+    /** @var int */
+    private $cost;
+
     /**
      * @param Plugin $plugin
      * @param Player $player
      * @param Block $block
+     * @param Item $item
+     * @param string $type
+     * @param int $cost
      */
-    public function __construct(Plugin $plugin, Player $player, Block $block){
+    public function __construct(Plugin $plugin, Player $player, Block $block, Item $item, $type, $cost){
         parent::__construct($plugin);
+
         $this->player = $player;
-        $this->block = $block;
+        $this->block  = $block;
+        $this->item   = $item;
+        $this->type   = $type;
+        $this->cost   = $cost;
     }
 
     /**
@@ -64,5 +81,26 @@ class ChopTreeEvent extends PluginEvent implements Cancellable {
      */
     public function getBlock(){
         return $this->block;
+    }
+
+    /**
+     * @return Item
+     */
+    public function getItem(){
+        return $this->item;
+    }
+
+    /**
+     * @return string
+     */
+    public function getType(){
+        return $this->type;
+    }
+
+    /**
+     * @return int
+     */
+    public function getCost(){
+        return $this->cost;
     }
 }
