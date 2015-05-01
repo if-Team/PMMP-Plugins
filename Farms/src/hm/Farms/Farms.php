@@ -52,9 +52,9 @@ class Farms extends PluginBase implements Listener {
 					$this->farmdata [$block->x . "." . $block->y . "." . $block->z] ['damage'] = 0;
 					$this->farmdata [$block->x . "." . $block->y . "." . $block->z] ['level'] = $block->getLevel ()->getFolderName ();
 					if ($event->getPlayer ()->hasPermission ( "Farms.VIP" )) {
-						$this->farmdata [$block->x . "." . $block->y . "." . $block->z] ['time'] = $this->configdata ["growing-time"];
-					} else {
 						$this->farmdata [$block->x . "." . $block->y . "." . $block->z] ['time'] = $this->configdata ["vip-growing-time"];
+					} else {
+						$this->farmdata [$block->x . "." . $block->y . "." . $block->z] ['time'] = $this->configdata ["growing-time"];
 					}
 					break;
 				}
@@ -74,6 +74,10 @@ class Farms extends PluginBase implements Listener {
 			if (-- $this->farmdata [$p] ['time'] > 0) continue;
 			
 			$e = explode ( ".", $p );
+			if (! isset ( $this->farmdata [$p] ['id'] )) {
+				unset ( $this->farmdata [$p] ['id'] );
+				continue;
+			}
 			$id = $this->farmdata [$p] ['id'];
 			
 			switch ($id) {
