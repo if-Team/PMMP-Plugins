@@ -16,7 +16,7 @@ use pocketmine\level\Level;
 use pocketmine\Player;
 
 class Farms extends PluginBase implements Listener {
-	public $farmlist, $farmdata, $blockids;
+	public $farmlist, $farmdata;
 	public $growids = [ Item::SEEDS,Item::CARROT,Item::POTATO,Item::BEETROOT,Item::SUGAR_CANE,Item::SUGARCANE_BLOCK,Item::PUMPKIN_SEEDS,Item::MELON_SEEDS,Item::DYE,Item::CACTUS ];
 	public $blockids = [ Block::WHEAT_BLOCK,Block::CARROT_BLOCK,Block::POTATO_BLOCK,Block::BEETROOT_BLOCK,Block::SUGARCANE_BLOCK,Block::SUGARCANE_BLOCK,Block::PUMPKIN_STEM,Block::MELON_STEM,127,Block::CACTUS ];
 	public $farmconfig, $configdata;
@@ -65,7 +65,7 @@ class Farms extends PluginBase implements Listener {
 		$itemid = $event->getItem ()->getID ();
 		
 		foreach ( $this->growids as $index => $growid )
-			if (itemid == $growid and isset ( $this->farmdata [$block->x . "." . $block->y . "." . $block->z] )) {
+			if ($itemid == $growid and isset ( $this->farmdata [$block->x . "." . $block->y . "." . $block->z] )) {
 				unset ( $this->farmdata [$block->x . "." . $block->y . "." . $block->z] );
 			}
 	}
@@ -89,9 +89,11 @@ class Farms extends PluginBase implements Listener {
 					}
 					$vector3 = new Vector3 ( $e [0], $e [1], $e [2] );
 					$block = Block::get ( $this->farmdata [$p] ['id'], $this->farmdata [$p] ['damage'] );
-					$level = $this->getServer ()->getLevelByName ( $this->farmdata [$p] ['level'] );
-					if (! $level instanceof Level) $level = $this->getServer ()->getDefaultLevel ();
-					
+					if (isset ( $this->farmdata [$p] ['level'] )) {
+						$level = $this->getServer ()->getLevelByName ( $this->farmdata [$p] ['level'] );
+					} else {
+						$level = $this->getServer ()->getDefaultLevel ();
+					}
 					$level->setBlock ( $vector3, $block );
 					break;
 				case Item::SUGARCANE_BLOCK :
@@ -102,9 +104,11 @@ class Farms extends PluginBase implements Listener {
 					}
 					$vector3 = new Vector3 ( $e [0], $e [1] + $this->farmdata [$p] ['damage'], $e [2] );
 					$block = Block::get ( $this->farmdata [$p] ['id'], 0 );
-					$level = $this->getServer ()->getLevelByName ( $this->farmdata [$p] ['level'] );
-					if (! $level instanceof Level) $level = $this->getServer ()->getDefaultLevel ();
-					
+					if (isset ( $this->farmdata [$p] ['level'] )) {
+						$level = $this->getServer ()->getLevelByName ( $this->farmdata [$p] ['level'] );
+					} else {
+						$level = $this->getServer ()->getDefaultLevel ();
+					}
 					if ($level->getBlock ( $vector3 )->getID () != Item::AIR) {
 						// THAT SUGAR CANE IS SOMETHING DIFFERENT USE..?
 						unset ( $this->farmdata [$p] );
@@ -113,9 +117,11 @@ class Farms extends PluginBase implements Listener {
 					$level->setBlock ( $vector3, $block );
 					break;
 				case Item::PUMPKIN_STEM :
-					$level = $this->getServer ()->getLevelByName ( $this->farmdata [$p] ['level'] );
-					if (! $level instanceof Level) $level = $this->getServer ()->getDefaultLevel ();
-					
+					if (isset ( $this->farmdata [$p] ['level'] )) {
+						$level = $this->getServer ()->getLevelByName ( $this->farmdata [$p] ['level'] );
+					} else {
+						$level = $this->getServer ()->getDefaultLevel ();
+					}
 					if (++ $this->farmdata [$p] ['damage'] >= 8) {
 						for($i = - 1; $i <= 1; $i ++)
 							for($b = - 1; $b <= 1; $b ++) {
@@ -140,9 +146,11 @@ class Farms extends PluginBase implements Listener {
 					$level->setBlock ( $vector3, $block );
 					break;
 				case Item::MELON_STEM :
-					$level = $this->getServer ()->getLevelByName ( $this->farmdata [$p] ['level'] );
-					if (! $level instanceof Level) $level = $this->getServer ()->getDefaultLevel ();
-					
+					if (isset ( $this->farmdata [$p] ['level'] )) {
+						$level = $this->getServer ()->getLevelByName ( $this->farmdata [$p] ['level'] );
+					} else {
+						$level = $this->getServer ()->getDefaultLevel ();
+					}
 					if (++ $this->farmdata [$p] ['damage'] >= 8) {
 						for($i = - 1; $i <= 1; $i ++)
 							for($b = - 1; $b <= 1; $b ++) {
