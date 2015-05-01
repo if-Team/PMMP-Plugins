@@ -158,6 +158,11 @@ class ChopTree extends PluginBase implements Listener {
             }
         }
 
+        $this->getServer()->getPluginManager()->callEvent($event = new ChopTreeEvent($this, $player, $stump));
+        if($event->isCancelled()){
+            return false;
+        }
+
         $level = $stump->getLevel();
         for($y = 0; $y < $treetop; $y++){
             $block = $level->getBlock($stump->add(0, $y, 0));
