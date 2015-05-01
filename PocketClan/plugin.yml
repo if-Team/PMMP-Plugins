@@ -1,0 +1,19 @@
+name: PocketClan
+main: IchiKaku\PocketClan\PocketClan
+version: 0.5-alpha
+author: IchiKaku
+api: [1.12.0]
+
+commands:
+ clan:
+  usage: /clan [make/join/leave/list]
+  permission: pocketclan.command
+  description: true
+ clanManage :
+  usage: /clanManage [delete/ban/admin]
+  permission: pocketclan.command
+  description: true
+
+permissions:
+   pocketclan.command:
+    default: true

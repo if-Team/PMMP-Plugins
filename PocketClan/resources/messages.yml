@@ -1,0 +1,17 @@
+default-language: en
+m_version: 1
+
+#(EN) ENGLISH
+en-default-prefix: "[PocketClan]"
+en-plugin-loaded: "Plugin was activitied"
+en-PocketClan-NotEnoughMoney: "You don't have enough money"
+en-PocketClan-ClanMade: "Clan was made"
+en-PocketClan-ClanJoin: "Succesfully joined in "
+en-PocketClan-cantfindclan: "Clan not founded"
+en-command-inConsole: "You can use commands only in game"
+en-PocketClan-Usage: "[PocketClan] Please Input ClanName"
+en-aleady-inClan: "You are already in Clan"
+en-clan-notInput: "Please Input ClanName"
+en-none-player: "Player not found"
+en-type-notFound: "That type is not found!"
+en-leave-clan: "Succesfully leaved Clan"
