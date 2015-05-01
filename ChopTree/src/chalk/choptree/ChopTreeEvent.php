@@ -30,6 +30,10 @@ use pocketmine\event\plugin\PluginEvent;
 use pocketmine\Player;
 use pocketmine\plugin\Plugin;
 
+/**
+ * Class ChopTreeEvent
+ * @package chalk\choptree
+ */
 class ChopTreeEvent extends PluginEvent implements Cancellable {
     /** @var Player */
     private $player;
@@ -37,6 +41,11 @@ class ChopTreeEvent extends PluginEvent implements Cancellable {
     /** @var Block */
     private $block;
 
+    /**
+     * @param Plugin $plugin
+     * @param Player $player
+     * @param Block $block
+     */
     public function __construct(Plugin $plugin, Player $player, Block $block){
         parent::__construct($plugin);
         $this->player = $player;

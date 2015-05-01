@@ -21,6 +21,7 @@
  * @since 2015-04-05 12:01
  * @copyright Apache-v2.0
  */
+
 namespace chalk\choptree;
 
 use onebone\economyapi\EconomyAPI;
@@ -35,6 +36,10 @@ use pocketmine\item\Item;
 use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 
+/**
+ * Class ChopTree
+ * @package chalk\choptree
+ */
 class ChopTree extends PluginBase implements Listener {
     /**
      * @var null|ChopTree
