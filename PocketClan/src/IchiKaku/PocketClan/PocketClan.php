@@ -127,11 +127,12 @@ class PocketClan extends PluginBase implements Listener {
                 case "clanManage" :
                     switch ($args[0]) {
                         case "delete" :
-                            if ($this->clandata[$this->getClan($p)][$p] == "admin") {
+                            if ($this->clandata[$this->getClan($p)][$p] == "manager") {
                                 foreach ($this->clandata[$this->getClan($p)]["list"] as $pl) $this->playerclan[$pl] = "none";
                                 unset($this->clanlist[array_search($this->getClan($p), $this->clanlist)]);
                                 unset($this->clandata[array_search($this->getClan($p), $this->clandata)]);
-                            } else if (!isset($args[1])) $sp->sendMessage("[PocketClan] Usage: /clan delete <name>"); else if ($sp->isOP()) {
+                            } else if (!isset($args[1])) $sp->sendMessage("[PocketClan] Usage: /clan delete <name>");
+                            else if ($sp->isOP()) {
                                 if (!isset($this->clanlist[$args[1]])) {
                                     $sp->sendMessage("[PocketClan] Clan not found!");
                                     break;
@@ -150,7 +151,7 @@ class PocketClan extends PluginBase implements Listener {
                                 $sp->sendMessage("[PocketClan] Player not found");
                                 break;
                             }
-                            if ($this->clandata[$this->getClan($p)][$p] == ("admin" || "op")) {
+                            if ($this->clandata[$this->getClan($p)][$p] == ("manager" || "staff")) {
                                 $this->playerclan[$args[1]] = "none";
                                 unset($this->clandata[$this->getClan($p)]["list"][array_search($p, $this->clandata[$this->getClan($p)]["list"])]);
                             }
@@ -161,8 +162,8 @@ class PocketClan extends PluginBase implements Listener {
                                 $sp->sendMessage("[PocketClan] Player not found");
                                 break;
                             }
-                            if ($this->clandata[$this->getClan($p)][$p] == ("admin" || "op")) {
-                                $this->clandata[$this->getClan($p)]["list"][array_search($p, $this->clandata[$this->getClan($p)]["list"])] = "op";
+                            if ($this->clandata[$this->getClan($p)][$p] == ("manager" || "staff")) {
+                                $this->clandata[$this->getClan($p)]["list"][array_search($p, $this->clandata[$this->getClan($p)]["list"])] = "staff";
                             }
                             return true;
                         default:
@@ -178,7 +179,7 @@ class PocketClan extends PluginBase implements Listener {
     public function makeClan($maker, $name, $type = "default") {
         if ($maker instanceof Player) $this->api->reduceMoney($maker->getName(), 30000);
         $this->clanlist[$name] = $name;
-        $this->clandata[$name][$maker->getName()] = "admin";
+        $this->clandata[$name][$maker->getName()] = "manager";
         $this->clandata[$name]["list"] = array();
         array_push($this->clandata[$name]["list"], $maker->getName());
         $this->playerclan[$maker->getName()] = $name;
