@@ -7,3 +7,5 @@ api: [1.12.0]
 permissions:
  Farms:
   default: true
+ Farms.VIP:
+  default: OP

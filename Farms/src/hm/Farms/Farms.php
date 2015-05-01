@@ -24,7 +24,7 @@ class Farms extends PluginBase implements Listener {
 		@mkdir ( $this->getDataFolder () );
 		$this->farmlist = new Config ( $this->getDataFolder () . "farmlist.yml", Config::YAML );
 		$this->farmdata = $this->farmlist->getAll ();
-		$this->farmconfig = new Config ( $this->getDataFolder () . "speed.yml", Config::YAML, array ("growing-time" => 1200 ) );
+		$this->farmconfig = new Config ( $this->getDataFolder () . "speed.yml", Config::YAML, array ("growing-time" => 1200,"vip-growing-time" => 600 ) );
 		$this->configdata = $this->farmconfig->getAll ();
 		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new FarmsTask ( $this ), 20 );
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
@@ -35,7 +35,7 @@ class Farms extends PluginBase implements Listener {
 		$this->farmconfig->save ();
 	}
 	public function onBlock(PlayerInteractEvent $event) {
-		if (! $event->getPlayer ()->hasPermission ( "Farms" )) return;
+		if (! $event->getPlayer ()->hasPermission ( "Farms" ) and ! $event->getPlayer ()->hasPermission ( "Farms.VIP" )) return;
 		$block = $event->getBlock ()->getSide ( 1 );
 		
 		if ($event->getItem ()->getID () == Item::DYE and $event->getItem ()->getDamage () == 3) {
@@ -50,8 +50,12 @@ class Farms extends PluginBase implements Listener {
 				if ($event->getItem ()->getID () == $growid) {
 					$this->farmdata [$block->x . "." . $block->y . "." . $block->z] ['id'] = $this->blockids [$index];
 					$this->farmdata [$block->x . "." . $block->y . "." . $block->z] ['damage'] = 0;
-					$this->farmdata [$block->x . "." . $block->y . "." . $block->z] ['time'] = $this->configdata ["growing-time"];
 					$this->farmdata [$block->x . "." . $block->y . "." . $block->z] ['level'] = $block->getLevel ()->getFolderName ();
+					if ($event->getPlayer ()->hasPermission ( "Farms.VIP" )) {
+						$this->farmdata [$block->x . "." . $block->y . "." . $block->z] ['time'] = $this->configdata ["growing-time"];
+					} else {
+						$this->farmdata [$block->x . "." . $block->y . "." . $block->z] ['time'] = $this->configdata ["vip-growing-time"];
+					}
 					break;
 				}
 		}
