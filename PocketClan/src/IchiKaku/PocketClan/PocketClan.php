@@ -11,6 +11,7 @@ use pocketmine\command\Command;
 use pocketmine\utils\Config;
 use onebone\economyapi\EconomyAPI;
 use pocketmine\Player;
+use pocketmine\command\PluginCommand;
 
 class PocketClan extends PluginBase implements Listener {
 	private static $obj = null;
@@ -41,21 +42,25 @@ class PocketClan extends PluginBase implements Listener {
 		
 		$this->initMessage ();
 		$this->loadData ();
+		
+		$this->registerCommand ( $this->get ( "clan" ), "pocketclan.command", $this->get ( "clan-desc" ), $this->get ( "clan-help" ) );
+		$this->registerCommand ( $this->get ( "clanManage" ), "pocketclan.command", $this->get ( "clanManage-desc" ), $this->get ( "clanManage-help" ) );
+		
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
 	public function onDisable() {
 		$this->saveData ();
 	}
 	public function onChat(PlayerChatEvent $e) {
-		$e->setCancelled ( true );
-		$e->getPlayer ()->setRemoveFormat ( false );
-		$this->getServer ()->broadcastMessage ( "[" . $this->getClan ( $e->getPlayer ()->getName () ) . "] " . $e->getPlayer ()->getName () . " : " . $e->getMessage () );
+		if ($this->getClan ( $e->getPlayer ()->getName () ) != null) {
+			$e->setMessage ( TextFormat::GOLD . "[ " . $this->getClan ( $e->getPlayer ()->getName () ) . " ] " . TextFormat::WHITE . $e->getMessage () );
+		}
 	}
 	public function onCommand(CommandSender $sp, Command $command, $label, array $args) {
 		$p = $sp->getName ();
 		if (! ($sp instanceof Player)) $sp->sendMessage ( $this->get ( "command-inConsole" ) );
 		else switch ($command) {
-			case $this->get ( "en-clan" ) :
+			case $this->get ( "clan" ) :
 				if (! isset ( $args [0] )) {
 					$this->message ( $sp, $this->get ( "clan-help" ) );
 					break;
@@ -63,12 +68,19 @@ class PocketClan extends PluginBase implements Listener {
 				switch ($args [0]) {
 					case $this->get ( "make" ) :
 						if (! isset ( $args [1] )) {
-							$this->message ( $sp, $this->get ( "clan-notInput" ) );
+							$this->message ( $sp, $this->get ( "clan-create-help" ) );
+							$this->message ( $sp, $this->get ( "clan-type" ) );
 							break;
 						}
-						if ($this->api->myMoney ( $p ) < $this->setting ["money"]) $sp->sendMessage ( $this->get ( "not-enough-money" ) );
-						else if (isset ( $args [1] )) {
-							$this->makeClan ( $sp, $args [1], $args [2] );
+						if ($this->api->myMoney ( $p ) < $this->setting ["money"]) {
+							$this->message ( $sp, $this->get ( "not-enough-money" ) . " " . $this->setting ["money"] . "$ " . $this->get ( "need-money" ) );
+						} else if (isset ( $args [1] )) {
+							if (isset ( $args [2] )) {
+								$type = $args [2];
+							} else {
+								$type = "talk";
+							}
+							$this->makeClan ( $sp, $args [1], $type );
 						}
 						return true;
 					case $this->get ( "join" ) :
@@ -80,7 +92,7 @@ class PocketClan extends PluginBase implements Listener {
 							$this->message ( $sp, $this->get ( "aleady-inClan" ) . " [" . $args [1] . "]" );
 							break;
 						}
-						if ($this->getClan ( $p ) != "none") {
+						if ($this->getClan ( $p ) != null) {
 							$this->message ( $sp, $this->get ( "aleady-inClan" ) . " [" . $this->getClan ( $p ) . "]" );
 							break;
 						}
@@ -110,9 +122,9 @@ class PocketClan extends PluginBase implements Listener {
 						}
 						return true;
 					case $this->get ( "leave" ) :
-						if ($this->getClan ( $p ) != "none") {
+						if ($this->getClan ( $p ) != null) {
 							$this->clandata [$this->getClan ( $p )] [$p] = "NotInClan";
-							$this->playerclan [$p] = "none";
+							$this->playerclan [$p] = null;
 							unset ( $this->clandata [$this->getClan ( $p )] ["list"] [array_search ( $p, $this->clandata [$this->getClan ( $p )] ["list"] )] );
 							$this->message ( $sp, $this->get ( "leave-clan" ) . " [" . $this->getClan ( $p ) . "]" );
 						} else {
@@ -128,7 +140,7 @@ class PocketClan extends PluginBase implements Listener {
 					case $this->get ( "delete" ) :
 						if ($this->clandata [$this->getClan ( $p )] [$p] == "admin") {
 							foreach ( $this->clandata [$this->getClan ( $p )] ["list"] as $pl )
-								$this->playerclan [$pl] = "none";
+								$this->playerclan [$pl] = null;
 							unset ( $this->clanlist [array_search ( $this->getClan ( $p ), $this->clanlist )] );
 							unset ( $this->clandata [array_search ( $this->getClan ( $p ), $this->clandata )] );
 						} else if (! isset ( $args [1] )) $this->message ( $sp, $this->get ( "delete-help" ) );
@@ -138,7 +150,7 @@ class PocketClan extends PluginBase implements Listener {
 								break;
 							}
 							foreach ( $this->clandata [$args [1]] ["list"] as $pl )
-								$this->playerclan [$pl] = "none";
+								$this->playerclan [$pl] = null;
 							unset ( $this->clanlist [array_search ( $args [1], $this->clanlist )] );
 							unset ( $this->clandata [array_search ( $args [1], $this->clandata )] );
 						}
@@ -153,7 +165,7 @@ class PocketClan extends PluginBase implements Listener {
 							break;
 						}
 						if ($this->clandata [$this->getClan ( $p )] [$p] == ("admin" || "op")) {
-							$this->playerclan [$args [1]] = "none";
+							$this->playerclan [$args [1]] = null;
 							unset ( $this->clandata [$this->getClan ( $p )] ["list"] [array_search ( $p, $this->clandata [$this->getClan ( $p )] ["list"] )] );
 						}
 						return true;
@@ -176,33 +188,40 @@ class PocketClan extends PluginBase implements Listener {
 		}
 		return true;
 	}
-	public function makeClan($maker, $name, $type = "default") {
-		if ($maker instanceof Player) $this->api->reduceMoney ( $maker->getName (), 30000 );
+	public function makeClan(CommandSender $maker, $name, $type = "talk") {
+		$this->api->reduceMoney ( $maker->getName (), $this->setting ["money"] );
 		$this->clanlist [$name] = $name;
 		$this->clandata [$name] [$maker->getName ()] = "admin";
 		$this->clandata [$name] ["list"] = array ();
 		array_push ( $this->clandata [$name] ["list"], $maker->getName () );
 		$this->playerclan [$maker->getName ()] = $name;
-		if (! isset ( $this->type [$type] )) {
-			$maker->sendMessage ( $this->get ( "type-notFound" ) );
+		if (! isset ( $this->type ["type"] [$type] )) {
+			$maker->sendMessage ( $this->get ( "type-notFound" ) . " : " . $type );
+			$maker->sendMessage ( $this->get ( "clan-type" ) );
 			return;
 		} else {
 			$this->clandata [$name] ["type"] = $type;
 		}
-		$maker->sendMessage ( $this->get ( "PocketClan-ClanMade" ) . " [" . $name . "]" );
+		$this->message ( $maker, $this->get ( "PocketClan-ClanMade" ) . " [" . $name . "] [" . $type . "]" );
+	}
+	public function clanInfo(CommandSender $asker, $name) {
+		// TODO 클랜정보 조회
+		// 톡방의 경우 단순 유저수만
+		// PVP그룹의 경우 전적까지 포함
+		// 경제그룹인 경우 그룹돈까지 포함
 	}
 	public function defineType($type) {
 		array_push ( $this->type ["type"], $type );
 	}
 	public function getClan($player) {
-		return isset ( $this->playerclan [$player] ) ? $this->playerclan [$player] : "none";
+		return isset ( $this->playerclan [$player] ) ? $this->playerclan [$player] : null;
 	}
 	public function loadData() {
 		$this->saveResource ( "config.yml", false );
 		$this->setting = (new Config ( $this->getDataFolder () . "config.yml", Config::YAML ))->getAll ();
 		$this->saveResource ( "clantype.yml", false );
 		$this->type = (new Config ( $this->getDataFolder () . "clantype.yml", Config::YAML ))->getAll ();
-		
+		var_dump ( $this->type );
 		$this->clan_list = $this->initializeYML ( "clan_list.yml", [ ] );
 		$this->clan_data = $this->initializeYML ( "clan_data.yml", [ ] );
 		$this->player_clan = $this->initializeYML ( "player_clan.yml", [ ] );
@@ -226,7 +245,7 @@ class PocketClan extends PluginBase implements Listener {
 		$this->messagesUpdate ( "messages.yml" );
 		$this->messages = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
 	}
-	public function messagesUpdate() {
+	public function messagesUpdate($targetYmlName) {
 		$targetYml = (new Config ( $this->getDataFolder () . $targetYmlName, Config::YAML ))->getAll ();
 		if (! isset ( $targetYml ["m_version"] )) {
 			$this->saveResource ( $targetYmlName, true );
@@ -234,8 +253,21 @@ class PocketClan extends PluginBase implements Listener {
 			$this->saveResource ( $targetYmlName, true );
 		}
 	}
+	public function registerCommand($name, $permission, $description = "", $usage = "") {
+		$commandMap = $this->getServer ()->getCommandMap ();
+		$command = new PluginCommand ( $name, $this );
+		$command->setDescription ( $description );
+		$command->setPermission ( $permission );
+		$command->setUsage ( $usage );
+		$commandMap->register ( $name, $command );
+	}
 	public function get($var) {
-		return $this->messages [$this->messages ["default-language"] . "-" . $var];
+		if (isset ( $this->messages [$this->getServer ()->getLanguage ()->getLang ()] )) {
+			$lang = $this->getServer ()->getLanguage ()->getLang ();
+		} else {
+			$lang = "eng";
+		}
+		return $this->messages [$lang . "-" . $var];
 	}
 	public function message($player, $text = "", $mark = null) {
 		if ($mark == null) $mark = $this->get ( "default-prefix" );
