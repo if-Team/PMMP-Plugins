@@ -310,18 +310,18 @@ class Main extends PluginBase implements Listener {
 		} else {
 			// 슬레이브 서버 코딩
 			$player = $this->getServer ()->getPlayer ( $data [1] );
-			if (! $player instanceof Player) break;
+			if (! $player instanceof Player) return;
 			
 			switch ($data [1]) {
 				case "createBank" :
 					// master->slave = [0패스코드, 1createBank, 2계좌명, 3username, 4true:success|false:failed]
-					// TODO 4번값 fail시 -> 계좌 생성에 실패하였습니다 : 요청반환됨
 					// failed-createBank
 					if ($data [4] == false) {
-						$this->message ( $player );
+						$this->message ( $player, $this->get("failed-createBank") );
+                        break;
 					}
-					$this->db ["bank"] [$args [0]] ["price"] = $args [1];
-					$this->db ["bank"] [$args [0]] ["username"] = $player->getName ();
+					$this->db ["bank"] [$data [0]] ["price"] = $data [1];
+					$this->db ["bank"] [$data [0]] ["username"] = $player->getName ();
 					$this->message ( $player, $this->get ( "passcode-created" ) );
 					break;
 				case "useBank" :
