@@ -7,10 +7,18 @@ depend: [EconomyAPI]
 
 commands:
   vip:
-    permisson: vip
+    permisson: vip.manage
     description: Management for VIP+ plugin
     usage: /vip <list | add | remove> [option]
 
 permissons:
-  vip:
+  vip.*:
+    description: Give a permission to use all features of VIP+ plugin
     default: op
+    children:
+      vip.manage:
+        description: Give a permission for manage VIP+ plugin
+        default: op
+      vip.use:
+        description: Give a permission to use all skills of VIP+ plugin
+        default: true

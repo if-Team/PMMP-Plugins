@@ -21,3 +21,19 @@ messages:
   vip-not-vip:
     en: "The player {%0} isn't VIP!"
     ko: "{%0}님은 VIP가 아니에요!"
+
+  vip-heal-command-name:
+    en: "heal"
+    ko: "힐"
+
+  vip-heal-command-description:
+    en: "Heal all nearby players"
+    ko: "주변의 모든 플레이어들을 회복해 줘요"
+
+  vip-inferno-command-name:
+    en: "inferno"
+    ko: "인페르노"
+
+  vip-heal-command-description:
+    en: "Burn all nearby players"
+    ko: "주변의 모든 플레이어들을 불태워 줘요"

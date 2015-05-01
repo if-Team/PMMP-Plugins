@@ -28,6 +28,7 @@ use chalk\utils\Messages;
 use onebone\economyapi\EconomyAPI;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\command\PluginCommand;
 use pocketmine\entity\Arrow;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityShootBowEvent;
@@ -74,11 +75,26 @@ class VIPPlus extends PluginBase implements Listener {
         $this->loadVips();
         $this->loadMessages();
 
-        $this->getServer()->getPluginManager()->registerEvents($this, $this);
+        $this->registerAll();
+
     }
 
     public function onDisable(){
         $this->saveVips();
+    }
+
+    private function registerAll(){
+        $this->getServer()->getPluginManager()->registerEvents($this, $this);
+
+        $healCommand = new PluginCommand($this->getMessages()->getMessage("vip-heal-command-name"), $this);
+        $healCommand->setUsage($healCommand->getName());
+        $healCommand->setDescription($this->getMessages()->getMessage("vip-heal-command-description"));
+        $this->getServer()->getCommandMap()->register("VIPPlus", $healCommand);
+
+        $infernoCommand = new PluginCommand($this->getMessages()->getMessage("vip-inferno-command-name"), $this);
+        $infernoCommand->setUsage($healCommand->getName());
+        $infernoCommand->setDescription($this->getMessages()->getMessage("vip-inferno-command-description"));
+        $this->getServer()->getCommandMap()->register("VIPPlus", $infernoCommand);
     }
 
     public function loadConfig(){
@@ -266,35 +282,68 @@ class VIPPlus extends PluginBase implements Listener {
      * @return bool
      */
     public function onCommand(CommandSender $sender, Command $command, $commandAlias, array $args){
-        if(!$sender->hasPermission("vip") or $sender instanceof Player){
-            return false;
-        }
+        if($command->getName() === "vip"){
+            if(!$sender->hasPermission("vip.manage") or $sender instanceof Player){
+                return false;
+            }
 
-        if(!is_array($args) or count($args) < 2 or !is_string($args[1])){
-            $sender->sendMessage($this->getCommand("vip")->getUsage());
+            if(!is_array($args) or count($args) < 2 or !is_string($args[1])){
+                $sender->sendMessage($this->getCommand("vip")->getUsage());
+                return true;
+            }
+
+            $playerName = VIPPlus::validateName($args[1]);
+
+            switch($args[0]){
+                default:
+                    $sender->sendMessage($this->getCommand("vip")->getUsage());
+                    break;
+
+                case "list":
+                    $sender->sendMessage($this->getMessages()->getMessage("vip-list-info", [count($this->getOnlineVips()), count($this->getVips()), implode(", ", $this->vips)]));
+                    break;
+
+                case "add":
+                    $sender->sendMessage($this->addVip($playerName));
+                    break;
+
+                case "remove":
+                    $sender->sendMessage($this->removeVip($playerName));
+                    break;
+            }
+        }else if($sender->hasPermission("vip.use") and ($vip = $this->getVip($sender)) !== null){
+            $this->onVipCommand($vip, $command);
             return true;
         }
+        return true;
+    }
 
-        $playerName = VIPPlus::validateName($args[1]);
+    /**
+     * @param VIP $vip
+     * @param Command $command
+     */
+    public function onVipCommand(VIP $vip, Command $command){
+        $function = null;
 
-        switch($args[0]){
-            default:
-                $sender->sendMessage($this->getCommand("vip")->getUsage());
+        switch($command->getName()){
+            case $this->getMessages()->getMessage("vip-heal-command-name"):
+                $function = function(Player $player){
+                    $player->setOnFire(10);
+                };
                 break;
 
-            case "list":
-                $sender->sendMessage($this->getMessages()->getMessage("vip-list-info", [count($this->getOnlineVips()), count($this->getVips()), implode(", ", $this->vips)]));
-                break;
-
-            case "add":
-                $sender->sendMessage($this->addVip($playerName));
-                break;
-
-            case "remove":
-                $sender->sendMessage($this->removeVip($playerName));
+            case $this->getMessages()->getMessage("vip-inferno-command-name"):
+                $function = function(Player $player){
+                    $player->setHealth(20);
+                };
                 break;
         }
-        return true;
+
+        if($function !== null){
+            foreach($vip->getNearbyPlayers(16) as $player){
+                $function($player);
+            }
+        }
     }
 
     public function onVipJoin(PlayerJoinEvent $event){
