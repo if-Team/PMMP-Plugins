@@ -1,5 +1,5 @@
 name: EntitiesCleaner
 main: EntitiesCleaner\EntitiesCleaner
-version: 0.1-Alpha
+version: 0.2-Alpha
 author: hm
-api: [1.4.1]
+api: [1.12.0]

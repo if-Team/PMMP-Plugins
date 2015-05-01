@@ -12,7 +12,6 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\utils\TextFormat;
 use pocketmine\utils\Config;
-use pocketmine\scheduler\CallbackTask;
 use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
 use pocketmine\Player;
@@ -41,6 +40,9 @@ use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\item\Item;
 use pocketmine\item\Tool;
 use pocketmine\event\inventory\InventoryPickupItemEvent;
+use SimpleArea\Task\AutoSaveTask;
+use SimpleArea\Task\HourTaxCheckTask;
+use SimpleArea\Task\RentTimeOutTask;
 
 class SimpleArea extends PluginBase implements Listener {
 	private static $instance = null;
@@ -70,8 +72,8 @@ class SimpleArea extends PluginBase implements Listener {
 		foreach ( $this->getServer ()->getLevels () as $level )
 			$this->db [$level->getFolderName ()] = new SimpleArea_Database ( $this->getServer ()->getDataPath () . "worlds/" . $level->getFolderName () . "/", $level, $this->config_Data ["default-wall-type"] );
 		
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ $this,"autoSave" ] ), 2400 );
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ $this,"hourTaxCheck" ] ), 20 * 60 * 60 );
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new AutoSaveTask ( $this ), 2400 );
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new HourTaxCheckTask ( $this ), 7200 );
 		
 		$this->registerCommand ( $this->get ( "commands-area" ), "simplearea.commands.area", $this->get ( "commands-area-desc" ) );
 		$this->registerCommand ( $this->get ( "commands-setarea" ), "simplearea.commands.setarea", $this->get ( "commands-setarea-desc" ) );
@@ -281,6 +283,7 @@ class SimpleArea extends PluginBase implements Listener {
 		}
 		if ($event->getItem ()->canBeActivated () or $event->getBlock ()->canBeActivated ()) {
 			if ($player->isOp ()) return;
+			if ($event->getBlock ()->getId () == Block::CRAFTING_TABLE or $event->getBlock ()->getId () == Block::FURNACE) return;
 			$area = $this->db [$event->getBlock ()->getLevel ()->getFolderName ()]->getArea ( $event->getBlock ()->x, $event->getBlock ()->z );
 			if ($area != null) {
 				if (isset ( $area ["resident"] [0] )) if ($this->db [$event->getBlock ()->getLevel ()->getFolderName ()]->checkResident ( $area ["ID"], $player->getName () )) return;
@@ -375,13 +378,6 @@ class SimpleArea extends PluginBase implements Listener {
 					$event->setCancelled ();
 				} else if ($area == null) if (! $this->db [$player->getLevel ()->getFolderName ()]->isWhiteWorldPvpAllow ()) $event->setCancelled ();
 			}
-		}
-	}
-	public function onItemPickUp(InventoryPickupItemEvent $event) {
-		$area = $this->db [$event->getItem ()->getLevel ()->getFolderName ()]->getArea ( $event->getItem ()->x, $event->getItem ()->z );
-		if ($area != null) {
-			if (isset ( $area ["resident"] [0] )) if ($this->db [$event->getItem ()->getLevel ()->getFolderName ()]->checkResident ( $area ["ID"], $event->getInventory ()->getName () )) return;
-			$event->setCancelled ();
 		}
 	}
 	public function onCombust(EntityCombustEvent $event) {
@@ -897,7 +893,7 @@ class SimpleArea extends PluginBase implements Listener {
 			if ($area ["resident"] [0] == null) {
 				if ($this->checkEconomyAPI ()) {
 					$money = $this->economyAPI->myMoney ( $player );
-					if ($money < 5000) {
+					if ($money < $this->config_Data ["economy-home-price"]) {
 						$this->message ( $player, $this->get ( "buyarea-failed" ) );
 						$this->message ( $player, $this->get ( "not-enough-money-to-buyarea-1" ) . ($this->config_Data ["economy-home-price"] - $money) . $this->get ( "not-enough-money-to-buyarea-2" ) );
 						return false;
@@ -1430,7 +1426,7 @@ class SimpleArea extends PluginBase implements Listener {
 					$this->rent_Queue [$owner->getName ()] ["ID"] = $area ["ID"];
 					$this->rent_Queue [$owner->getName ()] ["buyer"] = $player;
 					$this->rent_Queue [$owner->getName ()] ["price"] = $price;
-					$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"rentTimeout" ], [ $owner,$player ] ), 200 );
+					$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new RentTimeOutTask ( $this, $owner, $player ), 200 );
 					$this->message ( $player, $this->get ( "rent-request-sent" ) );
 					return true;
 				}

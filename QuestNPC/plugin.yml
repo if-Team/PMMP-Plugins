@@ -1,5 +1,5 @@
 name: QuestNPC
-main: QuestNPC\QuestNPC
+main: hm\questnpc
 version: 0.1-Alpha
 author: hm
 api: [1.4.1]

@@ -9,7 +9,6 @@ use pocketmine\command\PluginCommand;
 use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
 use pocketmine\event\player\PlayerInteractEvent;
-use pocketmine\event\block\SignChangeEvent;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\Player;
 use pocketmine\utils\TextFormat;
@@ -18,11 +17,11 @@ use pocketmine\network\protocol\AddItemEntityPacket;
 use pocketmine\entity\Entity;
 use pocketmine\level\Position;
 use pocketmine\item\Item;
-use pocketmine\scheduler\CallbackTask;
 use pocketmine\network\protocol\RemoveEntityPacket;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\network\protocol\AddPlayerPacket;
 use pocketmine\network\protocol\RemovePlayerPacket;
+use CreativeEconomy\task\CreativeEconomyTask;
 
 class CreativeEconomy extends PluginBase implements Listener {
 	private static $instance = null;
@@ -90,12 +89,14 @@ class CreativeEconomy extends PluginBase implements Listener {
 		$this->packet ["AddPlayerPacket"]->pitch = 0;
 		$this->packet ["AddPlayerPacket"]->item = 0;
 		$this->packet ["AddPlayerPacket"]->meta = 0;
-		$this->packet ["AddPlayerPacket"]->metadata = [ 0 => [ "type" => 0,"value" => 0 ],1 => [ "type" => 1,"value" => 0 ],16 => [ "type" => 0,"value" => 0 ],17 => [ "type" => 6,"value" => [ 0,0,0 ] ] ];
+		$this->packet ["AddPlayerPacket"]->slim =\false;
+		$this->packet ["AddPlayerPacket"]->skin =\str_repeat ( "\x00", 64 * 32 * 4 );
+		$this->packet ["AddPlayerPacket"]->metadata = [ Entity::DATA_FLAGS => [ Entity::DATA_TYPE_BYTE,1 << Entity::DATA_FLAG_INVISIBLE ],Entity::DATA_AIR => [ Entity::DATA_TYPE_SHORT,300 ],Entity::DATA_SHOW_NAMETAG => [ Entity::DATA_TYPE_BYTE,1 ],Entity::DATA_NO_AI => [ Entity::DATA_TYPE_BYTE,1 ] ];
 		
 		$this->packet ["RemovePlayerPacket"] = new RemovePlayerPacket ();
 		$this->packet ["RemovePlayerPacket"]->clientID = 0;
 		
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ $this,"CreativeEconomy" ] ), 20 );
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CreativeEconomyTask ( $this ), 20 );
 	}
 	public function onDisable() {
 		$save = new Config ( $this->getDataFolder () . "marketDB.yml", Config::YAML );

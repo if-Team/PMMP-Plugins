@@ -1,8 +1,8 @@
 name: SimpleArea
 main: SimpleArea\SimpleArea
-version: 0.15.6-alpha
+version: 0.15.9-alpha
 author: hm
-api: [1.4.1]
+api: [1.12.0]
 load: STARTUP
 
 permissions:

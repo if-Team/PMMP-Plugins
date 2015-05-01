@@ -1,0 +1,39 @@
+version: 0
+default-language: en
+
+messages:
+  vip-added:
+    en: "Added {%0} to VIP list!"
+    ko: "{%0}님을 VIP 목록에 추가했어요!"
+
+  vip-removed:
+    en: "Removed {%0} from VIP list!"
+    ko: "{%0}님을 VIP 목록에서 제거했어요!"
+
+  vip-list-info:
+    en: "There are {%0}/{%1} vips:\n{%2}"
+    ko: "총 {%0}/{%1}명의 VIP가 있어요:\n{%2}"
+
+  vip-already-vip:
+    en: "The player {%0} is already VIP!"
+    ko: "{%0}님은 이미 VIP예요!"
+
+  vip-not-vip:
+    en: "The player {%0} isn't VIP!"
+    ko: "{%0}님은 VIP가 아니에요!"
+
+  vip-heal-command-name:
+    en: "heal"
+    ko: "힐"
+
+  vip-heal-command-description:
+    en: "Heal all nearby players"
+    ko: "주변의 모든 플레이어들을 회복해 줘요"
+
+  vip-inferno-command-name:
+    en: "inferno"
+    ko: "인페르노"
+
+  vip-heal-command-description:
+    en: "Burn all nearby players"
+    ko: "주변의 모든 플레이어들을 불태워 줘요"

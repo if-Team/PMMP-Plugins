@@ -1,8 +1,8 @@
 name: PSYCHOPASS_Dominator
 main: hm\PSYCHOPASS\PSYCHOPASS_Dominator
-version: 0.4-beta
+version: 0.5-beta
 author: hm
-api: [1.4.1]
+api: [1.12.0]
 
 commands:
  b:

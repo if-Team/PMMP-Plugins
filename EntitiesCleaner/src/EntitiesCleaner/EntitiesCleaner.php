@@ -6,17 +6,12 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\tile\Tile;
 use pocketmine\entity\Creature;
-use pocketmine\scheduler\CallbackTask;
 
 class EntitiesCleaner extends PluginBase implements Listener {
 	public function onEnable() {
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
-				$this,
-				"onClean" ] ), 20 * 60 * 2 );
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
-				$this,
-				"onMonsterClean" ] ), 20 * 15 );
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new Cleaner($this), 20 * 60 * 2 );
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new MonsterCleaner($this), 20 * 15 );
 	}
 	public function onClean() {
 		foreach ( $this->getServer ()->getLevels () as $level )

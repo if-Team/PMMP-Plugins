@@ -10,7 +10,6 @@ namespace hm\automaticDoor;
 
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
-use pocketmine\scheduler\CallbackTask;
 use pocketmine\math\Vector3;
 use pocketmine\item\Item;
 use pocketmine\network\protocol\LevelEventPacket;
@@ -21,10 +20,7 @@ class automaticDoor extends PluginBase implements Listener {
 	public $opendoor = [ ];
 	public function onEnable() {
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
-				$this,
-				"automaticDoor" 
-		] ), 10 );
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask (new AutomaticDoorTask($this), 10 );
 	}
 	public function automaticDoor() {
 		foreach ( $this->getServer ()->getOnlinePlayers () as $p ) {

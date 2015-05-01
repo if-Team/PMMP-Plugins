@@ -11,7 +11,7 @@ use pocketmine\utils\TextFormat;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\player\PlayerKickEvent;
 use pocketmine\block\Block;
-use pocketmine\scheduler\CallbackTask;
+use Trampoline\task\fallenTimeOutTask;
 
 class Trampoline extends PluginBase implements Listener {
 	public $fallen = [ ];
@@ -34,19 +34,19 @@ class Trampoline extends PluginBase implements Listener {
 		
 		if ($id == 35 and $data == 5) {
 			$this->fallenQueue ( $player );
-			$player->addEntityMotion ( 0, 0, 10, 0 );
+			$player->addEntityMotion ( $player->getId (), 0, 3, 0 );
 		} else if ($id == 35 and $data == 4) {
 			$this->fallenQueue ( $player );
-			$player->addEntityMotion ( 0, 0, 1, 0 );
+			$player->addEntityMotion ( $player->getId (), 0, 1, 0 );
 		} else if ($id == 35 and $data == 10) {
 			$this->fallenQueue ( $player );
-			$player->addEntityMotion ( 0, 0, 20, 0 );
+			$player->addEntityMotion ( $player->getId (), 0, 5, 0 );
 		} else if ($id == Block::DIAMOND_BLOCK) {
 			$x = - \sin ( $player->yaw / 180 * M_PI ) *\cos ( $player->pitch / 180 * M_PI );
 			$y = - \sin ( $player->pitch / 180 * M_PI );
 			$z =\cos ( $player->yaw / 180 * M_PI ) *\cos ( $player->pitch / 180 * M_PI );
 			$this->fallenQueue ( $player );
-			$player->addEntityMotion ( 0, $x * 4, $y * 4, $z * 4 );
+			$player->addEntityMotion ( $player->getId (), $x * 3, $y * 3, $z * 3 );
 		} else {
 			
 			// right
@@ -59,13 +59,13 @@ class Trampoline extends PluginBase implements Listener {
 			
 			if ($id == 35 and $data == 5) {
 				$this->fallenQueue ( $player );
-				$player->addEntityMotion ( 0, + 10, 0, 0 );
+				$player->addEntityMotion ( $player->getId (), + 3, 0, 0 );
 			} else if ($id == 35 and $data == 4) {
 				$this->fallenQueue ( $player );
-				$player->addEntityMotion ( 0, + 1, 0, 0 );
+				$player->addEntityMotion ( $player->getId (), + 1, 0, 0 );
 			} else if ($id == 35 and $data == 10) {
 				$this->fallenQueue ( $player );
-				$player->addEntityMotion ( 0, + 20, 0, 0 );
+				$player->addEntityMotion ( $player->getId (), + 5, 0, 0 );
 			} else {
 				// left
 				$x = ( int ) round ( $player->x + 0.5 );
@@ -77,13 +77,13 @@ class Trampoline extends PluginBase implements Listener {
 				
 				if ($id == 35 and $data == 5) {
 					$this->fallenQueue ( $player );
-					$player->addEntityMotion ( 0, - 10, 0, 0 );
+					$player->addEntityMotion ( $player->getId (), - 3, 0, 0 );
 				} else if ($id == 35 and $data == 4) {
 					$this->fallenQueue ( $player );
-					$player->addEntityMotion ( 0, - 1, 0, 0 );
+					$player->addEntityMotion ( $player->getId (), - 1, 0, 0 );
 				} else if ($id == 35 and $data == 10) {
 					$this->fallenQueue ( $player );
-					$player->addEntityMotion ( 0, - 20, 0, 0 );
+					$player->addEntityMotion ( $player->getId (), - 5, 0, 0 );
 				} else {
 					// north
 					$x = ( int ) round ( $player->x - 0.5 );
@@ -95,13 +95,13 @@ class Trampoline extends PluginBase implements Listener {
 					
 					if ($id == 35 and $data == 5) {
 						$this->fallenQueue ( $player );
-						$player->addEntityMotion ( 0, 0, 0, + 10 );
+						$player->addEntityMotion ( $player->getId (), 0, 0, + 3 );
 					} else if ($id == 35 and $data == 4) {
 						$this->fallenQueue ( $player );
-						$player->addEntityMotion ( 0, 0, 0, + 1 );
+						$player->addEntityMotion ( $player->getId (), 0, 0, + 1 );
 					} else if ($id == 35 and $data == 10) {
 						$this->fallenQueue ( $player );
-						$player->addEntityMotion ( 0, 0, 0, + 20 );
+						$player->addEntityMotion ( $player->getId (), 0, 0, + 5 );
 					} else {
 						// north
 						$x = ( int ) round ( $player->x - 0.5 );
@@ -113,13 +113,13 @@ class Trampoline extends PluginBase implements Listener {
 						
 						if ($id == 35 and $data == 5) {
 							$this->fallenQueue ( $player );
-							$player->addEntityMotion ( 0, 0, 0, - 10 );
+							$player->addEntityMotion ( $player->getId (), 0, 0, - 3 );
 						} else if ($id == 35 and $data == 4) {
 							$this->fallenQueue ( $player );
-							$player->addEntityMotion ( 0, 0, 0, - 1 );
+							$player->addEntityMotion ( $player->getId (), 0, 0, - 1 );
 						} else if ($id == 35 and $data == 10) {
 							$this->fallenQueue ( $player );
-							$player->addEntityMotion ( 0, 0, 0, - 20 );
+							$player->addEntityMotion ( $player->getId (), 0, 0, - 5 );
 						}
 					}
 				}
@@ -138,22 +138,20 @@ class Trampoline extends PluginBase implements Listener {
 		} else {
 			$this->fallen [$player->getName ()] = 1;
 		}
-		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
-				$this,
-				"fallenTimeOut" ], [ 
-				$player->getName () ] ), 20 * 10 );
+		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new fallenTimeOutTask ( $this, $player->getName () ), 100 );
 	}
 	public function fallenTimeOut($name) {
-		if (isset ( $this->fallen [$name] )) unset ( $this->fallen [$name] );
+		if (isset ( $this->fallen [$name] )) $this->fallen [$name] --;
 	}
 	public function fallenDamagePrevent(EntityDamageEvent $event) {
 		if ($event->getCause () == EntityDamageEvent::CAUSE_FALL) {
 			if (! $event->getEntity () instanceof Player) return;
-			
+			$event->setCancelled ();
+			return;
 			if (isset ( $this->fallen [$event->getEntity ()->getName ()] )) {
-				$event->setDamage ( 0 );
+				$event->setCancelled ();
 				$this->fallen [$event->getEntity ()->getName ()] --;
-				if ($this->fallen [$event->getEntity ()->getName ()] == 0) unset ( $this->fallen [$event->getEntity ()->getName ()] );
+				if ($this->fallen [$event->getEntity ()->getName ()] > 1) unset ( $this->fallen [$event->getEntity ()->getName ()] );
 			}
 		}
 	}

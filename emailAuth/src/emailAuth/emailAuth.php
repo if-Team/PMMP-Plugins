@@ -4,7 +4,6 @@ namespace emailAuth;
 
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
-use pocketmine\scheduler\CallbackTask;
 use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
 use pocketmine\event\player\PlayerJoinEvent;
@@ -34,10 +33,7 @@ class emailAuth extends PluginBase implements Listener {
 		$this->saveResource ( "signform.html", false );
 		$this->saveResource ( "config.yml", false );
 		
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
-				$this,
-				"autoSave" 
-		] ), 2400 );
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new AutoSaveTask($this), 2400 );
 		
 		$this->PHPMailer("hmkuak@naver.com");
 		

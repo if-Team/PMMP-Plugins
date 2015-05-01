@@ -10,8 +10,6 @@ use pocketmine\Player;
 use pocketmine\utils\Config;
 use pocketmine\utils\TextFormat;
 use pocketmine\level\Level;
-use pocketmine\entity\Creature;
-use pocketmine\scheduler\CallbackTask;
 use pocketmine\event\entity\EntityCombustByBlockEvent;
 use pocketmine\block\Fire;
 use pocketmine\event\entity\EntityCombustEvent;
@@ -22,7 +20,7 @@ class Purge extends PluginBase implements Listener {
 		@mkdir ( $this->getDataFolder () );
 		
 		$this->initMessage ();
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ $this,"purgeSchedule" ] ), 80 );
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new PurgeScheduleTask($this), 80 );
 		
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}

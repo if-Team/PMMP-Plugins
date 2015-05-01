@@ -152,7 +152,6 @@ class SnowHalation extends PluginBase implements Listener {
 			$this->pk->x = $x;
 			$this->pk->y = $player->y + 13;
 			$this->pk->z = $z;
-			$this->pk->did = 0;
 			$player->dataPacket ( $this->pk );
 		}
 		

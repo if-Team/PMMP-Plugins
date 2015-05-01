@@ -9,7 +9,6 @@ use pocketmine\event\player\PlayerItemConsumeEvent;
 use pocketmine\entity\Snowball;
 use pocketmine\entity\Arrow;
 use pocketmine\Player;
-use pocketmine\scheduler\CallbackTask;
 use pocketmine\nbt\tag\Compound;
 use pocketmine\nbt\tag\Enum;
 use pocketmine\nbt\tag\Double;
@@ -39,24 +38,12 @@ class burstMode extends PluginBase implements Listener { // spl_object_hash
 		
 		if ($player == null) return;
 		if ($entity instanceof Snowball) {
-			$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
-					$this,
-					"burstSnowball" ], [ 
-					$player ] ), 10 );
-			$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
-					$this,
-					"burstSnowball" ], [ 
-					$player ] ), 20 );
+			$this->getServer ()->getScheduler ()->scheduleDelayedTask (new BurstSnowballTask($this, $player), 10 );
+			$this->getServer ()->getScheduler ()->scheduleDelayedTask (new BurstSnowballTask($this, $player), 20 );
 		}
 		if ($entity instanceof Arrow) {
-			$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
-					$this,
-					"burstArrow" ], [ 
-					$player ] ), 10 );
-			$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
-					$this,
-					"burstArrow" ], [ 
-					$player ] ), 20 );
+			$this->getServer ()->getScheduler ()->scheduleDelayedTask (new BurstArrowTask($this, $player), 10 );
+			$this->getServer ()->getScheduler ()->scheduleDelayedTask (new BurstArrowTask($this, $player), 20 );
 		}
 	}
 	public function burstSnowball(Player $player) {
@@ -78,7 +65,7 @@ class burstMode extends PluginBase implements Listener { // spl_object_hash
 		$snowball->setMotion ( $snowball->getMotion ()->multiply ( $f ) );
 		
 		if ($snowball instanceof Projectile) {
-			$this->server->getPluginManager ()->callEvent ( $projectileEv = new ProjectileLaunchEvent ( $snowball ) );
+			$this->getServer()->getPluginManager ()->callEvent ( $projectileEv = new ProjectileLaunchEvent ( $snowball ) );
 			if ($projectileEv->isCancelled ()) {
 				$snowball->kill ();
 			} else {

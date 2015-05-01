@@ -1,0 +1,12 @@
+name: SwissBank
+main: hm\SwissBank\Main
+version: "1.0"
+author: hm
+api: [1.12.0]
+load: POSTWORLD
+
+permissions:
+ SwissBank.create:
+  default: true
+ SwissBank.use:
+  default: true

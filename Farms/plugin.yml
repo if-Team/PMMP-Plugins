@@ -1,9 +1,11 @@
 name: Farms
 main: hm\Farms\Farms
-version: 1.1-alpha
+version: 1.2-alpha
 author: hm
-api: [1.4.1]
+api: [1.12.0]
 
 permissions:
  Farms:
   default: true
+ Farms.VIP:
+  default: OP
