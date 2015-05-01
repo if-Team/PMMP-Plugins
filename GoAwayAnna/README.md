@@ -1,5 +1,5 @@
 # GoAwayAnna
-Move the clients to another server when server is full
+Move players to another server when the server is full
 > Works with MCPE 0.11.0 build 6 or higher
 
 # Permissions

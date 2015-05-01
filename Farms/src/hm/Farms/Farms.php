@@ -10,7 +10,6 @@ use pocketmine\event\block\BlockEvent;
 use pocketmine\item\Item;
 use pocketmine\math\Vector3;
 use pocketmine\block\Block;
-use pocketmine\scheduler\CallbackTask;
 use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\block\Flowable;
 use pocketmine\level\Level;
@@ -23,32 +22,11 @@ class Farms extends PluginBase implements Listener {
 		@mkdir ( $this->getDataFolder () );
 		$this->farmlist = new Config ( $this->getDataFolder () . "farmlist.yml", Config::YAML );
 		$this->farmdata = $this->farmlist->getAll ();
-		$this->farmconfig = new Config ( $this->getDataFolder () . "speed.yml", Config::YAML, array (
-				"growing-time" => 1200 ) );
+		$this->farmconfig = new Config ( $this->getDataFolder () . "speed.yml", Config::YAML, array ("growing-time" => 1200 ) );
 		$this->configdata = $this->farmconfig->getAll ();
-		$this->growids = [ 
-				Item::SEEDS,
-				Item::CARROT,
-				Item::POTATO,
-				Item::BEETROOT,
-				Item::SUGAR_CANE,
-				Item::SUGARCANE_BLOCK,
-				Item::PUMPKIN_SEEDS,
-				Item::MELON_SEEDS,
-				351 ];
-		$this->blockids = [ 
-				Item::WHEAT_BLOCK,
-				Item::CARROT_BLOCK,
-				Item::POTATO_BLOCK,
-				Item::BEETROOT_BLOCK,
-				Item::SUGARCANE_BLOCK,
-				Item::SUGARCANE_BLOCK,
-				Item::PUMPKIN_STEM,
-				Item::MELON_STEM,
-				127 ];
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
-				$this,
-				"Farms" ] ), 20 );
+		$this->growids = [ Item::SEEDS,Item::CARROT,Item::POTATO,Item::BEETROOT,Item::SUGAR_CANE,Item::SUGARCANE_BLOCK,Item::PUMPKIN_SEEDS,Item::MELON_SEEDS,351 ];
+		$this->blockids = [ Item::WHEAT_BLOCK,Item::CARROT_BLOCK,Item::POTATO_BLOCK,Item::BEETROOT_BLOCK,Item::SUGARCANE_BLOCK,Item::SUGARCANE_BLOCK,Item::PUMPKIN_STEM,Item::MELON_STEM,127 ];
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new FarmsTask ( $this ), 20 );
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
 	public function onDisable() {
@@ -188,15 +166,9 @@ class CocoaBeanBlock extends Flowable {
 		echo "check meta:" . $this->meta;
 		echo "check full meta:" . $this->meta;
 		if ($this->meta == $this->meta % 4 + 8) {
-			$drops [] = [ 
-					351,
-					3,
-					mt_rand ( 1, 4 ) ];
+			$drops [] = [ 351,3,mt_rand ( 1, 4 ) ];
 		} else {
-			$drops [] = [ 
-					351,
-					3,
-					1 ];
+			$drops [] = [ 351,3,1 ];
 		}
 		return $drops;
 	}

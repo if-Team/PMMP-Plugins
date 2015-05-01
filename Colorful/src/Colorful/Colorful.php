@@ -38,10 +38,10 @@ class ColorFul extends PluginBase implements Listener {
 	}
 	public function helpColor(Player $player) {
 		$player->sendMessage ( TextFormat::DARK_AQUA . "*사용가능한 색상표를 출력합니다" );
-		$player->sendMessage ( "§f&0:검정 §f&1:§1짙은파랑 §f&2:§2짙은초록 §f&3:§3짙은청록");
-		$player->sendMessage ( "§f&4:§4짙은빨강 §f&5:§5짙은보라§f&6:§6금색 §f&7:§7회색");
-		$player->sendMessage ( "§f&8:§8검은회색 §f&9:§9파랑 §f&a:§a초록 §f&b:§b청록");
-		$player->sendMessage ( "§f&c:§c빨강 §f&d:§d보라 §f&e:§e노랑 §f&f:§f흰색\n\n" );
+		$player->sendMessage ( "§0&0 검정 §f&1 §1짙은파랑 §f&2 §2짙은초록 §f&3 §3짙은청록");
+		$player->sendMessage ( "§f&4 §4짙은빨강 §f&5 §5짙은보라§f&6 §6금색 §f&7 §7회색");
+		$player->sendMessage ( "§f&8 §8검은회색 §f&9 §9파랑 §f&a §a초록 §f&b §b청록");
+		$player->sendMessage ( "§f&c §c빨강 §f&d:§d보라 §f&e §e노랑 §f&f §f흰색\n\n" );
 	}
 	public function onCommand(CommandSender $player, Command $command, $label, Array $args) {
 		$this->helpColor ( $player );
