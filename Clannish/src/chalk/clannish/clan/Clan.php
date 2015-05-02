@@ -24,34 +24,46 @@
 
 namespace chalk\clannish\clan;
 
+use chalk\utils\Arrayable;
 use pocketmine\Player;
 
-class Clan {
+class Clan implements Arrayable {
     /** @var string */
     private $name = "";
 
-    /** @var string */
-    private $leader = "";
-
-    /** @var string[] */
+    /** @var ClanMember[] */
     private $members = [];
+
+    /** @var ClanMember */
+    private $leader = "";
 
     /**
      * @param string $name
-     * @param string $leader
-     * @param string[] $members
+     * @param ClanMember[] $members
      */
-    public function __construct($name, $leader, $members = []){
+    public function __construct($name, $members = []){
         $this->name = $name;
-        $this->leader = $leader;
         $this->members = $members;
+    }
+
+    /**
+     * @param array $array
+     * @return Clan
+     */
+    public static function createFromArray($array){
+        return new Clan($array["name"], $array["members"]);
     }
 
     /**
      * @return array
      */
     public function toArray(){
-        return ["name" => $this->getName(), "leader" => $this->getLeader(), "members" => $this->getMembers()];
+        $array = ["name" => $this->getName(), "members" => []];
+        foreach($this->getMembers() as $member){
+            $array["members"][] = $member->toArray();
+        }
+
+        return $array;
     }
 
     /**
@@ -62,19 +74,18 @@ class Clan {
     }
 
     /**
-     * @return string
-     */
-    public function getLeader(){
-        return $this->leader;
-    }
-
-    /**
-     * @return string[]
+     * @return ClanMember[]
      */
     public function getMembers(){
         return $this->members;
     }
 
+    /**
+     * @return ClanMember
+     */
+    public function getLeader(){
+        return $this->leader;
+    }
 
     /**
      * @param string|Player $name

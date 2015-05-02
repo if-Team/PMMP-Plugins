@@ -68,8 +68,8 @@ class Clannish extends PluginBase implements Listener {
         $clansConfig = new Config($this->getDataFolder() . "clans.yml", Config::YAML);
         $this->clans = [];
 
-        foreach($clansConfig->getAll() as $clan){
-            $this->clans[] = new Clan($clan["name"], $clan["leader"], $clan["members"]);
+        foreach($clansConfig->getAll() as $array){
+            $this->clans[] = Clan::createFromArray($array);
         }
     }
 
