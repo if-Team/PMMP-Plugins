@@ -17,3 +17,7 @@ messages:
   create-clan-command-usage:
     en: "/create-clan <name>"
     ko: "/클랜생성 <이름>"
+
+  clan-created:
+    en: "Your clan {%name} has been created!"
+    ko: "당신의 클랜 {%name}이(가) 생성되었습니다!"

@@ -44,6 +44,11 @@ class Clan implements Arrayable {
     public function __construct($name, $members = []){
         $this->name = $name;
         $this->members = $members;
+
+        foreach($this->getMembers() as $member){
+            $member->setClan($this);
+        }
+
     }
 
     /**

@@ -35,16 +35,21 @@ class ClanMember implements Arrayable {
     /** @var array */
     private $data;
 
+    /** @var Clan|null */
+    private $clan = null;
+
     /** @var Player|null */
     private $player = null;
 
     /**
      * @param string $name
      * @param array $data
+     * @param Clan $clan
      */
-    public function __construct($name, array $data){
+    public function __construct($name, array $data, $clan = null){
         $this->name = $name;
         $this->data = $data;
+        $this->clan = $clan;
     }
 
     /**
@@ -85,6 +90,13 @@ class ClanMember implements Arrayable {
     }
 
     /**
+     * @return Clan|null
+     */
+    public function getClan(){
+        return $this->clan;
+    }
+
+    /**
      * @return Player|null
      */
     public function getPlayer(){
@@ -97,5 +109,22 @@ class ClanMember implements Arrayable {
             }
         }
         return $this->player;
+    }
+
+    /**
+     * @param Clan $clan
+     */
+    public function setClan($clan){
+        if($this->clan === null){
+            $this->clan = $clan;
+        }
+    }
+
+    public function getGrade(){
+        return $this->getData()["grade"];
+    }
+
+    public function isLeader(){
+        return $this->getGrade() === "leader";
     }
 }

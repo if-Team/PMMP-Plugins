@@ -23,6 +23,8 @@
  */
 namespace chalk\clannish\command;
 
+use chalk\clannish\clan\Clan;
+use chalk\clannish\clan\ClanMember;
 use chalk\clannish\Clannish;
 use chalk\clannish\ClannishCommand;
 use pocketmine\command\CommandSender;
@@ -59,7 +61,18 @@ class CreateClanCommand extends ClannishCommand {
             return true;
         }
 
-        //TODO: Complete this method
+        if(count($args) < 1 or !is_string($args[0])){
+            $sender->sendMessage($this->getUsage());
+            return true;
+        }
+
+        $name = $args[0];
+        $leader = new ClanMember(strToLower($sender->getName()), ["grade" => "leader"]);
+
+        $plugin->getClans()[] = new Clan($name, [$leader]);
+        $sender->sendMessage($plugin->getMessages()->getMessage("clan-created", ["name" => $name]));
+
+
         return true;
     }
 }
