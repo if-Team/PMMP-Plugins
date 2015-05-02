@@ -106,7 +106,7 @@ class Clannish extends PluginBase implements Listener {
 
     public function onPlayerChat(PlayerChatEvent $event){
         $sender = $event->getPlayer();
-        if(!$sender->hasPermission("Clannish.chat")){
+        if(!$sender->hasPermission("Clannish.activity")){
             return;
         }
 

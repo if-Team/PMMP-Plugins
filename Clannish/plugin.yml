@@ -9,23 +9,14 @@ permissions:
     description: Allows player to use all features of Clannish
     default: op
     children:
-      Clannish.force:
-        description: Allows player to manage all clans of Clannish
+      Clannish.operation:
+        description: Allows player to operate all clans of Clannish
         default: op
 
-      Clannish.create:
-        description: Allows player to create own clan of Clannish
+      Clannish.management:
+        description: Allows player to create, remove or manage own clan of Clannish
         default: true
-      Clannish.remove:
-        description: Allows player to remove own clan of Clannish
-        default: true
-      Clannish.manage:
-        description: Allows player to manage own clan of Clannish
-        default: op
 
-      Clannish.join:
-        description: Allows player to join any clans of Clannish
-        default: true
-      Clannish.chat:
-        description: Allows player to chat in any clans of Clannish
+      Clannish.activity:
+        description: Allows player to be active in any clans of Clannish
         default: true

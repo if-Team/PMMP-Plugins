@@ -24,6 +24,8 @@
 
 namespace chalk\clannish\clan;
 
+use pocketmine\Player;
+
 class Clan {
     /** @var string */
     private $name = "";
@@ -46,6 +48,13 @@ class Clan {
     }
 
     /**
+     * @return array
+     */
+    public function toArray(){
+        return ["name" => $this->getName(), "leader" => $this->getLeader(), "members" => $this->getMembers()];
+    }
+
+    /**
      * @return string
      */
     public function getName(){
@@ -60,16 +69,47 @@ class Clan {
     }
 
     /**
-     * @return \string[]
+     * @return string[]
      */
     public function getMembers(){
         return $this->members;
     }
 
+
     /**
-     * @return array
+     * @param string|Player $name
+     * @return string
      */
-    public function toArray(){
-        return ["name" => $this->getName(), "leader" => $this->getLeader(), "members" => $this->getMembers()];
+    private static function validateName($name){
+        if($name instanceof Player){
+            $name = $name->getName();
+        }
+
+        return strToLower($name);
+    }
+
+    /**
+     * @param string|Player $name
+     * @return int
+     */
+    private function indexOfMember($name){
+        $name = Clan::validateName($name);
+
+        foreach($this->getMembers() as $index => $memberName){
+            if($name === $memberName){
+                return $index;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * @param string|Player $name
+     * @return bool
+     */
+    public function isMember($name){
+        $name = Clan::validateName($name);
+
+        return $this->indexOfMember($name) >= 0;
     }
 }
