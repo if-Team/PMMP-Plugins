@@ -13,3 +13,7 @@ messages:
   create-clan-command-description:
     en: "Create your own clan."
     ko: "자기 소유의 클랜을 만듭니다."
+
+  create-clan-command-usage:
+    en: "/create-clan <name>"
+    ko: "/클랜생성 <이름>"

@@ -99,7 +99,8 @@ class Clannish extends PluginBase implements Listener {
         $commandMap->register("Clannish", new CreateClanCommand(
             $this,
             $this->getMessages()->getMessage("create-clan-command-name"),
-            $this->getMessages()->getMessage("create-clan-command-description")
+            $this->getMessages()->getMessage("create-clan-command-description"),
+            $this->getMessages()->getMessage("create-clan-command-usage")
         ));
     }
 

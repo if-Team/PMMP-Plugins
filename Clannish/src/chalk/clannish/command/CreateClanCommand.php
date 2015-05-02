@@ -33,11 +33,11 @@ class CreateClanCommand extends ClannishCommand {
      * @param Clannish $plugin
      * @param string $name
      * @param string $description
-     * @param string $permission
      * @param string $usage
+     * @param string $permission
      */
-    public function __construct(Clannish $plugin, $name, $description = "", $permission = "Clannish.create", $usage = ""){
-        parent::__construct($plugin, $name, $description, $permission, $usage);
+    public function __construct(Clannish $plugin, $name, $description = "", $usage = "", $permission = "Clannish.create"){
+        parent::__construct($plugin, $name, $description, $usage, $permission);
     }
 
     /**

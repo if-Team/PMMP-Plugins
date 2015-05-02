@@ -30,14 +30,14 @@ abstract class ClannishCommand extends PluginCommand {
      * @param Clannish $plugin
      * @param string $name
      * @param string $description
-     * @param string $permission
      * @param string $usage
+     * @param string $permission
      */
-    public function __construct(Clannish $plugin, $name, $description = "", $permission = "", $usage = ""){
+    public function __construct(Clannish $plugin, $name, $description = "",  $usage = "", $permission = ""){
         parent::__construct($name, $plugin);
 
         $this->setDescription($description);
-        $this->setPermission($permission);
         $this->setUsage($usage);
+        $this->setPermission($permission);
     }
 }
