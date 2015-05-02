@@ -6,10 +6,10 @@ messages:
     en: "Please run this command in-game!"
     ko: "게임 내에서 입력해 주세요!"
 
-  chatting-room-command-name:
-    en: "room"
-    ko: "방"
+  create-clan-command-name:
+    en: "create-clan"
+    ko: "클랜생성"
 
-  chatting-room-command-description:
-    en: "Create, join or delete chatting rooms."
-    ko: "채팅 방을 만들고, 입장하거나 삭제합니다."
+  create-clan-command-description:
+    en: "Create your own clan."
+    ko: "자기 소유의 클랜을 만듭니다."

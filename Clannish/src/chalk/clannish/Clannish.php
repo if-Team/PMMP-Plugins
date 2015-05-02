@@ -23,7 +23,9 @@
  */
 namespace chalk\clannish;
 
+use chalk\clannish\clan\Clan;
 use chalk\clannish\command\ChattingRoomCommand;
+use chalk\clannish\command\CreateClanCommand;
 use chalk\utils\Messages;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerChatEvent;
@@ -34,14 +36,11 @@ class Clannish extends PluginBase implements Listener {
     /** @var Clannish|null */
     private static $instance = null;
 
-    /** @var array */
-    private $data = [];
+    /** @var Clan[] */
+    private $clans = [];
 
     /** @var Messages */
     private $messages = [];
-
-    /** @var string */
-    private $defaultRoomName = "main";
 
     /**
      * @return Clannish|null
@@ -66,10 +65,23 @@ class Clannish extends PluginBase implements Listener {
         @mkdir($this->getDataFolder());
         $this->saveDefaultConfig();
 
-        $this->defaultRoomName = $this->getConfig()->get("default-room-name", "main");
+        $clansConfig = new Config($this->getDataFolder() . "clans.yml", Config::YAML);
+        $this->clans = [];
 
-        $dataConfig = new Config($this->getDataFolder() . "data.json", Config::JSON);
-        $this->data = $dataConfig->getAll();
+        foreach($clansConfig->getAll() as $clan){
+            $this->clans[] = new Clan($clan["name"], $clan["leader"], $clan["members"]);
+        }
+    }
+
+    public function saveConfig(){
+        $clansConfig = new Config($this->getDataFolder() . "clans.yml", Config::YAML);
+        $clans = [];
+
+        foreach($this->getClans() as $clan){
+            $clans[] = $clan->toArray();
+        }
+        $clansConfig->setAll($clans);
+        $clansConfig->save();
     }
 
     /**
@@ -84,16 +96,16 @@ class Clannish extends PluginBase implements Listener {
 
     public function registerAllCommands(){
         $commandMap = $this->getServer()->getCommandMap();
-        $commandMap->register("Clannish", new ChattingRoomCommand(
+        $commandMap->register("Clannish", new CreateClanCommand(
             $this,
-            $this->getMessages()->getMessage("chatting-room-command-name"),
-            $this->getMessages()->getMessage("chatting-room-command-description"))
-        );
+            $this->getMessages()->getMessage("create-clan-command-name"),
+            $this->getMessages()->getMessage("create-clan-command-description")
+        ));
     }
 
     public function onPlayerChat(PlayerChatEvent $event){
         $sender = $event->getPlayer();
-        if(!$sender->hasPermission("clannish")){
+        if(!$sender->hasPermission("Clannish.chat")){
             return;
         }
 
@@ -101,10 +113,10 @@ class Clannish extends PluginBase implements Listener {
     }
 
     /**
-     * @return array
+     * @return Clan[]
      */
-    public function getData(){
-        return $this->data;
+    public function getClans(){
+        return $this->clans;
     }
 
     /**

@@ -1,10 +1,31 @@
 name: Clannish
 main: chalk\clannish\Clannish
-version: 0.1
+version: 0.2-SNAPSHOT
 author: ChalkPE
-api: [1.4.1]
+api: [1.4.1, 1.12.0]
 
 permissions:
-  clannish:
-    description: Allows player to use all features in Clannish
-    default: true
+  Clannish.*:
+    description: Allows player to use all features of Clannish
+    default: op
+    children:
+      Clannish.force:
+        description: Allows player to manage all clans of Clannish
+        default: op
+
+      Clannish.create:
+        description: Allows player to create own clan of Clannish
+        default: true
+      Clannish.remove:
+        description: Allows player to remove own clan of Clannish
+        default: true
+      Clannish.manage:
+        description: Allows player to manage own clan of Clannish
+        default: op
+
+      Clannish.join:
+        description: Allows player to join any clans of Clannish
+        default: true
+      Clannish.chat:
+        description: Allows player to chat in any clans of Clannish
+        default: true
