@@ -47,20 +47,25 @@ class Clan implements Arrayable {
     }
 
     /**
+     * @param string $index
      * @param array $array
      * @return Clan
      */
-    public static function createFromArray($array){
-        return new Clan($array["name"], $array["members"]);
+    public static function createFromArray($index, $array){
+        $members = [];
+        foreach($array as $name => $data){
+            $members[] = ClanMember::createFromArray($name, $data);
+        }
+        return new Clan($index, $members);
     }
 
     /**
      * @return array
      */
     public function toArray(){
-        $array = ["name" => $this->getName(), "members" => []];
+        $array = ["members" => []];
         foreach($this->getMembers() as $member){
-            $array["members"][] = $member->toArray();
+            $array["members"][$member->getName()] = $member->toArray();
         }
 
         return $array;
@@ -88,7 +93,7 @@ class Clan implements Arrayable {
     }
 
     /**
-     * @param string|Player $name
+     * @param string|Player|ClanMember $name
      * @return string
      */
     private static function validateName($name){
@@ -100,7 +105,7 @@ class Clan implements Arrayable {
     }
 
     /**
-     * @param string|Player $name
+     * @param string|Player|ClanMember $name
      * @return int
      */
     private function indexOfMember($name){
@@ -115,7 +120,7 @@ class Clan implements Arrayable {
     }
 
     /**
-     * @param string|Player $name
+     * @param string|Player|ClanMember $name
      * @return bool
      */
     public function isMember($name){

@@ -55,18 +55,19 @@ class ClanMember implements Arrayable {
     }
 
     /**
+     * @param string $index
      * @param array $array
      * @return ClanMember
      */
-    public static function createFromArray($array){
-        return new ClanMember($array["name"], $array["data"]);
+    public static function createFromArray($index, $array){
+        return new ClanMember($index, $array);
     }
 
     /**
      * @return array
      */
     public function toArray(){
-        return ["name" => $this->getName(), "data" => $this->getData()];
+        return $this->getData();
     }
 
     /**

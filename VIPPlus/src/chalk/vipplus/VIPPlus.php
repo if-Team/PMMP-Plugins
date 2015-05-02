@@ -119,8 +119,8 @@ class VIPPlus extends PluginBase implements Listener {
         }
 
         $vipsConfig = new Config($this->getDataFolder() . "vips.yml", Config::YAML);
-        foreach($vipsConfig->getAll() as $name => $data){
-            array_push($this->vips, new VIP($name, $data));
+        foreach($vipsConfig->getAll() as $index => $data){
+            $this->vips[] = VIP::createFromArray($index, $data);
         }
     }
 
@@ -129,10 +129,13 @@ class VIPPlus extends PluginBase implements Listener {
      */
     public function saveVips(){
         $vipsConfig = new Config($this->getDataFolder() . "vips.yml", Config::YAML);
+        $vips = [];
+
         foreach($this->getVips() as $vip){
-            $vipsConfig->set($vip->getName(), $vip->getData());
+            $vips[$vip->getName()] = $vip->toArray();
         }
 
+        $vipsConfig->setAll($vips);
         return $vipsConfig->save();
     }
 
@@ -181,11 +184,11 @@ class VIPPlus extends PluginBase implements Listener {
     }
 
     /**
-     * @param string|Player $name
+     * @param string|Player|VIP $name
      * @return string
      */
     private static function validateName($name){
-        if($name instanceof Player){
+        if($name instanceof Player or $name instanceof VIP){
             $name = $name->getName();
         }
 
@@ -193,7 +196,7 @@ class VIPPlus extends PluginBase implements Listener {
     }
 
     /**
-     * @param string|Player $name
+     * @param string|Player|VIP $name
      * @return int
      */
     private function indexOfVip($name){
@@ -208,32 +211,28 @@ class VIPPlus extends PluginBase implements Listener {
     }
 
     /**
-     * @param string|Player $name
-     * @return null|VIP
+     * @param string|Player|VIP $name
+     * @return VIP|null
      */
     public function getVip($name){
         $name = VIPPlus::validateName($name);
 
         $index = $this->indexOfVip($name);
-        if($index < 0){
-            return null;
-        }else{
-            return $this->getVips()[$index];
-        }
+        return $index >= 0 ? $this->getVips()[$index] : null;
     }
 
     /**
-     * @param string|Player $name
+     * @param string|Player|VIP $name
      * @return bool
      */
     public function isVip($name){
         $name = VIPPlus::validateName($name);
 
-        return $this->getVip($name) !== 0;
+        return $this->getVip($name) !== null;
     }
 
     /**
-     * @param string|Player $name
+     * @param string|Player|VIP $name
      * @return null|string
      */
     public function addVip($name){
@@ -254,7 +253,7 @@ class VIPPlus extends PluginBase implements Listener {
     }
 
     /**
-     * @param string|Player $name
+     * @param string|Player|VIP $name
      * @return null|string
      */
     public function removeVip($name){

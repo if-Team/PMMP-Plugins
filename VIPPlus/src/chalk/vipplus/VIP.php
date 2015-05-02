@@ -7,11 +7,12 @@
 
 namespace chalk\vipplus;
 
+use chalk\utils\Arrayable;
 use pocketmine\item\Item;
 use pocketmine\Player;
 use pocketmine\Server;
 
-class VIP {
+class VIP implements Arrayable {
     /** @var string */
     private $name;
 
@@ -32,6 +33,22 @@ class VIP {
 
     public function __toString(){
         return $this->getName();
+    }
+
+    /**
+     * @param string $index
+     * @param array $array
+     * @return VIP
+     */
+    public static function createFromArray($index, $array){
+        return new VIP($index, $array);
+    }
+
+    /**
+     * @return array
+     */
+    public function toArray(){
+        return $this->getData();
     }
 
     /**
