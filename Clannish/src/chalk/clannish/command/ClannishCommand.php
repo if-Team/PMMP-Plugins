@@ -23,27 +23,21 @@
  */
 namespace chalk\clannish;
 
-use pocketmine\command\Command;
-use pocketmine\command\PluginIdentifiableCommand;
+use pocketmine\command\PluginCommand;
 
-abstract class ClannishCommand extends Command implements PluginIdentifiableCommand {
-    /** @var Clannish */
-    private $plugin = null;
-
+abstract class ClannishCommand extends PluginCommand {
     /**
      * @param Clannish $plugin
-     * @param array $resources
+     * @param string $name
+     * @param string $description
+     * @param string $permission
+     * @param string $usage
      */
-    public function __construct(Clannish $plugin, $resources){
-        parent::__construct($resources["command"], $resources["description"]);
-        $this->setPermission($resources["permission"]);
-        $this->plugin = $plugin;
-    }
+    public function __construct(Clannish $plugin, $name, $description = "", $permission = "", $usage = ""){
+        parent::__construct($name, $plugin);
 
-    /**
-     * @return Clannish
-     */
-    public function getPlugin(){
-        return $this->plugin;
+        $this->setDescription($description);
+        $this->setPermission($permission);
+        $this->setUsage($usage);
     }
 }

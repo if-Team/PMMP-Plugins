@@ -31,10 +31,13 @@ use pocketmine\Player;
 class ChattingRoomCommand extends ClannishCommand {
     /**
      * @param Clannish $clannish
-     * @param array $resources
+     * @param string $name
+     * @param string $description
+     * @param string $permission
+     * @param string $usage
      */
-    public function __construct(Clannish $clannish, $resources){
-        parent::__construct($clannish, $resources);
+    public function __construct(Clannish $clannish, $name, $description = "", $permission = "", $usage = ""){
+        parent::__construct($clannish, $name, $description, $permission, $usage);
 
     }
 
@@ -45,15 +48,19 @@ class ChattingRoomCommand extends ClannishCommand {
      * @return bool
      */
     public function execute(CommandSender $sender, $currentAlias, array $args){
-        if(!$this->getPlugin()->isEnabled() or !$this->testPermission($sender)){
+        /** @var $plugin Clannish */
+        $plugin = $this->getPlugin();
+
+        if(!$plugin->isEnabled() or !$this->testPermission($sender)){
             return false;
         }
 
         if(!$sender instanceof Player){
-            $sender->sendMessage($this->getPlugin()->getResource("messages.error.inGameCommand"));
+            $sender->sendMessage($plugin->getMessages("in-game-command"));
             return true;
         }
 
+        //TODO: Complete this method
         return true;
     }
 }

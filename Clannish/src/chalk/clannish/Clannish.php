@@ -23,63 +23,81 @@
  */
 namespace chalk\clannish;
 
+use chalk\clannish\command\ChattingRoomCommand;
+use chalk\utils\Messages;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
 
 class Clannish extends PluginBase implements Listener {
+    /** @var Clannish|null */
+    private static $instance = null;
+
     /** @var array */
     private $data = [];
 
+    /** @var Messages */
+    private $messages = [];
+
     /** @var string */
-    private $language = "en";
+    private $defaultRoomName = "main";
 
-    /** @var array */
-    private $resources = [];
-
-    public function onEnable(){
-        @mkdir($this->getDataFolder());
-
-        $dataConfig = new Config($this->getDataFolder() . "data.json", Config::JSON);
-        $dataConfig->save();
-        $this->data = $dataConfig->getAll();
-
-        $this->saveResource("resources.json", false);
-        $resourcesConfig = new Config($this->getDataFolder() . "resources.json", Config::JSON);
-        $resourcesConfig->save();
-        $this->resources = $resourcesConfig->getAll();
-
-        $this->saveDefaultConfig();
-        $this->language = $this->getConfig()->get("current-language", $this->getConfig()->get("default-language"));
-
-        $this->getServer()->getPluginManager()->registerEvents($this, $this);
-        $this->registerCommands();
+    /**
+     * @return Clannish|null
+     */
+    public static function getInstance(){
+        return self::$instance;
     }
 
-    public function registerCommands(){
-        $map = [
-            "ChattingRoomCommand" => "chalk\\clannish\\command\\ChattingRoomCommand"
-        ];
+    public function onLoad(){
+        self::$instance = $this;
+    }
 
-        foreach($this->getResource("commands") as $command){
-            $this->getServer()->getCommandMap()->register("clannish", new $map[$command["type"]]($this, $command));
-        }
+    public function onEnable(){
+        $this->loadConfig();
+        $this->loadMessages();
+        $this->registerAllCommands();
+
+        $this->getServer()->getPluginManager()->registerEvents($this, $this);
+    }
+
+    public function loadConfig(){
+        @mkdir($this->getDataFolder());
+        $this->saveDefaultConfig();
+
+        $this->defaultRoomName = $this->getConfig()->get("default-room-name", "main");
+
+        $dataConfig = new Config($this->getDataFolder() . "data.json", Config::JSON);
+        $this->data = $dataConfig->getAll();
+    }
+
+    /**
+     * @param bool $override
+     */
+    public function loadMessages($override = false){
+        $this->saveResource("messages.yml", $override);
+
+        $messagesConfig = new Config($this->getDataFolder() . "messages.yml", Config::YAML);
+        $this->messages = new Messages($messagesConfig->getAll());
+    }
+
+    public function registerAllCommands(){
+        $commandMap = $this->getServer()->getCommandMap();
+        $commandMap->register("Clannish", new ChattingRoomCommand(
+            $this,
+            $this->getMessages()->getMessage("chatting-room-command-name"),
+            $this->getMessages()->getMessage("chatting-room-command-description"))
+        );
     }
 
     public function onPlayerChat(PlayerChatEvent $event){
         $sender = $event->getPlayer();
-        if(!$sender->hasPermission("Clannish")){
+        if(!$sender->hasPermission("clannish")){
             return;
         }
-        
-        $key = strToLower($sender->getName());
-        if(isset($this->data[$key]) and $this->data[$key]["room"] !== "main"){
-            $event->setCancelled(true);
-            foreach($this->data[$key]["roomMembers"] as $member){
-                //TODO: Implements this stuff
-            }
-        }
+
+        //TODO: Implement this method
     }
 
     /**
@@ -90,32 +108,9 @@ class Clannish extends PluginBase implements Listener {
     }
 
     /**
-     * @return string
+     * @return Messages
      */
-    public function getLanguage(){
-        return $this->language;
-    }
-
-    /**
-     * @return array
-     */
-    public function getResources(){
-        return $this->resources;
-    }
-
-    /**
-     * @param string $key
-     * @return mixed
-     */
-    public function getResource($key){
-        $resource = $this->getResources()[$this->getLanguage()];
-        if(!isset($resource)){
-            $resource = $this->getResources()[$this->getConfig()->get("default-language")];
-        }
-
-        foreach(explode(".", $key) as $k){
-            $resource = $resource[$k];
-        }
-        return $resource;
+    public function getMessages(){
+        return $this->messages;
     }
 }

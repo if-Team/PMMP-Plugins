@@ -5,10 +5,6 @@ author: ChalkPE
 api: [1.4.1]
 
 permissions:
-  clannish.*:
+  clannish:
     description: Allows player to use all features in Clannish
     default: true
-    children:
-      clannish.room:
-        description: Allows player to use all features of chatting rooms in Clannish
-        default: true
