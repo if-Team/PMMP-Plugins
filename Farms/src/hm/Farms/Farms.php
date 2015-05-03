@@ -95,7 +95,7 @@ class Farms extends PluginBase implements Listener {
         }
 	}
 
-	public function Farms() {
+	public function tick() {
 		foreach ( array_keys ( $this->farmData ) as $p ) {
 			if (-- $this->farmData [$p] ['time'] > 0) continue;
 			

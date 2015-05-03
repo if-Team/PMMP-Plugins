@@ -14,7 +14,7 @@ class FarmsTask extends PluginTask {
 	public function onRun($currentTick) {
 		/** @var $owner Farms */
 		$owner = $this->getOwner();
-		$owner->Farms();
+		$owner->tick();
 	}
 }
 
