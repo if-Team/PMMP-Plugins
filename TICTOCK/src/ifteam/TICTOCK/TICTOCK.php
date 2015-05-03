@@ -21,9 +21,9 @@ class TICTOCK extends PluginBase implements Listener {
 		if ($player->isCreative ()) return;
 		$time = round ( microtime ( true ) * 1000 );
 		
-		if ($event->getBlock ()->getBreakTime ( $event->getItem () ) <= 0.2) return;
+		if ($event->getBlock ()->getBreakTime ( $event->getItem () ) <= 0.1) return;
 		
-		if (($time - $this->tictock [$player->getName ()]) <= 200) {
+		if (($time - $this->tictock [$player->getName ()]) <= 100) {
 			if (! isset ( $this->kick [$player->getName ()] )) {
 				$this->kick [$player->getName ()] = 1;
 			} else {
