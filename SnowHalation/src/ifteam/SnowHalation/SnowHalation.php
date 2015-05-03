@@ -6,7 +6,6 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\Player;
 use pocketmine\entity\Entity;
-use pocketmine\scheduler\CallbackTask;
 use pocketmine\block\Block;
 use pocketmine\item\Item;
 use pocketmine\network\protocol\AddEntityPacket;
@@ -40,7 +39,7 @@ class SnowHalation extends PluginBase implements Listener {
 		$this->config = $this->config_File->getAll ();
 		
 		$this->pk = new AddEntityPacket ();
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ $this,"SnowHalation" ] ), 4 );
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new SnowHalationTask ( $this ), 4 );
 		
 		new OutEventListener ( $this );
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
@@ -128,7 +127,7 @@ class SnowHalation extends PluginBase implements Listener {
 		if (! $this->checkEnableSnowing ()) {
 			if ($this->checkEnableSunLight ()) {
 				foreach ( $this->getServer ()->getOnlinePlayers () as $player ) {
-					if ($player->spawned != true or isset ( $this->denied [$player->getName ()] )) continue;
+					if (! $player->spawned or isset ( $this->denied [$player->getName ()] )) continue;
 					$x = mt_rand ( $player->x - 15, $player->x + 15 );
 					$z = mt_rand ( $player->z - 15, $player->z + 15 );
 					
@@ -136,14 +135,14 @@ class SnowHalation extends PluginBase implements Listener {
 						$this->cooltime ++;
 						
 						$y = $player->getLevel ()->getHighestBlockAt ( $x, $z );
-						$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"destructSnowLayer" ], [ new Position ( $x, $y, $z, $player->getLevel () ) ] ), 20 );
+						$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new destructSnowLayerTask ( $this, new Position ( $x, $y, $z, $player->getLevel () ) ), 20 );
 					}
 				}
 			}
 			return;
 		}
 		foreach ( $this->getServer ()->getOnlinePlayers () as $player ) {
-			if ($player->spawned != true or isset ( $this->denied [$player->getName ()] )) continue;
+			if (! $player->spawned or isset ( $this->denied [$player->getName ()] )) continue;
 			$this->createSnow ( $player );
 		}
 	}
@@ -171,13 +170,13 @@ class SnowHalation extends PluginBase implements Listener {
 			if ($this->cooltime < 11) {
 				$this->cooltime ++;
 				
-				$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"createSnowLayer" ], [ new Position ( $x, $y, $z, $player->getLevel () ) ] ), 20 );
+				$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new createSnowLayerTask ( $this, new Position ( $x, $y, $z, $player->getLevel () ) ), 20 );
 			}
 		} else {
 			if ($this->cooltime < 11) {
 				$this->cooltime ++;
 				
-				$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"destructSnowLayer" ], [ new Position ( $x, $y, $z, $player->getLevel () ) ] ), 20 );
+				$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new destructSnowLayerTask ( $this, new Position ( $x, $y, $z, $player->getLevel () ) ), 20 );
 			}
 		}
 	}
