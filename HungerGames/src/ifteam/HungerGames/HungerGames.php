@@ -24,7 +24,7 @@ use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageByChildEntityEvent;
 use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\entity\EntityCombustByBlockEvent;
-use HungerGames\task\removeArrowTask;
+use ifteam\HungerGames\task\removeArrowTask;
 
 class HungerGames extends PluginBase implements Listener {
 	public $settings, $score;
