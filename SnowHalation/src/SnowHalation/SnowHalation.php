@@ -194,7 +194,7 @@ class SnowHalation extends PluginBase implements Listener {
 	}
 	public function destructSnowLayer(Position $pos) {
 		$this->cooltime --;
-		
+
 		if ($pos == null) return;
 		
 		if ($pos->getLevel ()->getBlock ( $pos )->getId () == Block::SNOW_LAYER) $pos->getLevel ()->setBlock ( $pos, Block::get ( Item::AIR ), 0, true );
