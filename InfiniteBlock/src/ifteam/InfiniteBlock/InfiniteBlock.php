@@ -152,16 +152,17 @@ class InfiniteBlock extends PluginBase implements Listener {
 	}
 	public function onQuit(PlayerQuitEvent $event) {
 		$player = $event->getPlayer ();
-		if (isset ( $this->tictock [$player->getName ()] ))
-			unset ( $this->tictock [$player->getName ()] );
+		if (isset ( $this->tictock [$player->getName ()] )) unset ( $this->tictock [$player->getName ()] );
 	}
 	public function onBreak(BlockBreakEvent $event) {
 		$area = $this->getArea ( $event->getBlock ()->x, $event->getBlock ()->y, $event->getBlock ()->z );
 		if ($area != false) {
 			$time = round ( microtime ( true ) * 1000 );
-			if (($time - $this->tictock [$event->getPlayer ()->getName ()]) <= 450) {
-				$event->setCancelled ();
-				return;
+			if ($event->getBlock ()->getBreakTime ( $event->getItem () ) > 0.1){
+				if (($time - $this->tictock [$event->getPlayer ()->getName ()]) <= 100) {
+					$event->setCancelled ();
+					return;
+				}
 			}
 			$this->tictock [$event->getPlayer ()->getName ()] = $time;
 			$block = $event->getBlock ();
