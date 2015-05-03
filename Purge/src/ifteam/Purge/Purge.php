@@ -13,6 +13,7 @@ use pocketmine\level\Level;
 use pocketmine\event\entity\EntityCombustByBlockEvent;
 use pocketmine\block\Fire;
 use pocketmine\event\entity\EntityCombustEvent;
+use pocketmine\event\entity\ExplosionPrimeEvent;
 
 class Purge extends PluginBase implements Listener {
 	public $purgeStarted = false;
@@ -62,6 +63,9 @@ class Purge extends PluginBase implements Listener {
 				$event->setCancelled ();
 			}
 		}
+	}
+	public function onExplode(ExplosionPrimeEvent $event) {
+		if (! $this->purgeStarted) $event->setCancelled ();
 	}
 	public function onCombust(EntityCombustEvent $event) {
 		if ($event instanceof EntityCombustByBlockEvent) {
