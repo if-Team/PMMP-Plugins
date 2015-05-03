@@ -62,10 +62,14 @@ class InfiniteBlock extends PluginBase implements Listener {
 		ksort ( $sortedIndex ); // 확률이 낮은 순서부터 오름차 정렬
 		$this->sortedSettings = $sortedIndex;
 	}
-	public function randomMine() {
+	public function randomMine($vipmode = false) {
 		$index = array_keys ( $this->sortedSettings );
 		foreach ( $index as $item ) {
-			$rand = rand ( 1, $this->sortedSettings [$item] );
+			if ($vipmode) {
+				$rand = rand ( 1, round ( $this->sortedSettings [$item] * 0.75 ) );
+			} else {
+				$rand = rand ( 1, $this->sortedSettings [$item] );
+			}
 			if ($rand == 1) {return $item;}
 		}
 		return 1;
@@ -158,7 +162,7 @@ class InfiniteBlock extends PluginBase implements Listener {
 		$area = $this->getArea ( $event->getBlock ()->x, $event->getBlock ()->y, $event->getBlock ()->z );
 		if ($area != false) {
 			$time = round ( microtime ( true ) * 1000 );
-			if ($event->getBlock ()->getBreakTime ( $event->getItem () ) > 0.1){
+			if ($event->getBlock ()->getBreakTime ( $event->getItem () ) > 0.1) {
 				if (($time - $this->tictock [$event->getPlayer ()->getName ()]) <= 100) {
 					$event->setCancelled ();
 					return;
@@ -171,14 +175,18 @@ class InfiniteBlock extends PluginBase implements Listener {
 			$z = $block->z + 0.5;
 			if ($area ["is-mine"] == true) {
 				$drops = $event->getBlock ()->getDrops ( $event->getItem () );
-				foreach ( $drops as $drop )
-					if ($drop [2] > 0) $event->getPlayer ()->getInventory ()->addItem ( Item::get (...$drop));
-				$this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"] = Block::get ( $this->randomMine () );
+				 foreach ( $drops as $drop )
+					 if ($drop [2] > 0) $event->getPlayer ()->getInventory ()->addItem ( Item::get (...$drop));
+				if ($event->getPlayer ()->hasPermission ( "infinite.VIP" )) {
+					$this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"] = Block::get ( $this->randomMine ( true ) );
+				} else {
+					$this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"] = Block::get ( $this->randomMine () );
+				}
 				$this->itemQueue ["{$x}:{$y}:{$z}"] = $drops;
 			} else {
 				$drops = $event->getBlock ()->getDrops ( $event->getItem () );
-				foreach ( $drops as $drop )
-					if ($drop [2] > 0) $event->getPlayer ()->getInventory ()->addItem ( Item::get (...$drop));
+				 foreach ( $drops as $drop )
+					 if ($drop [2] > 0) $event->getPlayer ()->getInventory ()->addItem ( Item::get (...$drop));
 				$this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"] = $block;
 				$this->itemQueue ["{$x}:{$y}:{$z}"] = $drops;
 			}

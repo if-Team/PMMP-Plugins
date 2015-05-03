@@ -1,9 +1,11 @@
 name: InfiniteBlock
 main: ifteam\InfiniteBlock\InfiniteBlock
-version: 0.6-alpha
+version: 0.7-alpha
 author: ifteam
 api: [1.4.1]
 
 permissions:
  infinite:
+  default: op
+ infinite.VIP:
   default: op
