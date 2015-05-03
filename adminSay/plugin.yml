@@ -1,0 +1,14 @@
+name: adminSay
+main: adminSay\adminSay
+author: hm
+version: 1.0-alpha
+api: [1.4.1]
+
+commands:
+ adminsay:
+  permission: adminsay
+  description: Allow commands of adminSay
+
+permissions:
+ adminsay:
+  default: OP
