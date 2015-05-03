@@ -1,7 +1,7 @@
 name: GoodSPAWN
-main: GoodSPAWN\GoodSPAWN
+main: ifteam\GoodSPAWN\GoodSPAWN
 version: 0.3-alpha
-author: hm
+author: ifteam
 api: [1.4.1]
 
 permissions:

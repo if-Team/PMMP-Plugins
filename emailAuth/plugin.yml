@@ -1,6 +1,6 @@
 name: emailAuth
-main: emailAuth\emailAuth
-author: hm
+main: ifteam\emailAuth\emailAuth
+author: ifteam
 version: 0.3-non-alpha
 api: [1.12.0]
 

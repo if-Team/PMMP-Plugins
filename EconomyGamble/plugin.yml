@@ -1,5 +1,5 @@
 name: EconomyGamble
-main: EconomyGamble\EconomyGamble
+main: ifteam\EconomyGamble\EconomyGamble
 version: 3.2-alpha
 author: hm
 api: [1.12.0]

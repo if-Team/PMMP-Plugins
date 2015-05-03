@@ -1,7 +1,7 @@
 name: SwissBank
-main: hm\SwissBank\Main
+main: ifteam\SwissBank\Main
 version: "1.0"
-author: hm
+author: ifteam
 api: [1.12.0]
 load: POSTWORLD
 

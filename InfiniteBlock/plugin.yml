@@ -1,7 +1,7 @@
 name: InfiniteBlock
-main: InfiniteBlock\InfiniteBlock
+main: ifteam\InfiniteBlock\InfiniteBlock
 version: 0.6-alpha
-author: hm
+author: ifteam
 api: [1.4.1]
 
 permissions:

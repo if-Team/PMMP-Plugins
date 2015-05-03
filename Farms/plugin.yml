@@ -1,7 +1,7 @@
 name: Farms
-main: hm\Farms\Farms
+main: ifteam\Farms\Farms
 version: 1.2-alpha
-author: hm
+author: ifteam
 api: [1.12.0]
 
 permissions:

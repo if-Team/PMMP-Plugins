@@ -1,5 +1,5 @@
 name: TICTOCK
-main: TICTOCK\TICTOCK
+main: ifteam\TICTOCK\TICTOCK
 version: 1.0-alpha
-author: hm
-api: [1.4.1]
+author: ifteam
+api: [1.12.0]

@@ -1,5 +1,5 @@
 name: QuestNPC
-main: hm\questnpc
+main: ifteam\questnpc
 version: 0.1-Alpha
-author: hm
+author: ifteam
 api: [1.4.1]

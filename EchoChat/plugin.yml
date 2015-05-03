@@ -1,7 +1,7 @@
 name: EchoChat
-main: EchoChat\EchoChat
+main: ifteam\EchoChat\EchoChat
 version: 0.1-Alpha
-author: hm
+author: ifteam
 api: [1.12.0]
 
 permissions:

@@ -1,7 +1,7 @@
 name: EDGE
-main: EDGE\EDGE
+main: ifteam\EDGE\EDGE
 version: 0.4-Alpha
-author: hm
+author: ifteam
 api: [1.12.0]
 
 permission:

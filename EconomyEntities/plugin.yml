@@ -1,6 +1,6 @@
 name: EconomyEntities
-main: hm\EconomyEntities\EconomyEntities
-author: hm
+main: ifteam\EconomyEntities\EconomyEntities
+author: ifteam
 version : 3.7-alpha
 api: [1.4.1]
 

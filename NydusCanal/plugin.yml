@@ -1,8 +1,8 @@
 name: NydusCanal
-main: NydusCanal\NydusCanal
+main: ifteam\NydusCanal\NydusCanal
 version: 1.6-alpha
-author: hm
-api: [1.4.1]
+author: ifteam
+api: [1.12.0]
 
 commands:
  warp:

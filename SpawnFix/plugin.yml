@@ -1,5 +1,5 @@
 name: SpawnFix
-main: SpawnFix\SpawnFix
+main: ifteam\SpawnFix\SpawnFix
 version: "1.0"
-author: hmm
+author: ifteam
 api: [1.1.0]

@@ -1,7 +1,7 @@
 name: CreativeEconomy
-main: CreativeEconomy\CreativeEconomy
+main: ifteam\CreativeEconomy\CreativeEconomy
 version: 0.5-Alpha
-author: hm
+author: ifteam
 api: [1.12.0]
 
 permissions:
