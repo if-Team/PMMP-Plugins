@@ -24,11 +24,17 @@
 
 namespace chalk\clannish\clan;
 
+use chalk\clannish\Clannish;
 use chalk\utils\Arrayable;
 use pocketmine\Player;
 use pocketmine\Server;
 
 class ClanMember implements Arrayable {
+    const GRADE_LEADER = "leader";
+    const GRADE_CO_LEADER = "co-leader";
+    const GRADE_ELDER = "elder";
+    const GRADE_MEMBER = "member";
+
     /** @var string */
     private $name;
 
@@ -102,7 +108,7 @@ class ClanMember implements Arrayable {
     public function getPlayer(){
         if($this->player === null){
             foreach(Server::getInstance()->getOnlinePlayers() as $player){
-                if($this->getName() === strToLower($player->getName())){
+                if($this->getName() === Clannish::validateName($player->getName())){
                     $this->player = $player;
                     break;
                 }
@@ -125,6 +131,6 @@ class ClanMember implements Arrayable {
     }
 
     public function isLeader(){
-        return $this->getGrade() === "leader";
+        return $this->getGrade() === ClanMember::GRADE_LEADER;
     }
 }

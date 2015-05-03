@@ -1,3 +1,4 @@
 ---
-max-owning-clan-count: 1
+maximum-owning-clans-count: 1
+banned-characters-pattern: "/[^a-z-]+/"
 ...

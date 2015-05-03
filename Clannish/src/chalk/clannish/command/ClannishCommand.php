@@ -23,6 +23,8 @@
  */
 namespace chalk\clannish;
 
+use chalk\clannish\command\InGameCommand;
+use pocketmine\command\CommandSender;
 use pocketmine\command\PluginCommand;
 
 abstract class ClannishCommand extends PluginCommand {
@@ -40,4 +42,30 @@ abstract class ClannishCommand extends PluginCommand {
         $this->setUsage($usage);
         $this->setPermission($permission);
     }
+
+    public function sendMessage(CommandSender $sender, $key, $format = [], $language = ""){
+        $sender->sendMessage(Clannish::getInstance()->getMessages()->getMessage($key, $format, $language));
+    }
+
+    public function execute(CommandSender $sender, $label, array $args){
+        if(!$this->getPlugin()->isEnabled() or !$this->testPermission($sender)){
+            return false;
+        }
+
+        if($this instanceof ClannishCommand and $this instanceof InGameCommand and !$sender instanceof Player){
+            $sender->sendMessage($sender, "in-game-command");
+        }
+
+        if($this->exec($sender, $args) === false){
+            $sender->sendMessage($this->getUsage());
+        }
+        return true;
+    }
+
+    /**
+     * @param CommandSender $sender
+     * @param array $args
+     * @return bool
+     */
+    public abstract function exec(CommandSender $sender, array $args);
 }

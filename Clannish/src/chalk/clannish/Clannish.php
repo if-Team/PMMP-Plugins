@@ -38,6 +38,12 @@ class Clannish extends PluginBase implements Listener {
     /** @var Clannish */
     private static $instance = null;
 
+    /** @var string */
+    private static $bannedCharactersPattern = "/[^a-z-]+/";
+
+    /** @var int */
+    private $maximumOwningClansCount = 1;
+
     /** @var Clan[] */
     private $clans = [];
 
@@ -63,6 +69,9 @@ class Clannish extends PluginBase implements Listener {
     public function loadConfig(){
         @mkdir($this->getDataFolder());
         $this->saveDefaultConfig();
+
+        self::$bannedCharactersPattern = $this->getConfig()->get("clan-name-pattern", "/[^a-z-]+/");
+        $this->maximumOwningClansCount = $this->getConfig()->get("maximum-owning-clans-count", 1);
     }
 
     public function loadClans($override = true){
@@ -135,6 +144,20 @@ class Clannish extends PluginBase implements Listener {
     }
 
     /**
+     * @return string
+     */
+    public static function getBannedCharactersPattern(){
+        return self::$bannedCharactersPattern;
+    }
+
+    /**
+     * @return int
+     */
+    public function getMaximumOwningClansCount(){
+        return $this->maximumOwningClansCount;
+    }
+
+    /**
      * @return Clan[]
      */
     public function getClans(){
@@ -143,31 +166,55 @@ class Clannish extends PluginBase implements Listener {
 
     /**
      * @param string|Player|ClanMember $name
-     * @return array
+     * @return Clan[]
      */
     public function getJoinedClans($name){
         $name = Clannish::validateName($name);
 
-        $joinedClan = [];
+        $joinedClans = [];
         foreach($this->getClans() as $clan){
             if($clan->isMember($name)){
-                $joinedClan[] = $clan;
+                $joinedClans[] = $clan;
             }
         }
 
-        return $joinedClan;
+        return $joinedClans;
+    }
+
+    /**
+     * @param string|Player|ClanMember $name
+     * @return Clan[]
+     */
+    public function getOwningClans($name){
+        $name = Clannish::validateName($name);
+
+        $owningClans = [];
+        foreach($this->getJoinedClans($name) as $clan){
+            if($clan->getLeader()->getName() === $name){
+                $owningClans[] = $clan;
+            }
+        }
+
+        return $owningClans;
     }
 
     /**
      * @param string|Player|Clan|ClanMember $name
+     * @param bool $checkPattern
      * @return string
      */
-    private static function validateName($name){
+    public static function validateName($name, $checkPattern = false){
         if($name instanceof Player or $name instanceof Clan or $name instanceof ClanMember){
             $name = $name->getName();
         }
 
-        return strToLower($name);
+        $name = strToLower($name);
+
+        if($checkPattern){
+            $name = preg_replace(self::getBannedCharactersPattern(), "", $name);
+        }
+
+        return $name;
     }
 
     /**

@@ -24,6 +24,7 @@
 
 namespace chalk\clannish\clan;
 
+use chalk\clannish\Clannish;
 use chalk\utils\Arrayable;
 use pocketmine\Player;
 
@@ -35,7 +36,7 @@ class Clan implements Arrayable {
     private $members = [];
 
     /** @var ClanMember */
-    private $leader = "";
+    private $leader = null;
 
     /**
      * @param string $name
@@ -47,6 +48,10 @@ class Clan implements Arrayable {
 
         foreach($this->getMembers() as $member){
             $member->setClan($this);
+
+            if($member->isLeader() and $this->getLeader() === null){
+                $this->leader = $member;
+            }
         }
 
     }
@@ -91,30 +96,11 @@ class Clan implements Arrayable {
     }
 
     /**
-     * @return ClanMember
-     */
-    public function getLeader(){
-        return $this->leader;
-    }
-
-    /**
-     * @param string|Player|ClanMember $name
-     * @return string
-     */
-    private static function validateName($name){
-        if($name instanceof Player){
-            $name = $name->getName();
-        }
-
-        return strToLower($name);
-    }
-
-    /**
      * @param string|Player|ClanMember $name
      * @return int
      */
     private function indexOfMember($name){
-        $name = Clan::validateName($name);
+        $name = Clannish::validateName($name);
 
         foreach($this->getMembers() as $index => $memberName){
             if($name === $memberName){
@@ -126,11 +112,35 @@ class Clan implements Arrayable {
 
     /**
      * @param string|Player|ClanMember $name
+     * @return ClanMember|null
+     */
+    public function getMember($name){
+        $name = Clannish::validateName($name);
+
+        $index = $this->indexOfMember($name);
+        if($index >= 0){
+            return $this->getMembers()[$index];
+        }else{
+            return null;
+        }
+    }
+
+    /**
+     * @param string|Player|ClanMember $name
      * @return bool
      */
     public function isMember($name){
-        $name = Clan::validateName($name);
+        $name = Clannish::validateName($name);
 
-        return $this->indexOfMember($name) >= 0;
+        return $this->getMember($name) !== null;
     }
+
+    /**
+     * @return ClanMember
+     */
+    public function getLeader(){
+        return $this->leader;
+    }
+
+    //TODO: getters for co-leader and elder
 }
