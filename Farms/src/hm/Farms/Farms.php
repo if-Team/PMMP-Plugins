@@ -96,143 +96,153 @@ class Farms extends PluginBase implements Listener {
 	}
 
 	public function tick() {
-		foreach ( array_keys ( $this->farmData ) as $p ) {
-			if (-- $this->farmData [$p] ['time'] > 0) continue;
-			
-			$e = explode ( ".", $p );
-			if (! isset ( $this->farmData [$p] ['id'] )) {
-				unset ( $this->farmData [$p] );
-				return;
+		foreach($this->farmData as $key => $farm){
+			if(--$farm['time'] > 0){
+                continue;
+            }
+
+            $coordinates = explode(".", $key);
+            $position = new Vector3($coordinates[0], $coordinates[1], $coordinates[2]);
+
+			if (!isset($farm['id'])){
+				unset($farm);
+				continue;
 			}
-			$id = $this->farmData [$p] ['id'];
+
+			$id = $farm['id'];
+            $damage = $farm['damage'];
+            $level = isset($farm['level']) ? $this->getServer()->getLevelByName($farm['level']) : $this->getServer()->getDefaultLevel();
 			
-			switch ($id) {
-				case Item::WHEAT_BLOCK :
-				case Item::CARROT_BLOCK :
-				case Item::POTATO_BLOCK :
-				case Item::BEETROOT_BLOCK :
-					if (++ $this->farmData [$p] ['damage'] >= 8) {
-						// GROW TIME IS OVER
-						unset ( $this->farmData [$p] );
-						return;
-					}
-					$vector3 = new Vector3 ( $e [0], $e [1], $e [2] );
-					$block = Block::get ( $this->farmData [$p] ['id'], $this->farmData [$p] ['damage'] );
-					if (isset ( $this->farmData [$p] ['level'] )) {
-						$level = $this->getServer ()->getLevelByName ( $this->farmData [$p] ['level'] );
-					} else {
-						$level = $this->getServer ()->getDefaultLevel ();
-					}
-					$level->setBlock ( $vector3, $block );
+			switch($id){
+				case Block::WHEAT_BLOCK:
+				case Block::CARROT_BLOCK:
+				case Block::POTATO_BLOCK:
+				case Block::BEETROOT_BLOCK:
+                    $this->updateNormalCrops($id, $damage, $level, $position);
 					break;
-				case Item::SUGARCANE_BLOCK :
-				case Item::CACTUS :
-					if (++ $this->farmData [$p] ['damage'] >= 4) {
-						// GROW TIME IS OVER
-						unset ( $this->farmData [$p] );
-						return;
-					}
-					$vector3 = new Vector3 ( $e [0], $e [1] + $this->farmData [$p] ['damage'], $e [2] );
-					$block = Block::get ( $this->farmData [$p] ['id'], 0 );
-					if (isset ( $this->farmData [$p] ['level'] )) {
-						$level = $this->getServer ()->getLevelByName ( $this->farmData [$p] ['level'] );
-					} else {
-						$level = $this->getServer ()->getDefaultLevel ();
-					}
-					if ($level->getBlock ( $vector3 )->getID () != Item::AIR) {
-						// THAT SUGAR CANE IS SOMETHING DIFFERENT USE..?
-						unset ( $this->farmData [$p] );
-						return;
-					}
-					$level->setBlock ( $vector3, $block );
+
+				case Block::SUGARCANE_BLOCK :
+				case Block::CACTUS :
+					$this->updateVerticalGrowingCrops($id, $damage, $level, $position);
 					break;
-				case Item::PUMPKIN_STEM :
-					if (isset ( $this->farmData [$p] ['level'] )) {
-						$level = $this->getServer ()->getLevelByName ( $this->farmData [$p] ['level'] );
-					} else {
-						$level = $this->getServer ()->getDefaultLevel ();
-					}
-					if (++ $this->farmData [$p] ['damage'] >= 8) {
-						for($i = - 1; $i <= 1; $i ++)
-							for($b = - 1; $b <= 1; $b ++) {
-								$ground_vector = new Vector3 ( $e [0] + $i, $e [1] - 1, $e [2] + $b );
-								$vector3 = new Vector3 ( $e [0] + $i, $e [1], $e [2] + $b );
-								
-								if ($level->getBlock ( $vector3 )->getID () != Item::AIR) break;
-								if ($level->getBlock ( $ground_vector )->getID () != Item::FARMLAND) break;
-								
-								$level->setBlock ( $vector3, Block::get ( Item::PUMPKIN ) );
-								unset ( $this->farmData [$p] );
-								return;
-							}
-						if (isset ( $this->farmData [$p] )) {
-							// GROW TIME IS OVER
-							unset ( $this->farmData [$p] );
-							return;
-						}
-					}
-					$vector3 = new Vector3 ( $e [0], $e [1], $e [2] );
-					$block = Block::get ( $this->farmData [$p] ['id'], $this->farmData [$p] ['damage'] );
-					$level->setBlock ( $vector3, $block );
-					break;
-				case Item::MELON_STEM :
-					if (isset ( $this->farmData [$p] ['level'] )) {
-						$level = $this->getServer ()->getLevelByName ( $this->farmData [$p] ['level'] );
-					} else {
-						$level = $this->getServer ()->getDefaultLevel ();
-					}
-					if (++ $this->farmData [$p] ['damage'] >= 8) {
-						for($i = - 1; $i <= 1; $i ++)
-							for($b = - 1; $b <= 1; $b ++) {
-								$ground = new Vector3 ( $e [0] + $i, $e [1] - 1, $e [2] + $b );
-								$vector3 = new Vector3 ( $e [0] + $i, $e [1], $e [2] + $b );
-								if ($level->getBlock ( $vector3 )->getID () != Item::AIR) break;
-								if ($level->getBlock ( $ground )->getID () != Item::FARMLAND) break;
-								
-								$level->setBlock ( $vector3, Block::get ( Item::MELON_BLOCK, 0 ) );
-								unset ( $this->farmData [$p] );
-								return;
-							}
-						if (isset ( $this->farmData [$p] )) {
-							// GROW TIME IS OVER
-							unset ( $this->farmData [$p] );
-							return;
-						}
-					}
-					if (! isset ( $this->farmData [$p] )) {
-						unset ( $this->farmData [$p] );
-						return;
-					}
-					$vector3 = new Vector3 ( $e [0], $e [1], $e [2] );
-					$block = Block::get ( $this->farmData [$p] ['id'], $this->farmData [$p] ['damage'] );
-					$level->setBlock ( $vector3, $block );
-					break;
+
+				case Block::PUMPKIN_STEM:
+                case Block::MELON_STEM:
+                    $this->updateHorizontalGrowingCrops($id, $damage, $level, $position);
 			}
-			$this->farmData [$p] ['time'] = $this->speedData ["growing-time"];
+
+			$farm['time'] = $this->speedData["growing-time"];
 		}
 	}
+
+    /**
+     * @param int $id
+     * @param int $damage
+     * @param Level $level
+     * @param Vector3 $position
+     */
+    public function updateNormalCrops($id, $damage, Level $level, Vector3 $position){
+        if(++$damage >= 8){ //FULL GROWN!
+            unset($farm);
+            return;
+        }
+
+        $level->setBlock($position, Block::get($id, $damage));
+    }
+
+    /**
+     * @param int $id
+     * @param int $damage
+     * @param Level $level
+     * @param Vector3 $position
+     */
+    public function updateVerticalGrowingCrops($id, $damage, Level $level, Vector3 $position){
+        if(++$damage >= 4){ //FULL GROWN!
+            unset($farm);
+            return;
+        }
+
+        $cropPosition = $position->add(0, $damage, 0);
+        if($level->getBlock($cropPosition)->getId() !== Item::AIR){ //SOMETHING EXISTS
+            unset($farm);
+            return;
+        }
+
+        $level->setBlock($position, Block::get($id, 0));
+    }
+
+    /**
+     * @param int $id
+     * @param int $damage
+     * @param Level $level
+     * @param Vector3 $position
+     */
+    public function updateHorizontalGrowingCrops($id, $damage, Level $level, Vector3 $position){
+        $cropBlock = null;
+        switch($id){
+            case Block::PUMPKIN_STEM:
+                $cropBlock = Block::get(Block::PUMPKIN);
+                break;
+
+            case Block::MELON_STEM:
+                $cropBlock = Block::get(Block::MELON_BLOCK);
+                break;
+        }
+
+        if(++$damage >= 8){ //FULL GROWN!
+            for($xOffset = - 1; $xOffset <= 1; $xOffset++){
+                for($zOffset = -1; $zOffset <= 1; $zOffset++){
+                    $cropPosition = $position->add($xOffset, 0, $zOffset);
+
+                    if($xOffset === 0 and $zOffset === 0){ //STEM
+                        continue;
+                    }
+
+                    if($level->getBlock($cropPosition)->getId() === Item::AIR){
+                        $level->setBlock($cropPosition, $cropBlock);
+                        unset($farm);
+                        return;
+                    }
+                }
+            }
+
+            if(isset($farm)){
+                unset($farm);
+                return;
+            }
+        }
+
+        $level->setBlock($position, Block::get($id, $damage));
+        return;
+    }
 }
+
 class CocoaBeanBlock extends Flowable {
 	public function __construct($face = 0) {
-		parent::__construct ( 127, $this->getBeanFace ( $face ), "Cocoa Bean" );
-		$this->isActivable = true;
-		$this->treeFace = $this->getTreeFace ();
+		parent::__construct(127, $this->getBeanFace($face), "Cocoa Bean");
+		$this->treeFace = $this->getTreeFace();
 	}
 
+    public function canBeActivated(){
+        return true;
+    }
+
 	public function getDrops(Item $item) {
-		$drops = [ ];
+		$drops = [];
 		echo "check meta:" . $this->meta;
 		echo "check full meta:" . $this->meta;
-		if ($this->meta == $this->meta % 4 + 8) {
-			$drops [] = [ 351,3,mt_rand ( 1, 4 ) ];
-		} else {
-			$drops [] = [ 351,3,1 ];
+
+		if($this->meta == $this->meta % 4 + 8){
+			$drops[] = [351, 3, mt_rand(1, 4)];
+		}else{
+			$drops[] = [351, 3, 1];
 		}
 		return $drops;
 	}
 	public function getTree() {
-		return $this->getSide ( $this->treeFace );
+		return $this->getSide($this->treeFace);
 	}
+
 	public function getTreeFace() {
 		switch ($this->meta % 4) {
 			case 0 :
@@ -244,7 +254,7 @@ class CocoaBeanBlock extends Flowable {
 			case 3 :
 				return 4;
 			default :
-				return rand ( 2, 5 );
+				return rand(2, 5);
 		}
 	}
 	public function getBeanFace($face = 0) {
