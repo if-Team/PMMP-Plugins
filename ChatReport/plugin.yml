@@ -1,0 +1,10 @@
+name: ChatReport
+main: ChatReport\Main
+version: 1.0.0
+api: 1.8.0
+load: POSTWORLD
+author: lem0ntea_
+commands:
+ rpt:
+  description: "지정한 채팅을 신고합니다"
+  usage: "/rpt <채팅 ID> (채팅 ID는 채팅 내용 옆에 {} 로 표시됩니다)"
