@@ -10,7 +10,6 @@ use pocketmine\scheduler\CallbackTask;
 use pocketmine\block\Block;
 use pocketmine\item\Item;
 use pocketmine\network\protocol\AddEntityPacket;
-use pocketmine\math\Vector3;
 use pocketmine\level\Position;
 use pocketmine\utils\Config;
 use pocketmine\command\CommandSender;
@@ -20,8 +19,15 @@ use pocketmine\utils\TextFormat;
 class SnowHalation extends PluginBase implements Listener {
 	public $cooltime = 0;
 	public $m_version = 1, $pk;
-	public $config, $config_File;
+
+    /** @var array */
+	public $config, $messages;
+
+    /** @var Config */
+    public $config_File;
+
 	public $denied = [ ];
+
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		$this->initMessage ();
@@ -32,7 +38,7 @@ class SnowHalation extends PluginBase implements Listener {
 		$this->pk = new AddEntityPacket ();
 		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ $this,"SnowHalation" ] ), 4 );
 		
-		new OutEventListner ( $this );
+		new OutEventListener ( $this );
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
 	public function onDisable() {
@@ -86,6 +92,7 @@ class SnowHalation extends PluginBase implements Listener {
 				case $this->get ( "off" ) :
 					$this->denied [$sender->getName ()] = 1;
 					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "snow-off" ) );
+                    break;
 				case $this->get ( "sunlight" ) :
 					if (! $sender->isOp ()) return false;
 					if ($this->config ["enable-sunlight"] == 0) {
@@ -111,7 +118,9 @@ class SnowHalation extends PluginBase implements Listener {
 			}
 			return true;
 		}
+        return true;
 	}
+
 	public function SnowHalation() {
 		if (! $this->checkEnableSnowing ()) {
 			if ($this->checkEnableSunLight ()) {
