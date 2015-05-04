@@ -3,7 +3,7 @@
 namespace ifteam\SimpleArea\Task;
 
 use pocketmine\scheduler\PluginTask;
-use SimpleArea\SimpleArea;
+use ifteam\SimpleArea\SimpleArea;
 
 class RentTimeOutTask extends PluginTask {
 	public $homeOwner, $homeBuyer;
