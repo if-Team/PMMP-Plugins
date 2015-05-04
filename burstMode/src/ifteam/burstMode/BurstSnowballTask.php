@@ -11,14 +11,17 @@ use pocketmine\scheduler\PluginTask;
 
 class BurstSnowballTask extends PluginTask {
 	/**
+	 *
 	 * @var Player
 	 */
 	private $player = null;
 	function __construct(burstMode $owner, $player) {
 		parent::__construct ( $owner );
+		$this->player = $player;
 	}
 	public function onRun($currentTick) {
 		/**
+		 *
 		 * @var $owner burstMode
 		 */
 		$owner = $this->getOwner ();

@@ -36,7 +36,7 @@ class burstMode extends PluginBase implements Listener { // spl_object_hash
 		$entity = $event->getEntity ();
 		$player = $event->getEntity ()->shootingEntity;
 		
-		if ($player == null) return;
+		if (! $player instanceof Player) return;
 		if ($entity instanceof Snowball) {
 			$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new BurstSnowballTask ( $this, $player ), 10 );
 			$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new BurstSnowballTask ( $this, $player ), 20 );
@@ -47,7 +47,7 @@ class burstMode extends PluginBase implements Listener { // spl_object_hash
 		}
 	}
 	public function burstSnowball(Player $player) {
-		$nbt = new Compound ( "", [ "Pos" => new Enum ( "Pos", [ new Double ( "", $player->x ),new Double ( "", $player->y + $player->getEyeHeight () ),new Double ( "", $player->z ) ] ),"Motion" => new Enum ( "Motion", [ new Double ( "", -\sin ( $player->yaw / 180 * M_PI ) * \cos ( $player->pitch / 180 * M_PI ) ),new Double ( "", -\sin ( $player->pitch / 180 * M_PI ) ),new Double ( "", \cos ( $player->yaw / 180 * M_PI ) * \cos ( $player->pitch / 180 * M_PI ) ) ] ),"Rotation" => new Enum ( "Rotation", [ new Float ( "", $player->yaw ),new Float ( "", $player->pitch ) ] ) ] );
+		$nbt = new Compound ( "", [ "Pos" => new Enum ( "Pos", [ new Double ( "", $player->x ),new Double ( "", $player->y + $player->getEyeHeight () ),new Double ( "", $player->z ) ] ),"Motion" => new Enum ( "Motion", [ new Double ( "", - \sin ( $player->yaw / 180 * M_PI ) *\cos ( $player->pitch / 180 * M_PI ) ),new Double ( "", - \sin ( $player->pitch / 180 * M_PI ) ),new Double ( "",\cos ( $player->yaw / 180 * M_PI ) *\cos ( $player->pitch / 180 * M_PI ) ) ] ),"Rotation" => new Enum ( "Rotation", [ new Float ( "", $player->yaw ),new Float ( "", $player->pitch ) ] ) ] );
 		
 		$f = 1.5;
 		$snowball = Entity::createEntity ( "Snowball", $player->chunk, $nbt, $player );
@@ -70,7 +70,7 @@ class burstMode extends PluginBase implements Listener { // spl_object_hash
 	public function burstArrow(Player $player) {
 		if ($player->getInventory ()->getItemInHand ()->getId () === Item::BOW) {
 			$bow = $player->getInventory ()->getItemInHand ();
-			$nbt = new Compound ( "", [ "Pos" => new Enum ( "Pos", [ new Double ( "", $player->x ),new Double ( "", $player->y + $player->getEyeHeight () ),new Double ( "", $player->z ) ] ),"Motion" => new Enum ( "Motion", [ new Double ( "", - \sin ( $player->yaw / 180 * M_PI ) *\cos ( $player->pitch / 180 * M_PI ) ),new Double ( "", - \sin ( $player->pitch / 180 * M_PI ) ),new Double ( "",\cos ( $player->yaw / 180 * M_PI ) *\cos ( $player->pitch / 180 * M_PI ) ) ] ),"Rotation" => new Enum ( "Rotation", [ new Float ( "", $player->yaw ),new Float ( "", $player->pitch ) ] ) ] );
+			$nbt = new Compound ( "", [ "Pos" => new Enum ( "Pos", [ new Double ( "", $player->x ),new Double ( "", $player->y + $player->getEyeHeight () ),new Double ( "", $player->z ) ] ),"Motion" => new Enum ( "Motion", [ new Double ( "", -\sin ( $player->yaw / 180 * M_PI ) * \cos ( $player->pitch / 180 * M_PI ) ),new Double ( "", -\sin ( $player->pitch / 180 * M_PI ) ),new Double ( "", \cos ( $player->yaw / 180 * M_PI ) * \cos ( $player->pitch / 180 * M_PI ) ) ] ),"Rotation" => new Enum ( "Rotation", [ new Float ( "", $player->yaw ),new Float ( "", $player->pitch ) ] ) ] );
 			
 			$ev = new EntityShootBowEvent ( $player, $bow, Entity::createEntity ( "Arrow", $player->chunk, $nbt, $player ), 1.5 );
 			

@@ -21,7 +21,7 @@ class ChestGuard extends PluginBase implements Listener {
 		$this->configData = $this->config->getAll ();
 		
 		if ($this->getServer ()->getPluginManager ()->getPlugin ( "SimpleArea" ) != null) {
-			$this->simpleArea = \SimpleArea\SimpleArea::getInstance ();
+			$this->simpleArea = \ifteam\SimpleArea\SimpleArea::getInstance ();
 		}
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
