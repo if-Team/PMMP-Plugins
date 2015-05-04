@@ -355,8 +355,8 @@ class VIPPlus extends PluginBase implements Listener {
         $vip->setPrefix($this->prefix);
         
         $attachment = $event->getPlayer()->addAttachment($this);
-        $attachment->setPermission("infinite.VIP", true);// InfiniteBlock VIP mode
-        $attachment->setPermission("Farms.VIP", true);// Farms VIP mode
+        $attachment->setPermission("infinite.VIP", true); //Enable VIP mode for InfiniteBlock plugin
+        $attachment->setPermission("Farms.VIP", true); //Enable VIP mode for Farms plugin
     }
 
     public function onVipChat(PlayerChatEvent $event){
