@@ -11,5 +11,10 @@ ko-default-prefix: "[ 서버 ]"
 ko-used-nickname: "사용되었던 닉네임"
 ko-sign-set: "표지판 설치됨"
 
+#(ES) Español
+es-default-prefix: [ "Servidores ]"
+es-used-nickname: "Apodo que se utilizó"
+es-sign-set: "Señales instaladas"
+
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/blob/master/notificationPlus/resources/messages.yml
