@@ -31,7 +31,7 @@ class Main extends PluginBase implements Listener{
 
     public function onCommand(CommandSender $sender, Command $command, $label, array $args){
         if($sender->getName() === "CONSOLE") return true;
-        if(!isset($args[0]) or !is_numeric($args[0]) or ($id = hexdec($args[0])) < 0 or $id > 256) return false;
+        if(!isset($args[0]) or ($id = hexdec($args[0])) < 0 or $id > 256) return false;
 
         $file = "=== START CHAT REPORT ===\n\nReported by: " . $sender->getName() . "\nReported at: ".date("Y-m-d | h:i:sa")."\n";
         for($i = $id + 252; $i <= $id + 256; $i++){
