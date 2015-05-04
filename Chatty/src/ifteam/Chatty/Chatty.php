@@ -134,7 +134,7 @@ class Chatty extends PluginBase implements Listener {
 				return;
 			}
 			
-			if (isset ( $this->db [$event->getPlayer ()->getName ()] ["NameTAG"] and $this->db [$event->getPlayer ()->getName ()] ["NameTAG"] == true)) 
+			if (isset ( $this->db [$event->getPlayer ()->getName ()] ["NameTAG"]) and $this->db [$event->getPlayer ()->getName ()] ["NameTAG"] == true) 
 			{
 				$event->setCancelled ();
 				$this->putStack ( $event->getPlayer ()->getName (), $event->getPacket ()->message );
