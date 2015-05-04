@@ -39,6 +39,7 @@ class SnowHalation extends PluginBase implements Listener {
 		$this->config = $this->config_File->getAll ();
 		
 		$this->pk = new AddEntityPacket ();
+		$this->pk->metadata = [ Entity::DATA_FLAGS => [ Entity::DATA_TYPE_BYTE,0 ],Entity::DATA_SHOW_NAMETAG => [ Entity::DATA_TYPE_BYTE,1 ],Entity::DATA_AIR => [ Entity::DATA_TYPE_SHORT,300 ] ];
 		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new SnowHalationTask ( $this ), 4 );
 		
 		new OutEventListener ( $this );

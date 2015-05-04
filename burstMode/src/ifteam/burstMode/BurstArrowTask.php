@@ -16,6 +16,7 @@ class BurstArrowTask extends PluginTask {
 	private $player = null;
 	function __construct(burstMode $owner, $player) {
 		parent::__construct ( $owner );
+		$this->player = $player;
 	}
 	public function onRun($currentTick) {
 		/**

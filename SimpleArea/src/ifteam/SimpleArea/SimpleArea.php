@@ -31,7 +31,7 @@ use pocketmine\command\PluginCommand;
 use pocketmine\event\player\PlayerDeathEvent;
 use pocketmine\tile\Sign;
 use pocketmine\event\block\SignChangeEvent;
-use SimpleArea\Event\AreaModifyEvent;
+use ifteam\SimpleArea\Event\AreaModifyEvent;
 use pocketmine\event\entity\EntityCombustEvent;
 use pocketmine\event\entity\EntityCombustByBlockEvent;
 use pocketmine\block\Fire;
