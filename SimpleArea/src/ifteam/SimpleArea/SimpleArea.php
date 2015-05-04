@@ -650,11 +650,11 @@ class SimpleArea extends PluginBase implements Listener {
 		}
 	}
 	public function IhateSetMake(Player $player) {
-		if ($this->config_Data ["enable-setarea"] == true) {
-			$this->config_Data ["enable-setarea"] = false;
+		if ($this->db [$player->getLevel ()->getFolderName ()]->getEnableSetArea ()) {
+			$this->db [$player->getLevel ()->getFolderName ()]->setEnableSetArea ( false );
 			$this->message ( $player, $this->get ( "setarea-disabled" ) );
 		} else {
-			$this->config_Data ["enable-setarea"] = true;
+			$this->db [$player->getLevel ()->getFolderName ()]->setEnableSetArea ( true );
 			$this->message ( $player, $this->get ( "setarea-enabled" ) );
 		}
 	}
@@ -1047,11 +1047,11 @@ class SimpleArea extends PluginBase implements Listener {
 		if ($area == null) {
 			if ($this->db [$player->getLevel ()->getFolderName ()]->isWhiteWorld ()) {
 				if ($this->db [$player->getLevel ()->getFolderName ()]->option ["white-protect"] == true) {
-					$this->db [$player->getLevel ()->getFolderName ()]->option ["white-protect"] == false;
+					$this->db [$player->getLevel ()->getFolderName ()]->option ["white-protect"] = false;
 					$this->message ( $player, $this->get ( "unprotect-complete" ) );
 					$this->message ( $player, $this->get ( "forbidblock-help" ) );
 				} else {
-					$this->db [$player->getLevel ()->getFolderName ()]->option ["white-protect"] == true;
+					$this->db [$player->getLevel ()->getFolderName ()]->option ["white-protect"] = true;
 					$this->message ( $player, $this->get ( "protect-complete" ) );
 					$this->message ( $player, $this->get ( "allowblock-help" ) );
 				}

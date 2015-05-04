@@ -21,7 +21,7 @@ class SimpleArea_Database {
 		$this->level = &$level;
 		$this->fence_type = $fence_type;
 		$this->yml = (new Config ( $this->path . "protects.yml", Config::YAML, [ "whiteworld" => false,"user-property" => [ ] ] ))->getAll ();
-		$this->option = (new Config ( $this->path . "options.yml", Config::YAML, [ "white-allow-option" => [ ],"white-forbid-option" => [ ],"white-pvp-allow" => true,"white-protect" => true,"white-welcome" => "","white-invensave" => false ] ))->getAll ();
+		$this->option = (new Config ( $this->path . "options.yml", Config::YAML, [ "white-allow-option" => [ ],"white-forbid-option" => [ ],"white-pvp-allow" => true,"white-protect" => true,"white-welcome" => "","white-invensave" => false,"enable-setarea" => false ] ))->getAll ();
 		$this->index = count ( $this->yml ) - 1;
 		$this->allCheckProperty ();
 		$this->makeHomeList ();
@@ -83,6 +83,12 @@ class SimpleArea_Database {
 	}
 	public function setWhiteWorld($bool) {
 		$this->yml ["whiteworld"] = $bool;
+	}
+	public function getEnableSetArea() {
+		return $this->option ["enable-setarea"];
+	}
+	public function setEnableSetArea($bool) {
+		$this->option ["enable-setarea"] = $bool;
 	}
 	public function getUserProperty($username) {
 		return $this->yml ["user-property"] [$username];
