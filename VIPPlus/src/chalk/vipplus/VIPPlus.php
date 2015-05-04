@@ -76,7 +76,6 @@ class VIPPlus extends PluginBase implements Listener {
         $this->loadMessages();
 
         $this->registerAll();
-
     }
 
     public function onDisable(){
@@ -86,15 +85,19 @@ class VIPPlus extends PluginBase implements Listener {
     private function registerAll(){
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
 
-        $healCommand = new PluginCommand($this->getMessages()->getMessage("vip-heal-command-name"), $this);
-        $healCommand->setUsage($healCommand->getName());
-        $healCommand->setDescription($this->getMessages()->getMessage("vip-heal-command-description"));
-        $this->getServer()->getCommandMap()->register("VIPPlus", $healCommand);
+        $this->registerCommand("vip-heal");
+        $this->registerCommand("vip-inferno");
+    }
 
-        $infernoCommand = new PluginCommand($this->getMessages()->getMessage("vip-inferno-command-name"), $this);
-        $infernoCommand->setUsage($healCommand->getName());
-        $infernoCommand->setDescription($this->getMessages()->getMessage("vip-inferno-command-description"));
-        $this->getServer()->getCommandMap()->register("VIPPlus", $infernoCommand);
+    /**
+     * @param string $name
+     */
+    private function registerCommand($name){
+        $command = new PluginCommand($this->getMessages()->getMessage($name . "-command-name"), $this);
+        $command->setUsage($command->getName());
+        $command->setDescription($this->getMessages()->getMessage($name . "-command-description"));
+
+        $this->getServer()->getCommandMap()->register("VIPPlus", $command);
     }
 
     public function loadConfig(){
@@ -114,11 +117,11 @@ class VIPPlus extends PluginBase implements Listener {
      * @param bool $override
      */
     public function loadVips($override = true){
+        $vipsConfig = new Config($this->getDataFolder() . "vips.yml", Config::YAML);
         if($override){
             $this->vips = [];
         }
 
-        $vipsConfig = new Config($this->getDataFolder() . "vips.yml", Config::YAML);
         foreach($vipsConfig->getAll() as $index => $data){
             $this->vips[] = VIP::createFromArray($index, $data);
         }
