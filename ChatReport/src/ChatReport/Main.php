@@ -34,7 +34,7 @@ class Main extends PluginBase implements Listener{
         if(!isset($args[0]) or ($id = hexdec($args[0])) < 0 or $id > 256) return false;
 
         $file = "=== START CHAT REPORT ===\n\nReported by: " . $sender->getName() . "\nReported at: ".date("Y-m-d | h:i:sa")."\n";
-        for($i = $id + 252; $i <= $id + 256; $i++){
+        for($i = $id + 247; $i <= $id + 256; $i++){
             isset($this->last_chat[$i % 256]) ? $file .= "\n" . $this->last_chat[$i % 256] : false;
         }
         $file .= "\n\n=== END CHAT REPORT ===";
