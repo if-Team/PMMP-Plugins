@@ -2,7 +2,7 @@
 # YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
 
 #PLEASE SET HERE TO YOUR LANGUAGE PREFIX
-default-language: en
+default-language: ko
 m_version: 1
 
 #(EN) ENGLISH
@@ -10,6 +10,8 @@ m_version: 1
 en-snow: "snow"
 en-enable: "enable"
 en-disable: "disable"
+en-heavysnow: "heavysnow"
+en-heatwave: "heatwave"
 en-on: "on"
 en-off: "off"
 en-sunlight: "sunlight"
@@ -19,6 +21,8 @@ en-off-help: "/snow off - snow will be not shown"
 en-enable-help: "/snow enable - snowball will fall from the sky"
 en-disable-help: "/snow disable - snowball will fall from the sky"
 en-sunlight-help: "/snow sunlight - snow layer will be melted"
+en-heavysnow-help: "/snow heavysnow - Raises the an immediate Heavy snow"
+en-heatwave-help: "/snow heatwave - Raises the an immediate Heat wave"
 en-snow-enabled: "[SnowHalation] Snow enabled !"
 en-snow-disabled: "[SnowHalation] Snow disabled !"
 en-snow-on: "[SnowHalation] Snow will be shown !"
@@ -28,11 +32,15 @@ en-sunlight-on-2: "[SnowHalation]( snow layer does not occur )"
 en-sunlight-on-3: "[SnowHalation] / snow sunlight - create the snow layer"
 en-sunlight-off-1: "[SnowHalation] No snow melt in the surrounding user"
 en-sunlight-off-2: "[SnowHalation] / snow sunlight - melt the snow layer"
+en-heavysnow-success: "Heavy snow has fallen :P"
+en-heatwave-success: "Heat Wave has fallen :P"
 
 #(KO) KOREAN
 ko-snow: "snow"
 ko-enable: "enable"
 ko-disable: "disable"
+ko-heavysnow: "heavysnow"
+ko-heatwave: "heatwave"
 ko-on: "on"
 ko-off: "off"
 ko-sunlight: "sunlight"
@@ -42,6 +50,8 @@ ko-off-help: "/snow off - 눈이 보이지않게 합니다."
 ko-enable-help: "/snow enable - 서버에 눈이내리게 합니다."
 ko-disable-help: "/snow disable - 서버에 눈이내리지않게 합니다."
 ko-sunlight-help: "/snow sunlight - 유저 주변에 눈이 랜덤하게 녹게합니다."
+ko-heavysnow-help: "/snow heavysnow - 유저 밑에 즉시 폭설을 내리게합니다"
+ko-heatwave-help: "/snow heavysnow - 유저 밑에 즉시 폭염을 내리게합니다"
 ko-snow-enabled: "[SnowHalation] 서버에 눈이내리게 했습니다."
 ko-snow-disabled: "[SnowHalation] 서버에 눈이내리지않게 했습니다."
 ko-snow-on: "[SnowHalation] 눈이 내리게 설정했습니다."
@@ -51,6 +61,8 @@ ko-sunlight-on-2: "[SnowHalation] (눈이 오더라도 쌓이지 않습니다.)"
 ko-sunlight-on-3: "[SnowHalation] /snow sunlight 를 다시입력시 녹지않음"
 ko-sunlight-off-1: "[SnowHalation] 유저 주변에 눈이 녹지않습니다"
 ko-sunlight-off-2: "[SnowHalation] /snow sunlight 를 다시입력시 녹음"
+ko-heavysnow-success: "폭설이 내렸습니다 :P"
+ko-heatwave-success: "폭염이 쏘여졌습니다 :P"
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/blob/master/SnowHalation/resources/messages.yml

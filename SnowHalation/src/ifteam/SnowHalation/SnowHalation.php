@@ -97,6 +97,16 @@ class SnowHalation extends PluginBase implements Listener {
 					$this->denied [$sender->getName ()] = 1;
 					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "snow-off" ) );
 					break;
+				case $this->get ( "heavysnow" ) :
+					if (! $sender->isOp ()) return false;
+					$this->heavySnow ( $sender );
+					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "heavysnow-success" ) );
+					break;
+				case $this->get ( "heatwave" ) :
+					if (! $sender->isOp ()) return false;
+					$this->heatwave ( $sender );
+					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "heatwave-success" ) );
+					break;
 				case $this->get ( "sunlight" ) :
 					if (! $sender->isOp ()) return false;
 					if ($this->config ["enable-sunlight"] == 0) {
@@ -201,6 +211,26 @@ class SnowHalation extends PluginBase implements Listener {
 		if ($pos == null) return;
 		
 		if ($pos->getLevel ()->getBlock ( $pos )->getId () == Block::SNOW_LAYER) $pos->getLevel ()->setBlock ( $pos, Block::get ( Item::AIR ), 0, true );
+	}
+	public function heavySnow(Player $player) {
+		$pos = new Position ( $player->x, $player->y, $player->z, $player->getLevel () );
+		for($x = - 15; $x <= 15; $x ++)
+			for($z = - 15; $z <= 15; $z ++) {
+				$dx = $player->x + $x;
+				$dz = $player->z + $z;
+				$dy = $player->getLevel ()->getHighestBlockAt ( $dx, $dz );
+				$this->createSnowLayer ( $pos->setComponents ( $dx, $dy, $dz ) );
+			}
+	}
+	public function heatwave(Player $player) {
+		$pos = new Position ( $player->x, $player->y, $player->z, $player->getLevel () );
+		for($x = - 15; $x <= 15; $x ++)
+			for($z = - 15; $z <= 15; $z ++) {
+				$dx = $player->x + $x;
+				$dz = $player->z + $z;
+				$dy = $player->getLevel ()->getHighestBlockAt ( $dx, $dz );
+				$this->destructSnowLayer ( $pos->setComponents ( $dx, $dy, $dz ) );
+			}
 	}
 }
 
