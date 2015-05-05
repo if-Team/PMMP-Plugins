@@ -167,7 +167,7 @@ class SnowHalation extends PluginBase implements Listener {
 		$x = mt_rand ( $player->x - 15, $player->x + 15 );
 		$z = mt_rand ( $player->z - 15, $player->z + 15 );
 		$y = $player->getLevel ()->getHighestBlockAt ( $x, $z );
-		
+		/*
 		if ($y <= $player->y) {
 			$this->pk->type = 81;
 			$this->pk->eid = Entity::$entityCount ++;
@@ -176,7 +176,7 @@ class SnowHalation extends PluginBase implements Listener {
 			$this->pk->z = $z;
 			$player->dataPacket ( $this->pk );
 		}
-		
+		*/
 		if (! $this->checkEnableSunLight ()) {
 			if ($this->cooltime < 11) {
 				$this->cooltime ++;
