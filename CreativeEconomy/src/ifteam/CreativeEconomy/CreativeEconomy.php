@@ -89,8 +89,8 @@ class CreativeEconomy extends PluginBase implements Listener {
 		$this->packet ["AddPlayerPacket"]->pitch = 0;
 		$this->packet ["AddPlayerPacket"]->item = 0;
 		$this->packet ["AddPlayerPacket"]->meta = 0;
-		$this->packet ["AddPlayerPacket"]->slim = \false;
-		$this->packet ["AddPlayerPacket"]->skin = \str_repeat ( "\x00", 64 * 32 * 4 );
+		$this->packet ["AddPlayerPacket"]->slim =\false;
+		$this->packet ["AddPlayerPacket"]->skin =\str_repeat ( "\x00", 64 * 32 * 4 );
 		$this->packet ["AddPlayerPacket"]->metadata = [ Entity::DATA_FLAGS => [ Entity::DATA_TYPE_BYTE,1 << Entity::DATA_FLAG_INVISIBLE ],Entity::DATA_AIR => [ Entity::DATA_TYPE_SHORT,300 ],Entity::DATA_SHOW_NAMETAG => [ Entity::DATA_TYPE_BYTE,1 ],Entity::DATA_NO_AI => [ Entity::DATA_TYPE_BYTE,1 ] ];
 		
 		$this->packet ["RemovePlayerPacket"] = new RemovePlayerPacket ();
@@ -776,6 +776,7 @@ class CreativeEconomy extends PluginBase implements Listener {
 						$nameTag = $itemName . "\n" . $this->get ( "price" ) . " : " . $marketprice;
 						$this->packetQueue [$player->getName ()] ["nametag"] [$marketPos] = Entity::$entityCount ++;
 						$this->packet ["AddPlayerPacket"]->eid = $this->packetQueue [$player->getName ()] ["nametag"] [$marketPos];
+						$this->packet ["AddPlayerPacket"]->clientID = $this->packetQueue [$player->getName ()] ["nametag"] [$marketPos];
 						$this->packet ["AddPlayerPacket"]->username = $nameTag;
 						$this->packet ["AddPlayerPacket"]->x = $explode [0] + 0.4;
 						$this->packet ["AddPlayerPacket"]->y = $explode [1] - 3.2;
