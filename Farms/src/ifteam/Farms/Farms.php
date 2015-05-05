@@ -16,16 +16,19 @@ use pocketmine\Player;
 
 class Farms extends PluginBase implements Listener {
 	/**
+	 *
 	 * @var Config
 	 */
 	public $farmConfig, $speedConfig;
 	
 	/**
+	 *
 	 * @var array
 	 */
 	public $farmData, $speedData;
 	
 	/**
+	 *
 	 * @var array
 	 */
 	public $crops = [ [ "item" => Item::SEEDS,"block" => Block::WHEAT_BLOCK ],[ "item" => Item::CARROT,"block" => Block::CARROT_BLOCK ],[ "item" => Item::POTATO,"block" => Block::POTATO_BLOCK ],[ "item" => Item::BEETROOT,"block" => Block::BEETROOT_BLOCK ],[ "item" => Item::SUGAR_CANE,"block" => Block::SUGARCANE_BLOCK ],[ "item" => Item::SUGARCANE_BLOCK,"block" => Block::SUGARCANE_BLOCK ],[ "item" => Item::PUMPKIN_SEEDS,"block" => Block::PUMPKIN_STEM ],[ "item" => Item::MELON_SEEDS,"block" => Block::MELON_STEM ],[ "item" => Item::DYE,"block" => 127 ],[ "item" => Item::CACTUS,"block" => Block::CACTUS ] ];
@@ -70,7 +73,8 @@ class Farms extends PluginBase implements Listener {
 					$this->farmData [$key] ['id'] = $crop ["block"];
 					$this->farmData [$key] ['damage'] = 0;
 					$this->farmData [$key] ['level'] = $block->getLevel ()->getFolderName ();
-					$this->farmData [$key] ['time'] = $this->speedData [$event->getPlayer ()->hasPermission ( "Farms.VIP" ) ? "vip-growing-time" : "growing-time"];
+					$this->farmData [$key] ['time'] = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) );
+					$this->farmData [$key] ['growtime'] = $this->speedData [$event->getPlayer ()->hasPermission ( "Farms.VIP" ) ? "vip-growing-time" : "growing-time"];
 					break;
 				}
 			}
@@ -90,44 +94,47 @@ class Farms extends PluginBase implements Listener {
 	}
 	public function tick() {
 		foreach ( $this->farmData as $key => $farm ) {
-			if (-- $farm ['time'] > 0) {
-				continue;
-			}
-			
+			$progress = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) ) - $this->farmData [$key] ['time'];
+			if ($progress < $this->farmData [$key] ['growtime']) continue;
 			$coordinates = explode ( ".", $key );
 			$position = new Vector3 ( $coordinates [0], $coordinates [1], $coordinates [2] );
 			
 			if (! isset ( $farm ['id'] )) {
-				unset ( $farm );
+				unset ( $this->farmData [$key] );
 				continue;
 			}
-			
-			$id = $farm ['id'];
-			$damage = $farm ['damage'];
 			$level = isset ( $farm ['level'] ) ? $this->getServer ()->getLevelByName ( $farm ['level'] ) : $this->getServer ()->getDefaultLevel ();
 			
-			switch ($id) {
+			switch ($this->farmData [$key] ['id']) {
 				case Block::WHEAT_BLOCK :
 				case Block::CARROT_BLOCK :
 				case Block::POTATO_BLOCK :
 				case Block::BEETROOT_BLOCK :
-					$this->updateNormalCrops ( $id, $damage, $level, $position );
+					$this->updateNormalCrops ( $this->farmData [$key] ['id'], $this->farmData [$key] ['damage'], $level, $position, $key );
 					break;
 				
 				case Block::SUGARCANE_BLOCK :
 				case Block::CACTUS :
-					$this->updateVerticalGrowingCrops ( $id, $damage, $level, $position );
+					$this->updateVerticalGrowingCrops ( $this->farmData [$key] ['id'], $this->farmData [$key] ['damage'], $level, $position, $key );
 					break;
 				
 				case Block::PUMPKIN_STEM :
 				case Block::MELON_STEM :
-					$this->updateHorizontalGrowingCrops ( $id, $damage, $level, $position );
+					$this->updateHorizontalGrowingCrops ( $this->farmData [$key] ['id'], $this->farmData [$key] ['damage'], $level, $position, $key );
 			}
 			
 			$farm ['time'] = $this->speedData ["growing-time"];
 		}
 	}
-	
+	public function makeTimestamp($date) {
+		$yy = substr ( $date, 0, 4 );
+		$mm = substr ( $date, 5, 2 );
+		$dd = substr ( $date, 8, 2 );
+		$hh = substr ( $date, 11, 2 );
+		$ii = substr ( $date, 14, 2 );
+		$ss = substr ( $date, 17, 2 );
+		return mktime ( $hh, $ii, $ss, $mm, $dd, $yy );
+	}
 	/**
 	 *
 	 * @param int $id        	
@@ -135,12 +142,12 @@ class Farms extends PluginBase implements Listener {
 	 * @param Level $level        	
 	 * @param Vector3 $position        	
 	 */
-	public function updateNormalCrops($id, $damage, Level $level, Vector3 $position) {
-		if (++ $damage >= 8) { // FULL GROWN!
-			unset ( $farm );
+	public function updateNormalCrops(&$id, &$damage, Level $level, Vector3 $position, $key = null) {
+		$damage ++;
+		if ($damage >= 8) { // FULL GROWN!
+			if (isset ( $this->farmData [$key] )) unset ( $this->farmData [$key] );
 			return;
 		}
-		
 		$level->setBlock ( $position, Block::get ( $id, $damage ) );
 	}
 	
@@ -151,18 +158,17 @@ class Farms extends PluginBase implements Listener {
 	 * @param Level $level        	
 	 * @param Vector3 $position        	
 	 */
-	public function updateVerticalGrowingCrops($id, $damage, Level $level, Vector3 $position) {
+	public function updateVerticalGrowingCrops(&$id, &$damage, Level $level, Vector3 $position, $key = null) {
 		if (++ $damage >= 4) { // FULL GROWN!
-			unset ( $farm );
+			if (isset ( $this->farmData [$key] )) unset ( $this->farmData [$key] );
 			return;
 		}
 		
 		$cropPosition = $position->add ( 0, $damage, 0 );
 		if ($level->getBlock ( $cropPosition )->getId () !== Item::AIR) { // SOMETHING EXISTS
-			unset ( $farm );
+			if (isset ( $this->farmData [$key] )) unset ( $this->farmData [$key] );
 			return;
 		}
-		
 		$level->setBlock ( $position, Block::get ( $id, 0 ) );
 	}
 	
@@ -173,13 +179,12 @@ class Farms extends PluginBase implements Listener {
 	 * @param Level $level        	
 	 * @param Vector3 $position        	
 	 */
-	public function updateHorizontalGrowingCrops($id, $damage, Level $level, Vector3 $position) {
+	public function updateHorizontalGrowingCrops(&$id, &$damage, Level $level, Vector3 $position, $key = null) {
 		$cropBlock = null;
 		switch ($id) {
 			case Block::PUMPKIN_STEM :
 				$cropBlock = Block::get ( Block::PUMPKIN );
 				break;
-			
 			case Block::MELON_STEM :
 				$cropBlock = Block::get ( Block::MELON_BLOCK );
 				break;
@@ -196,18 +201,16 @@ class Farms extends PluginBase implements Listener {
 					
 					if ($level->getBlock ( $cropPosition )->getId () === Item::AIR) {
 						$level->setBlock ( $cropPosition, $cropBlock );
-						unset ( $farm );
+						if (isset ( $this->farmData [$key] )) unset ( $this->farmData [$key] );
 						return;
 					}
 				}
 			}
-			
-			if (isset ( $farm )) {
-				unset ( $farm );
+			if (isset ( $this->farmData [$key] )) {
+				unset ( $this->farmData [$key] );
 				return;
 			}
 		}
-		
 		$level->setBlock ( $position, Block::get ( $id, $damage ) );
 		return;
 	}
@@ -222,8 +225,6 @@ class CocoaBeanBlock extends Flowable {
 	}
 	public function getDrops(Item $item) {
 		$drops = [ ];
-		echo "check meta:" . $this->meta;
-		echo "check full meta:" . $this->meta;
 		
 		if ($this->meta == $this->meta % 4 + 8) {
 			$drops [] = [ 351,3,mt_rand ( 1, 4 ) ];
