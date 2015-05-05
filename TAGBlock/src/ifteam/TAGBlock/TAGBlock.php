@@ -32,9 +32,9 @@ class TAGBlock extends PluginBase implements Listener {
 		$this->packet ["AddPlayerPacket"]->pitch = 0;
 		$this->packet ["AddPlayerPacket"]->item = 0;
 		$this->packet ["AddPlayerPacket"]->meta = 0;
-		$this->packet ["AddPlayerPacket"]->slim =\false;
-		$this->packet ["AddPlayerPacket"]->skin =\str_repeat ( "\x00", 64 * 32 * 4 );
-		$this->packet ["AddPlayerPacket"]->metadata = [ Entity::DATA_FLAGS => [ Entity::DATA_TYPE_BYTE,1 << Entity::DATA_FLAG_INVISIBLE ],Entity::DATA_AIR => [ Entity::DATA_TYPE_SHORT,300 ],Entity::DATA_SHOW_NAMETAG => [ Entity::DATA_TYPE_BYTE,1 ],Entity::DATA_NO_AI => [ Entity::DATA_TYPE_BYTE,1 ] ];
+		$this->packet ["AddPlayerPacket"]->slim = \false;
+		$this->packet ["AddPlayerPacket"]->skin = \str_repeat ( "\x00", 64 * 32 * 4 );
+		$this->packet ["AddPlayerPacket"]->metadata = [ Entity::DATA_FLAGS => [ Entity::DATA_TYPE_BYTE,1 << Entity::DATA_FLAG_INVISIBLE ] ]; // [ Entity::DATA_FLAGS => [ Entity::DATA_TYPE_BYTE,1 << Entity::DATA_FLAG_INVISIBLE ],Entity::DATA_AIR => [ Entity::DATA_TYPE_SHORT,300 ],Entity::DATA_SHOW_NAMETAG => [ Entity::DATA_TYPE_BYTE,1 ],Entity::DATA_NO_AI => [ Entity::DATA_TYPE_BYTE,1 ] ];
 		
 		$this->packet ["RemovePlayerPacket"] = new RemovePlayerPacket ();
 		$this->packet ["RemovePlayerPacket"]->clientID = 0;
@@ -95,6 +95,7 @@ class TAGBlock extends PluginBase implements Listener {
 					// 반경 25블럭을 넘어갔을경우 생성해제 패킷 전송후 생성패킷큐를 제거
 					if (isset ( $this->temp [$player->getName ()] ["nametag"] [$tagPos] )) {
 						$this->packet ["RemovePlayerPacket"]->eid = $this->temp [$player->getName ()] ["nametag"] [$tagPos];
+						$this->packet ["RemovePlayerPacket"]->clientID = $this->temp [$player->getName ()] ["nametag"] [$tagPos];
 						$player->dataPacket ( $this->packet ["RemovePlayerPacket"] ); // 네임택 제거패킷 전송
 						unset ( $this->temp [$player->getName ()] ["nametag"] [$tagPos] );
 					}
@@ -105,6 +106,7 @@ class TAGBlock extends PluginBase implements Listener {
 					// 유저 패킷을 상점밑에 보내서 네임택 출력
 					$this->temp [$player->getName ()] ["nametag"] [$tagPos] = Entity::$entityCount ++;
 					$this->packet ["AddPlayerPacket"]->eid = $this->temp [$player->getName ()] ["nametag"] [$tagPos];
+					$this->packet ["AddPlayerPacket"]->clientID = $this->temp [$player->getName ()] ["nametag"] [$tagPos];
 					$this->packet ["AddPlayerPacket"]->username = $message;
 					$this->packet ["AddPlayerPacket"]->x = $explodePos [0] + 0.4;
 					$this->packet ["AddPlayerPacket"]->y = $explodePos [1] - 1.6;
