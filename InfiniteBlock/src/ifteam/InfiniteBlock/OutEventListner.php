@@ -4,7 +4,7 @@ namespace ifteam\InfiniteBlock;
 
 use pocketmine\event\Listener;
 use pocketmine\plugin\Plugin;
-use SimpleArea\Event\AreaModifyEvent;
+use ifteam\SimpleArea\Event\AreaModifyEvent;
 
 class OutEventListner implements Listener {
 	public $plugin;
