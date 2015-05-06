@@ -100,7 +100,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$this->initialize_schedule_delay ( new KickExecuteTask ( $this, $player ), 100 );
 			return;
 		}
-		if (isset ( $this->ban_data [$player->getName ()] )) {
+		if (isset ( $this->ban_data [strtolower ( $player->getName () )] )) {
 			$event->setJoinMessage ( "" );
 			$attachment = $player->addAttachment ( $this );
 			$attachment->setPermission ( "pocketmine", false );
@@ -144,7 +144,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$event->setQuitMessage ( "" );
 			return;
 		}
-		if (isset ( $this->ban_data [$player->getName ()] )) {
+		if (isset ( $this->ban_data [strtolower ( $player->getName () )] )) {
 			$event->setQuitMessage ( "" );
 			return;
 		}
@@ -176,7 +176,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$event->setQuitMessage ( "" );
 			return;
 		}
-		if (isset ( $this->ban_data [$player->getName ()] )) {
+		if (isset ( $this->ban_data [strtolower ( $player->getName () )] )) {
 			$event->setQuitMessage ( "" );
 			return;
 		}
@@ -195,7 +195,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$event->setCancelled ();
 			return;
 		}
-		if (isset ( $this->ban_data [$player->getName ()] )) {
+		if (isset ( $this->ban_data [strtolower ( $player->getName () )] )) {
 			$event->setCancelled ();
 			return;
 		}
@@ -363,8 +363,9 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 										$target [] = $checkip;
 									}
 								}
-								if (! isset ( $target )) $target = $e [0] . "." . $e [1];
+								if (count ( $target ) == 0) $target [] = $e [0] . "." . $e [1];
 							} else {
+								// 유저명을 통한 밴일경우
 								$playerSearch = $this->getServer ()->getPlayer ( $args [0] );
 								if ($playerSearch != null) {
 									$target [] = $playerSearch;
@@ -505,9 +506,9 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 	}
 	public function DoBan(CommandSender $executor, $target, $cause) {
 		if ($target instanceof IPlayer) {
-			$name = $target->getName ();
+			$name = strtolower ( $target->getName () );
 		} else {
-			$name = $target;
+			$name = strtolower ( $target );
 		}
 		if (isset ( $this->ban_data [$name] )) {
 			$info_time = $this->ban_data [$name] ["time"];
@@ -535,9 +536,9 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 	}
 	public function DoKick(CommandSender $executor, $target, $cause) {
 		if ($target instanceof IPlayer) {
-			$name = $target->getName ();
+			$name = strtolower ( $target->getName () );
 		} else {
-			$name = $target;
+			$name = strtolower ( $target );
 		}
 		$this->kick_data [$name] ["time"] = $this->getMessage ( "time" );
 		$this->kick_data [$name] ["cause"] = $cause;
@@ -625,9 +626,9 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 	}
 	public function DoPardon(CommandSender $executor, $target, $cause) {
 		if ($target instanceof IPlayer) {
-			$name = $target->getName ();
+			$name = strtolower ( $target->getName () );
 		} else {
-			$name = $target;
+			$name = strtolower ( $target );
 		}
 		$success_find = 0;
 		
