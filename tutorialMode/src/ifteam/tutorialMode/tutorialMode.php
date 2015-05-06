@@ -12,6 +12,10 @@ use pocketmine\level\Position;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\player\PlayerMoveEvent;
+use pocketmine\block\Block;
+use pocketmine\event\block\BlockBreakEvent;
+use pocketmine\item\Sign;
+use pocketmine\Player;
 
 class tutorialMode extends PluginBase implements Listener {
 	private static $instance = null; // 인스턴스 변수
@@ -33,8 +37,8 @@ class tutorialMode extends PluginBase implements Listener {
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
 	public function onJoin(PlayerJoinEvent $event) {
-		if (! isset ( $this->db ["finished"] [$event->getPlayer ()->getName ()] )) {
-			$this->continue = [ "mine" => false,"shop" => false,"notice" => false,"wild" => false ];
+		if (! isset ( $this->db ["finished"] [strtolower ( $event->getPlayer ()->getName () )] )) {
+			$this->continue [strtolower ( $event->getPlayer ()->getName () )] = [ "mine" => false,"shop" => false,"notice" => false,"wild" => false ];
 			$this->message ( $event->getPlayer (), $this->get ( "start-tutorial" ) );
 		}
 	}
@@ -44,58 +48,189 @@ class tutorialMode extends PluginBase implements Listener {
 		
 		switch (strtolower ( $event->getLine ( 0 ) )) {
 			case $this->get ( "skip" ) :
+				$event->setLine ( 0, TextFormat::WHITE . $this->get ( "sign-tutorial-skip1" ) );
+				$event->setLine ( 1, TextFormat::WHITE . $this->get ( "sign-tutorial-skip2" ) );
+				$event->setLine ( 2, TextFormat::WHITE . $this->get ( "sign-tutorial-skip3" ) );
 				$this->setSkipSign ( $event->getBlock () );
-				// TODO 형식교체- 튜토리얼 패스를 원할시 터치해주세요
 				break;
 			case $this->get ( "restart" ) :
+				$event->setLine ( 0, TextFormat::WHITE . $this->get ( "sign-tutorial-restart1" ) );
+				$event->setLine ( 1, TextFormat::WHITE . $this->get ( "sign-tutorial-restart2" ) );
+				$event->setLine ( 2, TextFormat::WHITE . $this->get ( "sign-tutorial-restart3" ) );
 				$this->setRestartSign ( $event->getBlock () );
-				// TODO 형식교체- 튜토리얼 재시작을 원할시 터치해주세요
 				break;
 			case $this->get ( "mine" ) :
-				$this->setMine ( $event->getPlayer ()->getPosition () );
-				// TODO 형식교체- 안내를 확인 했으면 터치해주세요
+				$event->setLine ( 0, TextFormat::WHITE . $this->get ( "sign-tutorial-pass1" ) );
+				$event->setLine ( 1, TextFormat::WHITE . $this->get ( "sign-tutorial-pass2" ) );
+				$event->setLine ( 2, TextFormat::WHITE . $this->get ( "sign-tutorial-pass3" ) );
+				$this->setMine ( $event->getBlock (), $event->getPlayer ()->getPosition () );
 				break;
 			case $this->get ( "shop" ) :
-				$this->setShop ( $event->getPlayer ()->getPosition () );
-				// TODO 형식교체- 안내를 확인 했으면 터치해주세요
+				$event->setLine ( 0, TextFormat::WHITE . $this->get ( "sign-tutorial-pass1" ) );
+				$event->setLine ( 1, TextFormat::WHITE . $this->get ( "sign-tutorial-pass2" ) );
+				$event->setLine ( 2, TextFormat::WHITE . $this->get ( "sign-tutorial-pass3" ) );
+				$this->setShop ( $event->getBlock (), $event->getPlayer ()->getPosition () );
 				break;
 			case $this->get ( "notice" ) :
-				$this->setNotice ( $event->getPlayer ()->getPosition () );
-				// TODO 형식교체- 안내를 확인 했으면 터치해주세요
+				$event->setLine ( 0, TextFormat::WHITE . $this->get ( "sign-tutorial-pass1" ) );
+				$event->setLine ( 1, TextFormat::WHITE . $this->get ( "sign-tutorial-pass2" ) );
+				$event->setLine ( 2, TextFormat::WHITE . $this->get ( "sign-tutorial-pass3" ) );
+				$this->setNotice ( $event->getBlock (), $event->getPlayer ()->getPosition () );
 				break;
 			case $this->get ( "wild" ) :
-				$this->setWild ( $event->getPlayer ()->getPosition () );
-				// TODO 형식교체- 안내를 확인 했으면 터치해주세요
+				$event->setLine ( 0, TextFormat::WHITE . $this->get ( "sign-tutorial-pass1" ) );
+				$event->setLine ( 1, TextFormat::WHITE . $this->get ( "sign-tutorial-pass2" ) );
+				$event->setLine ( 2, TextFormat::WHITE . $this->get ( "sign-tutorial-pass3" ) );
+				$this->setWild ( $event->getBlock (), $event->getPlayer ()->getPosition () );
 				break;
 		}
 	}
 	public function onTouch(PlayerInteractEvent $event) {
-		// TODO 터치시 해당 이벤트 완료처리
-		// TODO foreach 로 잡아내고 안잡아지면 전체 완료후 완료명단에 추가
-	}
-	public function onMove(PlayerMoveEvent $event) {
-		if (! isset ( $this->db ["finished"] [$event->getPlayer ()->getName ()] )) {
-			// TODO 진행중인 튜토리얼 공간에서 너무 멀어졌을경우 해당위치로 재워프
-			// TODO 메시지 : 튜토리얼을 완료 후 이동이 가능합니다 !
+		if (! $event->getBlock () instanceof Sign) break;
+		if (isset ( $this->db ["sign"] [$event->getBlock ()->getLevel ()->getFolderName ()] ["{$event->getBlock()->x}.{$event->getBlock()->y}.{$event->getBlock()->z}"] )) {
+			switch ($this->db ["sign"] [$event->getBlock ()->getLevel ()->getFolderName ()] ["{$event->getBlock()->x}.{$event->getBlock()->y}.{$event->getBlock()->z}"]) {
+				case "skipSign" :
+					if (isset ( $this->db ["finished"] [strtolower ( $event->getPlayer ()->getName () )] )) {
+						$this->message ( $event->getPlayer (), $this->get ( "already-clread-all-tutorial" ) );
+						return;
+					} else {
+						$this->message ( $event->getPlayer (), $this->get ( "all-tutorial-skipped" ) );
+						$this->db ["finished"] [strtolower ( $event->getPlayer ()->getName () )] = true;
+						if (isset ( $this->continue [strtolower ( $event->getPlayer ()->getName () )] )) {
+							unset ( $this->continue [strtolower ( $event->getPlayer ()->getName () )] );
+						}
+					}
+					break;
+				case "restartSign" :
+					$this->message ( $event->getPlayer (), $this->get ( "now-tutorial-restarted" ) );
+					if (isset ( $this->db ["finished"] [strtolower ( $event->getPlayer ()->getName () )] )) {
+						unset ( $this->db ["finished"] [strtolower ( $event->getPlayer ()->getName () )] );
+					}
+					$this->continue [strtolower ( $event->getPlayer ()->getName () )] = [ "mine" => false,"shop" => false,"notice" => false,"wild" => false ];
+					break;
+				case "mine" :
+					if (isset ( $this->db ["finished"] [strtolower ( $event->getPlayer ()->getName () )] )) {
+						$this->message ( $this->get ( "already-clread-all-tutorial" ) );
+						return;
+					}
+					$this->message ( $event->getPlayer (), $this->get ( "mine" ) . " " . $this->get ( "tutorial-cleared" ) );
+					$this->continue [strtolower ( $event->getPlayer ()->getName () )] ["mine"] = true;
+					$this->tutorialClear ( $event->getPlayer () );
+					break;
+				case "shop" :
+					if (isset ( $this->db ["finished"] [strtolower ( $event->getPlayer ()->getName () )] )) {
+						$this->message ( $this->get ( "already-clread-all-tutorial" ) );
+						return;
+					}
+					$this->message ( $event->getPlayer (), $this->get ( "shop" ) . " " . $this->get ( "tutorial-cleared" ) );
+					$this->continue [strtolower ( $event->getPlayer ()->getName () )] ["shop"] = true;
+					$this->tutorialClear ( $event->getPlayer () );
+					break;
+				case "notice" :
+					if (isset ( $this->db ["finished"] [strtolower ( $event->getPlayer ()->getName () )] )) {
+						$this->message ( $this->get ( "already-clread-all-tutorial" ) );
+						return;
+					}
+					$this->message ( $event->getPlayer (), $this->get ( "notice" ) . " " . $this->get ( "tutorial-cleared" ) );
+					$this->continue [strtolower ( $event->getPlayer ()->getName () )] ["notice"] = true;
+					$this->tutorialClear ( $event->getPlayer () );
+					break;
+				case "wild" :
+					if (isset ( $this->db ["finished"] [strtolower ( $event->getPlayer ()->getName () )] )) {
+						$this->message ( $this->get ( "already-clread-all-tutorial" ) );
+						return;
+					}
+					$this->message ( $event->getPlayer (), $this->get ( "wild" ) . " " . $this->get ( "tutorial-cleared" ) );
+					$this->continue [strtolower ( $event->getPlayer ()->getName () )] ["wild"] = true;
+					$this->tutorialClear ( $event->getPlayer () );
+					break;
+			}
 		}
 	}
-	public function setSkipSign(Position $pos) {
-		$this->db ["skipSign"] = "{$pos->x}.{$pos->y}.{$pos->z}.{$pos->getLevel()->getFolderName()}";
+	public function tutorialClear(Player $player) {
+		foreach ( $this->continue [strtolower ( $player->getName () )] as $stage => $check ) {
+			if (! $check) {
+				if (! isset ( $this->db [$stage] )) continue; // STAGEDATA EXCEPTION
+				
+				$data = explode ( ".", $this->db [$stage] );
+				if (! isset ( $data [3] )) continue; // POSDATA EXCEPTION
+				
+				$level = $this->getServer ()->getLevelByName ( $data [3] );
+				if (! $level instanceof Level) continue; // LEVEL EXCEPTION
+				
+				$this->message ( $player, $this->get ( $stage ) . " " . $this->get ( "tutorial-start" ) );
+				$player->teleport ( new Position ( $data [0], $data [1], $data [2], $level ) );
+				return;
+			}
+		}
+		$this->db ["finished"] [strtolower ( $event->getPlayer ()->getName () )] = true;
+		$this->message ( $player, $this->get ( "all-tutorial-cleared" ) );
+		$this->message ( $player, $this->get ( "you-can-move-free" ) );
 	}
-	public function setRestartSign(Position $pos) {
-		$this->db ["restartSign"] = "{$pos->x}.{$pos->y}.{$pos->z}.{$pos->getLevel()->getFolderName()}";
+	public function onMove(PlayerMoveEvent $event) {
+		if (! isset ( $this->db ["finished"] [strtolower ( $event->getPlayer ()->getName () )] )) {
+			foreach ( $this->continue [strtolower ( $player->getName () )] as $stage => $check ) {
+				if (! $check) {
+					
+					$data = explode ( ".", $this->db [$stage] );
+					if (! isset ( $data [3] )) continue; // POSDATA EXCEPTION
+					
+					$level = $this->getServer ()->getLevelByName ( $data [3] );
+					if (! $level instanceof Level) continue; // LEVEL EXCEPTION
+					/*
+					 * //new Position ( $data [0], $data [1], $data [2], $level 
+					 * // TODO 진행중인 튜토리얼 공간에서 너무 멀어졌을경우 해당위치로 재워프
+					 */
+					$this->message ( $event->getPlayer (), $this->get ( "you-need-pass-tutorial" ) );
+				}
+			}
+		}
 	}
-	public function setMine(Position $pos) {
-		$this->db ["mine"] = "{$pos->x}.{$pos->y}.{$pos->z}.{$pos->getLevel()->getFolderName()}";
+	public function setSkipSign(Position $sign) {
+		$this->db ["sign"] [$sign->getLevel ()->getFolderName ()] ["{$sign->x}.{$sign->y}.{$sign->z}"] = "skipSign";
 	}
-	public function setShop(Position $pos) {
-		$this->db ["shop"] = "{$pos->x}.{$pos->y}.{$pos->z}.{$pos->getLevel()->getFolderName()}";
+	public function setRestartSign(Position $sign) {
+		$this->db ["sign"] [$sign->getLevel ()->getFolderName ()] ["{$sign->x}.{$sign->y}.{$sign->z}"] = "restartSign";
 	}
-	public function setNotice(Position $pos) {
-		$this->db ["notice"] = "{$pos->x}.{$pos->y}.{$pos->z}.{$pos->getLevel()->getFolderName()}";
+	public function setMine(Position $sign, Position $player) {
+		$this->db ["sign"] [$sign->getLevel ()->getFolderName ()] ["{$sign->x}.{$sign->y}.{$sign->z}"] = "mine";
+		$this->db ["mine"] = "{$player->x}.{$player->y}.{$player->z}.{$player->getLevel()->getFolderName()}";
 	}
-	public function setWild(Position $pos) {
-		$this->db ["wild"] = "{$pos->x}.{$pos->y}.{$pos->z}.{$pos->getLevel()->getFolderName()}";
+	public function setShop(Position $sign, Position $player) {
+		$this->db ["sign"] [$sign->getLevel ()->getFolderName ()] ["{$sign->x}.{$sign->y}.{$sign->z}"] = "shop";
+		$this->db ["shop"] = "{$player->x}.{$player->y}.{$player->z}.{$player->getLevel()->getFolderName()}";
+	}
+	public function setNotice(Position $sign, Position $player) {
+		$this->db ["sign"] [$sign->getLevel ()->getFolderName ()] ["{$sign->x}.{$sign->y}.{$sign->z}"] = "notice";
+		$this->db ["notice"] = "{$player->x}.{$player->y}.{$$player->z}.{$player->getLevel()->getFolderName()}";
+	}
+	public function setWild(Position $sign, Position $player) {
+		$this->db ["sign"] [$sign->getLevel ()->getFolderName ()] ["{$sign->x}.{$sign->y}.{$sign->z}"] = "wild";
+		$this->db ["wild"] = "{$player->x}.{$player->y}.{$player->z}.{$player->getLevel()->getFolderName()}";
+	}
+	public function onBlockBreak(BlockBreakEvent $event) {
+		if (! $event->getBlock () instanceof Sign) break;
+		if (isset ( $this->db ["sign"] [$event->getBlock ()->getLevel ()->getFolderName ()] ["{$event->getBlock()->x}.{$event->getBlock()->y}.{$event->getBlock()->z}"] )) {
+			if (! $event->getPlayer ()->isOp ()) {
+				$event->setCancelled ();
+				return;
+			}
+			switch ($this->db ["sign"] [$event->getBlock ()->getLevel ()->getFolderName ()] ["{$event->getBlock()->x}.{$event->getBlock()->y}.{$event->getBlock()->z}"]) {
+				case "mine" :
+					if (isset ( $this->db ["mine"] )) unset ( $this->db ["mine"] );
+					break;
+				case "shop" :
+					if (isset ( $this->db ["shop"] )) unset ( $this->db ["shop"] );
+					break;
+				case "notice" :
+					if (isset ( $this->db ["notice"] )) unset ( $this->db ["notice"] );
+					break;
+				case "wild" :
+					if (isset ( $this->db ["wild"] )) unset ( $this->db ["wild"] );
+					break;
+			}
+			unset ( $this->db ["sign"] [$event->getBlock ()->getLevel ()->getFolderName ()] ["{$event->getBlock()->x}.{$event->getBlock()->y}.{$event->getBlock()->z}"] );
+		}
 	}
 	public function get($var) {
 		if (isset ( $this->messages [$this->getServer ()->getLanguage ()->getLang ()] )) {
