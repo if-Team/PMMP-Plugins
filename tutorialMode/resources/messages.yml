@@ -1,0 +1,27 @@
+# IF YOU NEED A SOME OTHER LANGUAGE SETTINGS #
+# YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
+
+#PLEASE SET HERE TO YOUR LANGUAGE PREFIX
+m_version: 1
+
+#(EN) ENGLISH
+eng: true
+eng-default-prefix: "tutorial"
+eng-tutorial: "tutorial"
+kor-mine: "mine"
+kor-shop: "shop"
+kor-notice: "notice"
+kor-wild: "wild"
+
+#(KO) KOREAN
+kor: true
+kor-default-prefix: "튜토리얼"
+kor-tutorial: "튜토리얼"
+kor-mine: "광산"
+kor-shop: "상점"
+kor-notice: "공지"
+kor-wild: "야생"
+kor-start-tutorial: "서버 기초 안내를 시작합니다 !\주변의 안내 표지판을 읽어주세요 !"
+
+# AND YOU CAN PROVIDE YOUR TRANSLATION       #
+# https://github.com/if-Team/PMMP-Plugins/blob/master/tutorialMode/resources/messages.yml
