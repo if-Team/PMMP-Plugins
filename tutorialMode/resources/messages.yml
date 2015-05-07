@@ -8,20 +8,25 @@ m_version: 1
 eng: true
 eng-default-prefix: "tutorial"
 eng-tutorial: "tutorial"
-kor-mine: "mine"
-kor-shop: "shop"
-kor-notice: "notice"
-kor-wild: "wild"
+eng-mine: "mine"
+eng-shop: "shop"
+eng-notice: "notice"
+eng-wild: "wild"
+eng-skip: "skip"
+eng-restart: "restart"
 
 #(KO) KOREAN
 kor: true
-kor-default-prefix: "튜토리얼"
+kor-default-prefix: "[ 서버 ]"
 kor-tutorial: "튜토리얼"
 kor-mine: "광산"
 kor-shop: "상점"
 kor-notice: "공지"
 kor-wild: "야생"
-kor-start-tutorial: "서버 기초 안내를 시작합니다 !\주변의 안내 표지판을 읽어주세요 !"
+kor-skip: "스킵"
+kor-restart: "재시작"
+kor-start-tutorial: "서버 기초 안내를 시작합니다 !"
+kor-please-read-the-sign: "주변의 안내 표지판을 읽어주세요 !"
 kor-sign-tutorial-skip1: "[ 튜토리얼 스킵 ]"
 kor-sign-tutorial-skip2: "튜토리얼을 건너 뛰길"
 kor-sign-tutorial-skip2: "원하는경우 터치 !"
@@ -39,6 +44,7 @@ kor-tutorial-start: "튜토리얼을 시작합니다"
 kor-all-tutorial-cleared: "모든튜토리얼 완료, 튜토리얼을 마칩니다"
 kor-you-can-move-free: "자유롭게 플레잉 가능합니다"
 kor-you-need-pass-tutorial: "튜토리얼을 완료 후 이동이 가능합니다 !"
+kor-sign-deleted: "튜토리얼 표지판을 성공적으로 제거했습니다 !"
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/blob/master/tutorialMode/resources/messages.yml

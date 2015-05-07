@@ -16,6 +16,8 @@ use pocketmine\block\Block;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\item\Sign;
 use pocketmine\Player;
+use pocketmine\level\Level;
+use pocketmine\block\SignPost;
 
 class tutorialMode extends PluginBase implements Listener {
 	private static $instance = null; // 인스턴스 변수
@@ -37,16 +39,22 @@ class tutorialMode extends PluginBase implements Listener {
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
 	public function onJoin(PlayerJoinEvent $event) {
+		if (! isset ( $this->db ["mine"] )) return;
+		if (! isset ( $this->db ["shop"] )) return;
+		if (! isset ( $this->db ["notice"] )) return;
+		if (! isset ( $this->db ["wild"] )) return;
 		if (! isset ( $this->db ["finished"] [strtolower ( $event->getPlayer ()->getName () )] )) {
 			$this->continue [strtolower ( $event->getPlayer ()->getName () )] = [ "mine" => false,"shop" => false,"notice" => false,"wild" => false ];
 			$this->message ( $event->getPlayer (), $this->get ( "start-tutorial" ) );
+			$this->message ( $event->getPlayer (), $this->get ( "please-read-the-sign" ) );
+			$this->tutorialClear ( $event->getPlayer () );
 		}
 	}
 	public function onSignPlace(SignChangeEvent $event) {
 		if (! $event->getPlayer ()->isOp ()) return;
 		if ($event->getLine ( 0 ) != $this->get ( "tutorial" )) return;
 		
-		switch (strtolower ( $event->getLine ( 0 ) )) {
+		switch (strtolower ( $event->getLine ( 1 ) )) {
 			case $this->get ( "skip" ) :
 				$event->setLine ( 0, TextFormat::WHITE . $this->get ( "sign-tutorial-skip1" ) );
 				$event->setLine ( 1, TextFormat::WHITE . $this->get ( "sign-tutorial-skip2" ) );
@@ -86,7 +94,7 @@ class tutorialMode extends PluginBase implements Listener {
 		}
 	}
 	public function onTouch(PlayerInteractEvent $event) {
-		if (! $event->getBlock () instanceof Sign) break;
+		if (! $event->getBlock () instanceof SignPost) return;
 		if (isset ( $this->db ["sign"] [$event->getBlock ()->getLevel ()->getFolderName ()] ["{$event->getBlock()->x}.{$event->getBlock()->y}.{$event->getBlock()->z}"] )) {
 			switch ($this->db ["sign"] [$event->getBlock ()->getLevel ()->getFolderName ()] ["{$event->getBlock()->x}.{$event->getBlock()->y}.{$event->getBlock()->z}"]) {
 				case "skipSign" :
@@ -163,24 +171,26 @@ class tutorialMode extends PluginBase implements Listener {
 				return;
 			}
 		}
-		$this->db ["finished"] [strtolower ( $event->getPlayer ()->getName () )] = true;
+		$this->db ["finished"] [strtolower ( $player->getName () )] = true;
 		$this->message ( $player, $this->get ( "all-tutorial-cleared" ) );
 		$this->message ( $player, $this->get ( "you-can-move-free" ) );
 	}
 	public function onMove(PlayerMoveEvent $event) {
-		if (! isset ( $this->db ["finished"] [strtolower ( $event->getPlayer ()->getName () )] )) {
-			foreach ( $this->continue [strtolower ( $player->getName () )] as $stage => $check ) {
+		if (isset ( $this->continue [strtolower ( $event->getPlayer ()->getName () )] )) {
+			foreach ( $this->continue [strtolower ( $event->getPlayer ()->getName () )] as $stage => $check ) {
 				if (! $check) {
-					
 					$data = explode ( ".", $this->db [$stage] );
 					if (! isset ( $data [3] )) continue; // POSDATA EXCEPTION
 					
+					$dx = abs ( $data [0] - $event->getPlayer ()->x );
+					$dy = abs ( $data [1] - $event->getPlayer ()->y );
+					$dz = abs ( $data [2] - $event->getPlayer ()->z );
+					if ($dx <= 10 and $dy <= 10 and $dz <= 10) return;
+					
 					$level = $this->getServer ()->getLevelByName ( $data [3] );
 					if (! $level instanceof Level) continue; // LEVEL EXCEPTION
-					/*
-					 * //new Position ( $data [0], $data [1], $data [2], $level 
-					 * // TODO 진행중인 튜토리얼 공간에서 너무 멀어졌을경우 해당위치로 재워프
-					 */
+					
+					$event->getPlayer ()->teleport ( new Position ( $data [0], $data [1], $data [2], $level ) );
 					$this->message ( $event->getPlayer (), $this->get ( "you-need-pass-tutorial" ) );
 				}
 			}
@@ -194,22 +204,21 @@ class tutorialMode extends PluginBase implements Listener {
 	}
 	public function setMine(Position $sign, Position $player) {
 		$this->db ["sign"] [$sign->getLevel ()->getFolderName ()] ["{$sign->x}.{$sign->y}.{$sign->z}"] = "mine";
-		$this->db ["mine"] = "{$player->x}.{$player->y}.{$player->z}.{$player->getLevel()->getFolderName()}";
+		$this->db ["mine"] = intval ( $player->x ) . "." . intval ( $player->y ) . "." . intval ( $player->z ) . "." . $player->getLevel ()->getFolderName ();
 	}
 	public function setShop(Position $sign, Position $player) {
 		$this->db ["sign"] [$sign->getLevel ()->getFolderName ()] ["{$sign->x}.{$sign->y}.{$sign->z}"] = "shop";
-		$this->db ["shop"] = "{$player->x}.{$player->y}.{$player->z}.{$player->getLevel()->getFolderName()}";
+		$this->db ["shop"] = intval ( $player->x ) . "." . intval ( $player->y ) . "." . intval ( $player->z ) . "." . $player->getLevel ()->getFolderName ();
 	}
 	public function setNotice(Position $sign, Position $player) {
 		$this->db ["sign"] [$sign->getLevel ()->getFolderName ()] ["{$sign->x}.{$sign->y}.{$sign->z}"] = "notice";
-		$this->db ["notice"] = "{$player->x}.{$player->y}.{$$player->z}.{$player->getLevel()->getFolderName()}";
+		$this->db ["notice"] = intval ( $player->x ) . "." . intval ( $player->y ) . "." . intval ( $player->z ) . "." . $player->getLevel ()->getFolderName ();
 	}
 	public function setWild(Position $sign, Position $player) {
 		$this->db ["sign"] [$sign->getLevel ()->getFolderName ()] ["{$sign->x}.{$sign->y}.{$sign->z}"] = "wild";
-		$this->db ["wild"] = "{$player->x}.{$player->y}.{$player->z}.{$player->getLevel()->getFolderName()}";
+		$this->db ["wild"] = intval ( $player->x ) . "." . intval ( $player->y ) . "." . intval ( $player->z ) . "." . $player->getLevel ()->getFolderName ();
 	}
 	public function onBlockBreak(BlockBreakEvent $event) {
-		if (! $event->getBlock () instanceof Sign) break;
 		if (isset ( $this->db ["sign"] [$event->getBlock ()->getLevel ()->getFolderName ()] ["{$event->getBlock()->x}.{$event->getBlock()->y}.{$event->getBlock()->z}"] )) {
 			if (! $event->getPlayer ()->isOp ()) {
 				$event->setCancelled ();
@@ -230,6 +239,7 @@ class tutorialMode extends PluginBase implements Listener {
 					break;
 			}
 			unset ( $this->db ["sign"] [$event->getBlock ()->getLevel ()->getFolderName ()] ["{$event->getBlock()->x}.{$event->getBlock()->y}.{$event->getBlock()->z}"] );
+			$this->message ( $event->getPlayer (), $this->get ( "sign-deleted" ) );
 		}
 	}
 	public function get($var) {
