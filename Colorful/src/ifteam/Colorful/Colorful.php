@@ -17,6 +17,7 @@ class ColorFul extends PluginBase implements Listener {
 	public $m_version = 1;
 	public $messages;
 	public function onEnable() {
+		@mkdir ( $this->getDataFolder () );
 		$this->initMessage ();
 		$this->registerCommand ( $this->get ( "colorTable" ), "colorful", $this->get ( "colorTable-desc" ), "/" . $this->get ( "colorTable" ) );
 		
