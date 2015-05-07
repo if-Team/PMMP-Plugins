@@ -24,13 +24,13 @@ use pocketmine\event\entity\ProjectileLaunchEvent;
 use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\scheduler\CallbackTask;
 use pocketmine\event\player\PlayerQuitEvent;
+use pocketmine\event\entity\ExplosionPrimeEvent;
 
 class GoodSPAWN extends PluginBase implements Listener {
 	public $config, $config_Data;
-	public $m_version = 2;
+	public $m_version = 3;
 	public $spawn_queue = [ ];
 	public $death_queue = [ ];
-	// public $unprotect_queue = [ ];
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		
@@ -40,9 +40,9 @@ class GoodSPAWN extends PluginBase implements Listener {
 		$this->config = new Config ( $this->getDataFolder () . "settings.yml", Config::YAML, [ "spawns" => [ ] ] );
 		$this->config_Data = $this->config->getAll ();
 		
-		$this->registerCommand ( $this->get ( "commands-spawn" ), "goodspawn.spawn" );
-		$this->registerCommand ( $this->get ( "commands-setspawn" ), "goodspawn.setspawn" );
-		$this->registerCommand ( $this->get ( "commands-spawnclear" ), "goodspawn.spawnclear" );
+		$this->registerCommand ( $this->get ( "commands-spawn" ), "goodspawn.spawn", $this->get ( "spawn-desc" ) . "/" . $this->get ( "commands-spawn" ) );
+		$this->registerCommand ( $this->get ( "commands-setspawn" ), "goodspawn.setspawn", $this->get ( "setspawn-desc" ) . "/" . $this->get ( "commands-setspawn" ) );
+		$this->registerCommand ( $this->get ( "commands-spawnclear" ), "goodspawn.spawnclear", $this->get ( "spawnclear-desc" ) . "/" . $this->get ( "commands-spawnclear" ) );
 		
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
@@ -55,7 +55,12 @@ class GoodSPAWN extends PluginBase implements Listener {
 		$this->messages = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
 	}
 	public function get($var) {
-		return $this->messages [$this->messages ["default-language"] . "-" . $var];
+		if (isset ( $this->messages [$this->getServer ()->getLanguage ()->getLang ()] )) {
+			$lang = $this->getServer ()->getLanguage ()->getLang ();
+		} else {
+			$lang = "eng";
+		}
+		return $this->messages [$lang . "-" . $var];
 	}
 	public function messagesUpdate() {
 		if (! isset ( $this->messages ["default-language"] ["m_version"] )) {
@@ -110,7 +115,6 @@ class GoodSPAWN extends PluginBase implements Listener {
 	}
 	public function onDeath(PlayerDeathEvent $event) {
 		if (! isset ( $this->death_queue [$event->getEntity ()->getName ()] )) $this->death_queue [$event->getEntity ()->getName ()] = 1;
-		// if (isset ( $this->unprotect_queue [$event->getEntity ()->getName ()] )) unset ( $this->unprotect_queue [$event->getEntity ()->getName ()] );
 	}
 	public function getSpawn(Player $player) {
 		if (! isset ( $this->config_Data ["spawns"] ) or count ( $this->config_Data ["spawns"] ) == 0) return null;
@@ -174,7 +178,6 @@ class GoodSPAWN extends PluginBase implements Listener {
 	}
 	public function onTouch(PlayerInteractEvent $event) {
 		if ($event->getPlayer ()->isOp ()) return;
-		// $this->unprotect_queue [$event->getPlayer ()->getName ()] = 1;
 		if ($this->checkSpawn ( $event->getBlock (), 5 )) {
 			$this->message ( $event->getPlayer (), $this->get ( "cannot-spawn-modify" ) );
 			$event->setCancelled ();
@@ -183,12 +186,9 @@ class GoodSPAWN extends PluginBase implements Listener {
 	public function onDamage(EntityDamageEvent $event) {
 		if ($event instanceof EntityDamageByEntityEvent) {
 			if ($event->getEntity () instanceof Player) {
-				// if (! isset ( $this->unprotect_queue [$event->getEntity ()->getName ()] )) {
 				if ($this->checkSpawn ( $event->getEntity (), 5 )) $event->setCancelled ();
-				// }
 			}
 			if ($event->getDamager () instanceof Player) {
-				// $this->unprotect_queue [$event->getDamager ()->getName ()] = 1;
 				if ($this->checkSpawn ( $event->getDamager (), 5 )) {
 					$event->setCancelled ();
 					return;
@@ -209,6 +209,9 @@ class GoodSPAWN extends PluginBase implements Listener {
 				$event->setCancelled ();
 			}
 		}
+	}
+	public function onExplode(ExplosionPrimeEvent $event) {
+		if ($this->checkSpawn ( $event->getEntity (), 5 )) $event->setCancelled ();
 	}
 	public function message($player, $text = "", $mark = null) {
 		if ($mark == null) $mark = $this->get ( "default-prefix" );
