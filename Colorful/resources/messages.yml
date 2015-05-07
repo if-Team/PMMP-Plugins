@@ -1,0 +1,28 @@
+# IF YOU NEED A SOME OTHER LANGUAGE SETTINGS #
+# YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
+
+#PLEASE SET HERE TO YOUR LANGUAGE PREFIX
+m_version: 1
+
+#(EN) ENGLISH
+eng: true
+eng-colorTable: "Color Table"
+eng-colorTable-desc: "The output color palette available on the server."
+eng-color-print: "* Prints the available Color Table"
+eng-colorlist-1: "§0 & 0 Black §f & 1 §1 §f & 2 §2 Dark Blue Dark Green, Dark Green §f & 3 §3"
+eng-colorlist-2: "§f & 4 §4 dark red §f & 5 §5 dark violet §f & 6 §6 §f & 7 §7 gray gold"
+eng-colorlist-3: "§f & 8 §8 §f & 9 §9 black gray blue green §f & a §a §f & b §b Teal"
+eng-colorlist-4: "§f & c §c red §f & d: §d see §f & e §e white yellow §f & f §f"
+
+#(KO) KOREAN
+kor: true
+kor-colorTable: "색상표"
+kor-colorTable-desc: "서버에서 사용가능한 색상표를 출력합니다"
+kor-color-print: "*사용가능한 색상표를 출력합니다"
+kor-colorlist-1: "§0&0 검정 §f&1 §1짙은파랑 §f&2 §2짙은초록 §f&3 §3짙은청록"
+kor-colorlist-2: "§f&4 §4짙은빨강 §f&5 §5짙은보라§f&6 §6금색 §f&7 §7회색"
+kor-colorlist-3: "§f&8 §8검은회색 §f&9 §9파랑 §f&a §a초록 §f&b §b청록"
+kor-colorlist-4: "§f&c §c빨강 §f&d:§d보라 §f&e §e노랑 §f&f §f흰색"
+
+# AND YOU CAN PROVIDE YOUR TRANSLATION       #
+# https://github.com/if-Team/PMMP-Plugins/blob/master/Colorful/resources/messages.yml

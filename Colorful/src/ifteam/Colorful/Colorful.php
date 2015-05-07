@@ -10,10 +10,16 @@ use pocketmine\event\block\SignChangeEvent;
 use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
 use pocketmine\utils\TextFormat;
-use pocketmine\Player;
+use pocketmine\command\PluginCommand;
+use pocketmine\utils\Config;
 
 class ColorFul extends PluginBase implements Listener {
+	public $m_version = 1;
+	public $messages;
 	public function onEnable() {
+		$this->initMessage ();
+		$this->registerCommand ( $this->get ( "colorTable" ), "colorful", $this->get ( "colorTable-desc" ), "/" . $this->get ( "colorTable" ) );
+		
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
 	public function onChat(PlayerChatEvent $event) {
@@ -36,16 +42,45 @@ class ColorFul extends PluginBase implements Listener {
 			$text = str_replace ( "&" . $i, "§" . $i, $text );
 		return $text;
 	}
-	public function helpColor(Player $player) {
-		$player->sendMessage ( TextFormat::DARK_AQUA . "*사용가능한 색상표를 출력합니다" );
-		$player->sendMessage ( "§0&0 검정 §f&1 §1짙은파랑 §f&2 §2짙은초록 §f&3 §3짙은청록" );
-		$player->sendMessage ( "§f&4 §4짙은빨강 §f&5 §5짙은보라§f&6 §6금색 §f&7 §7회색" );
-		$player->sendMessage ( "§f&8 §8검은회색 §f&9 §9파랑 §f&a §a초록 §f&b §b청록" );
-		$player->sendMessage ( "§f&c §c빨강 §f&d:§d보라 §f&e §e노랑 §f&f §f흰색\n\n" );
+	public function helpColor(CommandSender $player) {
+		$player->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "color-print" ) );
+		$player->sendMessage ( $this->get ( "colorlist-1" ) );
+		$player->sendMessage ( $this->get ( "colorlist-2" ) );
+		$player->sendMessage ( $this->get ( "colorlist-3" ) );
+		$player->sendMessage ( $this->get ( "colorlist-4" ) );
 	}
 	public function onCommand(CommandSender $player, Command $command, $label, Array $args) {
 		$this->helpColor ( $player );
 		return true;
+	}
+	public function get($var) {
+		if (isset ( $this->messages [$this->getServer ()->getLanguage ()->getLang ()] )) {
+			$lang = $this->getServer ()->getLanguage ()->getLang ();
+		} else {
+			$lang = "eng";
+		}
+		return $this->messages [$lang . "-" . $var];
+	}
+	public function initMessage() {
+		$this->saveResource ( "messages.yml", false );
+		$this->messagesUpdate ( "messages.yml" );
+		$this->messages = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
+	}
+	public function messagesUpdate($targetYmlName) {
+		$targetYml = (new Config ( $this->getDataFolder () . $targetYmlName, Config::YAML ))->getAll ();
+		if (! isset ( $targetYml ["m_version"] )) {
+			$this->saveResource ( $targetYmlName, true );
+		} else if ($targetYml ["m_version"] < $this->m_version) {
+			$this->saveResource ( $targetYmlName, true );
+		}
+	}
+	public function registerCommand($name, $permission, $description = "", $usage = "") {
+		$commandMap = $this->getServer ()->getCommandMap ();
+		$command = new PluginCommand ( $name, $this );
+		$command->setDescription ( $description );
+		$command->setPermission ( $permission );
+		$command->setUsage ( $usage );
+		$commandMap->register ( $name, $command );
 	}
 }
 
