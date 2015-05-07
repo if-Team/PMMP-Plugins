@@ -17,7 +17,6 @@ class Gentleman extends PluginBase implements Listener {
 	public $list, $messages;
 	public $badQueue = [ ];
 	public $oldChat = [ ], $oldSign = [ ];
-	public $banPoint;
 	public $m_version = 1;
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
@@ -84,7 +83,7 @@ class Gentleman extends PluginBase implements Listener {
 		
 		if ($event->getPlayer ()->isOp ()) return;
 		$command = explode ( ' ', $command );
-		if ($command [0] == "/me" or $command [0] == "/tell") {
+		if ($command [0] == "/me" or $command [0] == "/tell" or $command [0] == "/w" or $command [0] == "/환영말") {
 			$find = $this->checkSwearWord ( $event->getMessage () );
 			if ($find != null) {
 				$event->getPlayer ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "some-badwords-found" ) . ": " . " (" . $this->get ( "doubt" ) . ": " . $find . " )" );
@@ -115,13 +114,7 @@ class Gentleman extends PluginBase implements Listener {
 		$this->saveResource ( "badwords.json", false );
 		$this->messages = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
 		$this->list = (new Config ( $this->getDataFolder () . "badwords.json", Config::JSON ))->getAll ();
-		$this->banPoint = (new Config ( $this->getDataFolder () . "banpoints.yml", Config::YAML ))->getAll ();
 		$this->makeQueue ();
-	}
-	public function onDisable() {
-		$banPoint = new Config ( $this->getDataFolder () . "banpoints.yml", Config::YAML );
-		$banPoint->setAll ( $this->banPoint );
-		$banPoint->save ();
 	}
 	public function makeQueue() {
 		foreach ( $this->list ["badwords"] as $badword )
