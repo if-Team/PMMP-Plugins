@@ -18,6 +18,8 @@ use pocketmine\item\Sign;
 use pocketmine\Player;
 use pocketmine\level\Level;
 use pocketmine\block\SignPost;
+use pocketmine\event\entity\EntityDamageEvent;
+use pocketmine\event\entity\EntityDamageByEntityEvent;
 
 class tutorialMode extends PluginBase implements Listener {
 	private static $instance = null; // 인스턴스 변수
@@ -174,6 +176,23 @@ class tutorialMode extends PluginBase implements Listener {
 		$this->db ["finished"] [strtolower ( $player->getName () )] = true;
 		$this->message ( $player, $this->get ( "all-tutorial-cleared" ) );
 		$this->message ( $player, $this->get ( "you-can-move-free" ) );
+		$player->teleport ( $this->getServer ()->getDefaultLevel ()->getSafeSpawn () );
+	}
+	public function onDamage(EntityDamageEvent $event) {
+		if ($event instanceof EntityDamageByEntityEvent) {
+			if ($event->getDamager () instanceof Player) {
+				if (isset ( $this->continue [strtolower ( $event->getDamager ()->getName () )] )) {
+					$event->setCancelled ();
+					return;
+				}
+			}
+			if ($event->getEntity () instanceof Player) {
+				if (isset ( $this->continue [strtolower ( $event->getEntity ()->getName () )] )) {
+					$event->setCancelled ();
+					return;
+				}
+			}
+		}
 	}
 	public function onMove(PlayerMoveEvent $event) {
 		if (isset ( $this->continue [strtolower ( $event->getPlayer ()->getName () )] )) {
