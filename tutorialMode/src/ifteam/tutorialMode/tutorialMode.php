@@ -55,7 +55,7 @@ class tutorialMode extends PluginBase implements Listener {
 		}
 	}
 	public function onChat(PlayerChatEvent $event) {
-		if ($this->continue [strtolower ( $event->getPlayer ()->getName () )]) {
+		if (isset ( $this->continue [strtolower ( $event->getPlayer ()->getName () )] )) {
 			$event->setCancelled ();
 			$this->message ( $event->getPlayer (), $this->get ( "please-read-the-sign" ) );
 		}
@@ -182,6 +182,7 @@ class tutorialMode extends PluginBase implements Listener {
 			}
 		}
 		$this->db ["finished"] [strtolower ( $player->getName () )] = true;
+		unset ( $this->continue [strtolower ( $player->getPlayer ()->getName () )] );
 		$this->message ( $player, $this->get ( "all-tutorial-cleared" ) );
 		$this->message ( $player, $this->get ( "you-can-move-free" ) );
 		$safe = $this->getServer ()->getDefaultLevel ()->getSafeSpawn ();
