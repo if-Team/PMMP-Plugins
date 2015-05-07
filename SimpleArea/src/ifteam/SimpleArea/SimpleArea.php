@@ -282,6 +282,7 @@ class SimpleArea extends PluginBase implements Listener {
 			}
 		}
 		if ($event->getItem ()->canBeActivated () or $event->getBlock ()->canBeActivated ()) {
+			if (! $event->getAction ()) return;
 			if ($player->isOp ()) return;
 			if ($event->getBlock ()->getId () == Block::CRAFTING_TABLE or $event->getBlock ()->getId () == Block::FURNACE) return;
 			$area = $this->db [$event->getBlock ()->getLevel ()->getFolderName ()]->getArea ( $event->getBlock ()->x, $event->getBlock ()->z );
