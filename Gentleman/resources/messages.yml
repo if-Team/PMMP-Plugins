@@ -12,5 +12,11 @@ ko-badwords-nickname: "부적절 단어 포함의심 ! 닉네임을 변경해주
 ko-be-careful-about-badwords: "[ 서버 ] 유사 비속어 필터에 주의해주세요 (상당히 민감 !)"
 ko-doubt: "의심"
 
+#(ES) ESPAÑOL
+es-some-badwords-found: "[ Servidor ] Tu Mensage Contiene Malas Palabras!"
+es-badwords-nickname: "[ Servidor ] Tu Nickname Contiene Malas Palabras!!"
+es-be-careful-about-badwords: "[ Servidor ] Tenga en cuenta que nuestro filtro de malas palabras es muy sensible !)"
+es-doubt: "DUDA"
+
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/tree/master/Gentleman/resources/messages.yml
