@@ -176,7 +176,8 @@ class tutorialMode extends PluginBase implements Listener {
 		$this->db ["finished"] [strtolower ( $player->getName () )] = true;
 		$this->message ( $player, $this->get ( "all-tutorial-cleared" ) );
 		$this->message ( $player, $this->get ( "you-can-move-free" ) );
-		$player->teleport ( $this->getServer ()->getDefaultLevel ()->getSafeSpawn () );
+		$safe = $this->getServer ()->getDefaultLevel ()->getSafeSpawn ();
+		if ($safe != false) $player->teleport ( $safe );
 	}
 	public function onDamage(EntityDamageEvent $event) {
 		if ($event instanceof EntityDamageByEntityEvent) {
