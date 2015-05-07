@@ -20,6 +20,8 @@ use pocketmine\level\Level;
 use pocketmine\block\SignPost;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
+use pocketmine\command\CommandSender;
+use pocketmine\event\player\PlayerChatEvent;
 
 class tutorialMode extends PluginBase implements Listener {
 	private static $instance = null; // 인스턴스 변수
@@ -50,6 +52,12 @@ class tutorialMode extends PluginBase implements Listener {
 			$this->message ( $event->getPlayer (), $this->get ( "start-tutorial" ) );
 			$this->message ( $event->getPlayer (), $this->get ( "please-read-the-sign" ) );
 			$this->tutorialClear ( $event->getPlayer () );
+		}
+	}
+	public function onChat(PlayerChatEvent $event) {
+		if ($this->continue [strtolower ( $event->getPlayer ()->getName () )]) {
+			$event->setCancelled ();
+			$this->message ( $event->getPlayer (), $this->get ( "please-read-the-sign" ) );
 		}
 	}
 	public function onSignPlace(SignChangeEvent $event) {
@@ -120,7 +128,7 @@ class tutorialMode extends PluginBase implements Listener {
 					break;
 				case "mine" :
 					if (isset ( $this->db ["finished"] [strtolower ( $event->getPlayer ()->getName () )] )) {
-						$this->message ( $this->get ( "already-clread-all-tutorial" ) );
+						$this->message ( $event->getPlayer (), $this->get ( "already-clread-all-tutorial" ) );
 						return;
 					}
 					$this->message ( $event->getPlayer (), $this->get ( "mine" ) . " " . $this->get ( "tutorial-cleared" ) );
@@ -129,7 +137,7 @@ class tutorialMode extends PluginBase implements Listener {
 					break;
 				case "shop" :
 					if (isset ( $this->db ["finished"] [strtolower ( $event->getPlayer ()->getName () )] )) {
-						$this->message ( $this->get ( "already-clread-all-tutorial" ) );
+						$this->message ( $event->getPlayer (), $this->get ( "already-clread-all-tutorial" ) );
 						return;
 					}
 					$this->message ( $event->getPlayer (), $this->get ( "shop" ) . " " . $this->get ( "tutorial-cleared" ) );
@@ -138,7 +146,7 @@ class tutorialMode extends PluginBase implements Listener {
 					break;
 				case "notice" :
 					if (isset ( $this->db ["finished"] [strtolower ( $event->getPlayer ()->getName () )] )) {
-						$this->message ( $this->get ( "already-clread-all-tutorial" ) );
+						$this->message ( $event->getPlayer (), $this->get ( "already-clread-all-tutorial" ) );
 						return;
 					}
 					$this->message ( $event->getPlayer (), $this->get ( "notice" ) . " " . $this->get ( "tutorial-cleared" ) );
@@ -147,7 +155,7 @@ class tutorialMode extends PluginBase implements Listener {
 					break;
 				case "wild" :
 					if (isset ( $this->db ["finished"] [strtolower ( $event->getPlayer ()->getName () )] )) {
-						$this->message ( $this->get ( "already-clread-all-tutorial" ) );
+						$this->message ( $event->getPlayer (), $this->get ( "already-clread-all-tutorial" ) );
 						return;
 					}
 					$this->message ( $event->getPlayer (), $this->get ( "wild" ) . " " . $this->get ( "tutorial-cleared" ) );
@@ -177,20 +185,24 @@ class tutorialMode extends PluginBase implements Listener {
 		$this->message ( $player, $this->get ( "all-tutorial-cleared" ) );
 		$this->message ( $player, $this->get ( "you-can-move-free" ) );
 		$safe = $this->getServer ()->getDefaultLevel ()->getSafeSpawn ();
-		if ($safe != false) $player->teleport ( $safe );
+		if ($safe instanceof Position) $player->teleport ( $safe );
 	}
 	public function onDamage(EntityDamageEvent $event) {
 		if ($event instanceof EntityDamageByEntityEvent) {
 			if ($event->getDamager () instanceof Player) {
 				if (isset ( $this->continue [strtolower ( $event->getDamager ()->getName () )] )) {
-					$event->setCancelled ();
-					return;
+					if ($event->getEntity () instanceof Player) {
+						$event->setCancelled ();
+						return;
+					}
 				}
 			}
 			if ($event->getEntity () instanceof Player) {
 				if (isset ( $this->continue [strtolower ( $event->getEntity ()->getName () )] )) {
-					$event->setCancelled ();
-					return;
+					if ($event->getDamager () instanceof Player) {
+						$event->setCancelled ();
+						return;
+					}
 				}
 			}
 		}
@@ -212,6 +224,7 @@ class tutorialMode extends PluginBase implements Listener {
 					
 					$event->getPlayer ()->teleport ( new Position ( $data [0], $data [1], $data [2], $level ) );
 					$this->message ( $event->getPlayer (), $this->get ( "you-need-pass-tutorial" ) );
+					break;
 				}
 			}
 		}
@@ -294,11 +307,11 @@ class tutorialMode extends PluginBase implements Listener {
 		$command->setUsage ( $usage );
 		$commandMap->register ( $fallback, $command );
 	}
-	public function message($player, $text = "", $mark = null) {
+	public function message(CommandSender $player, $text = "", $mark = null) {
 		if ($mark == null) $mark = $this->get ( "default-prefix" );
 		$player->sendMessage ( TextFormat::DARK_AQUA . $mark . " " . $text );
 	}
-	public function alert($player, $text = "", $mark = null) {
+	public function alert(CommandSender $player, $text = "", $mark = null) {
 		if ($mark == null) $mark = $this->get ( "default-prefix" );
 		$player->sendMessage ( TextFormat::RED . $mark . " " . $text );
 	}
