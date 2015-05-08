@@ -188,17 +188,6 @@ class GoodSPAWN extends PluginBase implements Listener {
 			if ($event->getEntity () instanceof Player) {
 				if ($this->checkSpawn ( $event->getEntity (), 5 )) $event->setCancelled ();
 			}
-			if ($event->getDamager () instanceof Player) {
-				if ($this->checkSpawn ( $event->getDamager (), 5 )) {
-					$event->setCancelled ();
-					return;
-				}
-			} else {
-				if ($this->checkSpawn ( $event->getDamager (), 5 )) {
-					$event->setCancelled ();
-					return;
-				}
-			}
 		}
 	}
 	public function onLaunch(ProjectileLaunchEvent $event) {
