@@ -14,6 +14,8 @@ use pocketmine\event\entity\EntityCombustByBlockEvent;
 use pocketmine\block\Fire;
 use pocketmine\event\entity\EntityCombustEvent;
 use pocketmine\event\entity\ExplosionPrimeEvent;
+use pocketmine\entity\Entity;
+use pocketmine\entity\Arrow;
 
 class Purge extends PluginBase implements Listener {
 	public $purgeStarted = false;
@@ -33,14 +35,12 @@ class Purge extends PluginBase implements Listener {
 		return $this->messages [$this->messages ["default-language"] . "-" . $var];
 	}
 	public function purgeSchedule() {
-		// 0~13999 - DAY
-		// 14000-22999 - NIGHT
-		// 23000-24000 - DAY
 		$time = $this->getServer ()->getDefaultLevel ()->getTime ();
+		$isNight = ($time >= Level::TIME_NIGHT and $time < Level::TIME_SUNRISE);
 		if ($this->purgeStarted) {
-			if ((Level::TIME_DAY <= $time and $time < Level::TIME_NIGHT) or (Level::TIME_SUNRISE <= $time and $time <= Level::TIME_FULL)) $this->purgeStop ();
+			if (! $isNight) $this->purgeStop ();
 		} else {
-			if (Level::TIME_NIGHT <= $time and $time < Level::TIME_SUNRISE) $this->purgeStart ();
+			if ($isNight) $this->purgeStart ();
 		}
 	}
 	public function purgeStart() {
@@ -59,13 +59,22 @@ class Purge extends PluginBase implements Listener {
 		if ($event instanceof EntityDamageByEntityEvent) {
 			if ($this->purgeStarted) return;
 			if ($event->getEntity () instanceof Player and $event->getDamager () instanceof Player) {
-				// TODO 제한시간 출력
 				$event->setCancelled ();
 			}
 		}
 	}
 	public function onExplode(ExplosionPrimeEvent $event) {
-		if (! $this->purgeStarted) $event->setCancelled ();
+		if ($event->getEntity () instanceof Entity) {
+			foreach ( $event->getEntity ()->getLevel ()->getEntities () as $entity ) {
+				if (isset ( $event->getEntity ()->shootingEntity )) {
+					if ($entity == $event->getEntity ()->shootingEntity) continue;
+				}
+				if ($entity instanceof Player) if ($event->getEntity ()->distance ( $entity ) <= 6) {
+					if (! $this->purgeStarted) $event->setCancelled ();
+					break;
+				}
+			}
+		}
 	}
 	public function onCombust(EntityCombustEvent $event) {
 		if ($event instanceof EntityCombustByBlockEvent) {
