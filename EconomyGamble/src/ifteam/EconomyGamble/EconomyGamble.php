@@ -373,6 +373,7 @@ class EconomyGamble extends PluginBase implements Listener {
 						}
 						$this->packetQueue [$player->getName ()] ["nametag"] [$gamblePos] = Entity::$entityCount ++;
 						$this->packet ["AddPlayerPacket"]->eid = $this->packetQueue [$player->getName ()] ["nametag"] [$gamblePos];
+						$this->packet ["AddPlayerPacket"]->clientID = $this->packetQueue [$player->getName ()] ["nametag"] [$gamblePos];
 						$this->packet ["AddPlayerPacket"]->username = $nameTag;
 						$this->packet ["AddPlayerPacket"]->x = $explode [0] + 0.4;
 						$this->packet ["AddPlayerPacket"]->y = $explode [1] - 3.2;
@@ -380,6 +381,7 @@ class EconomyGamble extends PluginBase implements Listener {
 						$player->dataPacket ( $this->packet ["AddPlayerPacket"] );
 					} else if (isset ( $this->packetQueue [$player->getName ()] ["nametag"] [$gamblePos] )) {
 						$this->packet ["RemovePlayerPacket"]->eid = $this->packetQueue [$player->getName ()] ["nametag"] [$gamblePos];
+						$this->packet ["RemovePlayerPacket"]->clientID = $this->packetQueue [$player->getName ()] ["nametag"] [$gamblePos];
 						$player->dataPacket ( $this->packet ["RemovePlayerPacket"] ); // 네임택 제거패킷 전송
 						unset ( $this->packetQueue [$player->getName ()] ["nametag"] [$gamblePos] );
 					}
