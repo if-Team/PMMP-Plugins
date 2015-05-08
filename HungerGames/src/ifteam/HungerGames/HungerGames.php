@@ -134,25 +134,25 @@ class HungerGames extends PluginBase implements Listener {
 				$block = $block->getSide ( 1 );
 				$blockPos = "{$block->x}.{$block->y}.{$block->z}";
 				
-				if (! isset ( $this->fireblock [$blockPos] )) {
+				//if (! isset ( $this->fireblock [$blockPos] )) {
 					// foreach ( $this->getServer ()->getOnlinePlayers () as $player )
 					// $this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"setBlockPacket" ], [ $player,$block->x,$block->y,$block->z,Block::FIRE ] ), 2 );
 					// $this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"restoreBlock" ], [ $block->x,$block->y,$block->z ] ), 80 );
-				} else {
-					$this->restoreBlock ( $block->x, $block->y, $block->z );
-				}
-				$this->fireblock [$blockPos] ["id"] = $block->getId ();
-				$this->fireblock [$blockPos] ["damage"] = $block->getDamage ();
+				//} else {
+				//	$this->restoreBlock ( $block->x, $block->y, $block->z );
+				//}
+				//$this->fireblock [$blockPos] ["id"] = $block->getId ();
+				//$this->fireblock [$blockPos] ["damage"] = $block->getDamage ();
 				break;
 			}
 		}
 	}
 	public function onMove(PlayerMoveEvent $event) {
 		$blockPos = round ( $event->getPlayer ()->x ) . "." . round ( $event->getPlayer ()->y ) . "." . round ( $event->getPlayer ()->z );
-		if (isset ( $this->fireblock [$blockPos] )) {
-			$this->getServer ()->getPluginManager ()->callEvent ( $ev = new EntityCombustByBlockEvent ( Block::get ( Block::FIRE ), $event->getPlayer (), 5 ) );
-			if (! $ev->isCancelled ()) $event->getPlayer ()->setOnFire ( $ev->getDuration () );
-		}
+		//if (isset ( $this->fireblock [$blockPos] )) {
+		//	$this->getServer ()->getPluginManager ()->callEvent ( $ev = new EntityCombustByBlockEvent ( Block::get ( Block::FIRE ), $event->getPlayer (), 5 ) );
+		//	if (! $ev->isCancelled ()) $event->getPlayer ()->setOnFire ( $ev->getDuration () );
+		//}
 	}
 	public function checkArrow(ProjectileLaunchEvent $event) {
 		if ($event->getEntity () instanceof Arrow) {
@@ -161,9 +161,9 @@ class HungerGames extends PluginBase implements Listener {
 		}
 	}
 	public function restoreBlock($x, $y, $z) {
-		if (! isset ( $this->fireblock ["{$x}.{$y}.{$z}"] )) return;
-		foreach ( $this->getServer ()->getOnlinePlayers () as $player )
-			$this->setBlockPacket ( $player, $x, $y, $z, $this->fireblock ["{$x}.{$y}.{$z}"] ["id"], $this->fireblock ["{$x}.{$y}.{$z}"] ["damage"] );
+		//if (! isset ( $this->fireblock ["{$x}.{$y}.{$z}"] )) return;
+		//foreach ( $this->getServer ()->getOnlinePlayers () as $player )
+			//$this->setBlockPacket ( $player, $x, $y, $z, $this->fireblock ["{$x}.{$y}.{$z}"] ["id"], $this->fireblock ["{$x}.{$y}.{$z}"] ["damage"] );
 		unset ( $this->fireblock ["{$x}.{$y}.{$z}"] );
 	}
 	public function setBlockPacket(Player $player, $x, $y, $z, $block, $meta = 0) {
@@ -201,7 +201,7 @@ class HungerGames extends PluginBase implements Listener {
 			if (count ( $this->touchedQueue [$event->getEntity ()->getName ()] ) <= 25) foreach ( $this->touchedQueue [$event->getEntity ()->getName ()] as $pos ) {
 				$pos = explode ( ".", $pos );
 				if (! isset ( $pos [2] )) continue;
-				$this->setBlockPacket ( $event->getEntity (), $pos [0], $pos [1], $pos [2], Block::DIAMOND_BLOCK );
+				//$this->setBlockPacket ( $event->getEntity (), $pos [0], $pos [1], $pos [2], Block::DIAMOND_BLOCK );
 			}
 			unset ( $this->touchedQueue [$event->getEntity ()->getName ()] );
 		}
