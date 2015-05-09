@@ -1,6 +1,6 @@
 <?php
 
-namespace ifteam\SoldierGame;
+namespace SoldierGame;
 
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
@@ -22,6 +22,8 @@ use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\entity\Creature;
 use pocketmine\level\Explosion;
 use pocketmine\event\entity\ExplosionPrimeEvent;
+use pocketmine\event\entity\EntityDamageByEntityEvent;
+use pocketmine\level\particle\MobSpawnParticle;
 
 class SoldierGame extends PluginBase implements Listener {
 	public $config, $config_Data;
@@ -97,8 +99,16 @@ class SoldierGame extends PluginBase implements Listener {
 		if ($this->checkEnableSoldierGame () and $entity->shootingEntity instanceof Player) {
 			$this->getServer ()->getPluginManager ()->callEvent ( $ev = new ExplosionPrimeEvent ( $entity, 2.5 ) );
 			if (! $ev->isCancelled ()) {
+				$entity->getLevel ()->addParticle ( new MobSpawnParticle ( $entity, 2, 2 ) );
 				$explosion = new Explosion ( $entity, $ev->getForce (), $entity->shootingEntity );
 				$explosion->explodeB ();
+			}
+		}
+	}
+	public function onDamage(EntityDamageEvent $event) {
+		if ($event instanceof EntityDamageByEntityEvent) {
+			if ($event->getEntity () instanceof \pocketmine\entity\Item) {
+				$event->setCancelled ();
 			}
 		}
 	}
