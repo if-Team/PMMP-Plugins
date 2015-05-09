@@ -257,7 +257,7 @@ class SnowHalation extends PluginBase implements Listener {
 			for($z = - 15; $z <= 15; $z ++) {
 				$dx = $player->x + $x;
 				$dz = $player->z + $z;
-				$dy = $player->getLevel ()->getHighestBlockAt ( $dx, $dz ) +1;
+				$dy = $player->getLevel ()->getHighestBlockAt ( $dx, $dz );
 				$this->destructSnowLayer ( $pos->setComponents ( $dx, $dy, $dz ) );
 			}
 	}
