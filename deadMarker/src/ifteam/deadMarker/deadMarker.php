@@ -14,15 +14,18 @@ use pocketmine\level\particle\RedstoneParticle;
 use pocketmine\level\particle\ExplodeParticle;
 use pocketmine\event\entity\EntityDespawnEvent;
 use pocketmine\Player;
+use pocketmine\event\player\PlayerRespawnEvent;
 
 class deadMarker extends PluginBase implements Listener {
 	public function onEnable() {
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
-	public function onDeath(EntityDespawnEvent $event) {
-		if (! $event->getEntity () instanceof Player) return;
-		$level = $event->getEntity ()->getLevel ();
-		$pillarPos = new Position ( $event->getEntity ()->x, $event->getEntity ()->y, $event->getEntity ()->z, $level );
+	/**
+	 * @priority high
+	 */
+	public function onDeath(PlayerRespawnEvent $event) {
+		$level = $event->getPlayer ()->getLevel ();
+		$pillarPos = new Position ( $event->getPlayer ()->x, $event->getPlayer ()->y, $event->getPlayer ()->z, $level );
 		for($h = 1; $h <= 30; $h ++) {
 			$pillarPos->setComponents ( $pillarPos->x, ++ $pillarPos->y, $pillarPos->z );
 			$level->addParticle ( new RedstoneParticle ( $pillarPos, 10 ) );
