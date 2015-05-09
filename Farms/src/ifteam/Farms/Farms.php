@@ -94,9 +94,9 @@ class Farms extends PluginBase implements Listener {
 	}
 
 	public function tick(){
-		foreach($this->farmData as $key => $farm){
-            if(!isset($farm['id'])){
-                unset($farm);
+		foreach(array_keys($this->farmData) as $key){
+            if(!isset($this->farmData[$key]['id'])){
+                unset($this->farmData[$key]);
                 continue;
             }
 
@@ -105,16 +105,16 @@ class Farms extends PluginBase implements Listener {
                 continue;
             }
 
-            $level = isset($farm['level']) ? $this->getServer()->getLevelByName($farm['level']) : $this->getServer()->getDefaultLevel();
+            $level = isset($this->farmData[$key]['level']) ? $this->getServer()->getLevelByName($this->farmData[$key]['level']) : $this->getServer()->getDefaultLevel();
 
             $coordinates = explode(".", $key);
 			$position = new Vector3($coordinates[0], $coordinates[1], $coordinates[2]);
 
             if($this->updateCrops($key, $level, $position)){
-                unset($farm);
+                unset($this->farmData[$key]);
                 continue;
             }
-			$farm['time'] = $this->speedData["growing-time"];
+            $this->farmData[$key]['time'] = $this->speedData["growing-time"];
 		}
 	}
 	public function makeTimestamp($date) {
