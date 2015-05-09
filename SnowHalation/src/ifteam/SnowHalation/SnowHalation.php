@@ -17,7 +17,7 @@ use pocketmine\utils\TextFormat;
 
 class SnowHalation extends PluginBase implements Listener {
 	public $cooltime = 0;
-	public $m_version = 1, $pk;
+	public $m_version = 2, $pk;
 	
 	/**
 	 *
@@ -39,7 +39,8 @@ class SnowHalation extends PluginBase implements Listener {
 		$this->config = $this->config_File->getAll ();
 		
 		$this->pk = new AddEntityPacket ();
-		$this->pk->metadata = [ Entity::DATA_FLAGS => [ Entity::DATA_TYPE_BYTE,0 ],Entity::DATA_SHOW_NAMETAG => [ Entity::DATA_TYPE_BYTE,1 ],Entity::DATA_AIR => [ Entity::DATA_TYPE_SHORT,300 ] ];
+		$this->pk->type = 81;
+		$this->pk->metadata = [ Entity::DATA_FLAGS => [ Entity::DATA_TYPE_BYTE,0 ],Entity::DATA_SHOW_NAMETAG => [ Entity::DATA_TYPE_BYTE,0 ],Entity::DATA_AIR => [ Entity::DATA_TYPE_SHORT,10 ] ];
 		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new SnowHalationTask ( $this ), 4 );
 		
 		new OutEventListener ( $this );
@@ -55,7 +56,12 @@ class SnowHalation extends PluginBase implements Listener {
 		$this->messages = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
 	}
 	public function get($var) {
-		return $this->messages [$this->messages ["default-language"] . "-" . $var];
+		if (isset ( $this->messages [$this->getServer ()->getLanguage ()->getLang ()] )) {
+			$lang = $this->getServer ()->getLanguage ()->getLang ();
+		} else {
+			$lang = "eng";
+		}
+		return $this->messages [$lang . "-" . $var];
 	}
 	public function messagesUpdate($targetYmlName) {
 		$targetYml = (new Config ( $this->getDataFolder () . $targetYmlName, Config::YAML ))->getAll ();
@@ -75,6 +81,10 @@ class SnowHalation extends PluginBase implements Listener {
 					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "enable-help" ) );
 					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "disable-help" ) );
 					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "sunlight-help" ) );
+					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "sunlight-help" ) );
+					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "heavysnow-help" ) );
+					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "heatwave-help" ) );
+					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "snowworld-help" ) );
 				}
 				return true;
 			}
@@ -120,6 +130,22 @@ class SnowHalation extends PluginBase implements Listener {
 						$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "sunlight-off-2" ) );
 					}
 					break;
+				case $this->get ( "snowworld" ) :
+					if (! $sender instanceof Player) return false;
+					if (! $sender->isOp ()) return false;
+					if (isset ( $this->config ["world"] [$sender->getLevel ()->getFolderName ()] )) {
+						if ($this->config ["world"] [$sender->getLevel ()->getFolderName ()]) {
+							$this->config ["world"] [$sender->getLevel ()->getFolderName ()] = false;
+							$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "snowworld-off" ) );
+						} else {
+							$this->config ["world"] [$sender->getLevel ()->getFolderName ()] = true;
+							$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "snowworld-on" ) );
+						}
+					} else {
+						$this->config ["world"] [$sender->getLevel ()->getFolderName ()] = false;
+						$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "snowworld-off" ) );
+					}
+					break;
 				default :
 					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "on-help" ) );
 					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "off-help" ) );
@@ -127,6 +153,9 @@ class SnowHalation extends PluginBase implements Listener {
 						$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "enable-help" ) );
 						$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "disable-help" ) );
 						$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "sunlight-help" ) );
+						$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "heavysnow-help" ) );
+						$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "heatwave-help" ) );
+						$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "snowworld-help" ) );
 					}
 					break;
 			}
@@ -154,6 +183,9 @@ class SnowHalation extends PluginBase implements Listener {
 		}
 		foreach ( $this->getServer ()->getOnlinePlayers () as $player ) {
 			if (! $player->spawned or isset ( $this->denied [$player->getName ()] )) continue;
+			if (isset ( $this->config ["world"] [$player->getLevel ()->getFolderName ()] )) {
+				if (! $this->config ["world"] [$player->getLevel ()->getFolderName ()]) continue;
+			}
 			$this->createSnow ( $player );
 		}
 	}
@@ -167,16 +199,13 @@ class SnowHalation extends PluginBase implements Listener {
 		$x = mt_rand ( $player->x - 15, $player->x + 15 );
 		$z = mt_rand ( $player->z - 15, $player->z + 15 );
 		$y = $player->getLevel ()->getHighestBlockAt ( $x, $z );
-		/*
 		if ($y <= $player->y) {
-			$this->pk->type = 81;
 			$this->pk->eid = Entity::$entityCount ++;
 			$this->pk->x = $x;
 			$this->pk->y = $player->y + 13;
 			$this->pk->z = $z;
 			$player->dataPacket ( $this->pk );
 		}
-		*/
 		if (! $this->checkEnableSunLight ()) {
 			if ($this->cooltime < 11) {
 				$this->cooltime ++;
@@ -203,14 +232,14 @@ class SnowHalation extends PluginBase implements Listener {
 		$up = $pos->getLevel ()->getBlock ( $pos->add ( 0, 1, 0 ) );
 		if ($up->getId () != Block::AIR) return;
 		
-		$pos->getLevel ()->setBlock ( $up, Block::get ( Item::SNOW_LAYER ), 0, true );
+		$pos->getLevel ()->setBlock ( $up, Block::get ( Item::SNOW_LAYER ), 0, false );
 	}
 	public function destructSnowLayer(Position $pos) {
 		$this->cooltime --;
-		
 		if ($pos == null) return;
-		
-		if ($pos->getLevel ()->getBlock ( $pos )->getId () == Block::SNOW_LAYER) $pos->getLevel ()->setBlock ( $pos, Block::get ( Item::AIR ), 0, true );
+		if ($pos->getLevel ()->getBlockIdAt($pos->x, $pos->y, $pos->z) == Block::SNOW_LAYER){
+			$pos->getLevel ()->setBlock ( $pos, Block::get ( Block::AIR ), 0, false );
+		}
 	}
 	public function heavySnow(Player $player) {
 		$pos = new Position ( $player->x, $player->y, $player->z, $player->getLevel () );
@@ -228,7 +257,7 @@ class SnowHalation extends PluginBase implements Listener {
 			for($z = - 15; $z <= 15; $z ++) {
 				$dx = $player->x + $x;
 				$dz = $player->z + $z;
-				$dy = $player->getLevel ()->getHighestBlockAt ( $dx, $dz );
+				$dy = $player->getLevel ()->getHighestBlockAt ( $dx, $dz ) +1;
 				$this->destructSnowLayer ( $pos->setComponents ( $dx, $dy, $dz ) );
 			}
 	}
