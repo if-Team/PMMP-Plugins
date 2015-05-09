@@ -12,6 +12,7 @@ use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\player\PlayerKickEvent;
 use pocketmine\block\Block;
 use ifteam\Trampoline\task\fallenTimeOutTask;
+use pocketmine\level\particle\DustParticle;
 
 class Trampoline extends PluginBase implements Listener {
 	public $fallen = [ ];
@@ -35,18 +36,22 @@ class Trampoline extends PluginBase implements Listener {
 		if ($id == 35 and $data == 5) {
 			$this->fallenQueue ( $player );
 			$player->addEntityMotion ( $player->getId (), 0, 3, 0 );
+			$this->particle ( $player );
 		} else if ($id == 35 and $data == 4) {
 			$this->fallenQueue ( $player );
 			$player->addEntityMotion ( $player->getId (), 0, 1, 0 );
+			$this->particle ( $player );
 		} else if ($id == 35 and $data == 10) {
 			$this->fallenQueue ( $player );
 			$player->addEntityMotion ( $player->getId (), 0, 5, 0 );
+			$this->particle ( $player );
 		} else if ($id == Block::DIAMOND_BLOCK) {
-			$x = -\sin ( $player->yaw / 180 * M_PI ) * \cos ( $player->pitch / 180 * M_PI );
-			$y = -\sin ( $player->pitch / 180 * M_PI );
-			$z = \cos ( $player->yaw / 180 * M_PI ) * \cos ( $player->pitch / 180 * M_PI );
+			$x = - \sin ( $player->yaw / 180 * M_PI ) *\cos ( $player->pitch / 180 * M_PI );
+			$y = - \sin ( $player->pitch / 180 * M_PI );
+			$z =\cos ( $player->yaw / 180 * M_PI ) *\cos ( $player->pitch / 180 * M_PI );
 			$this->fallenQueue ( $player );
 			$player->addEntityMotion ( $player->getId (), $x * 3, $y * 3, $z * 3 );
+			$this->particle ( $player );
 		} else {
 			
 			// right
@@ -60,12 +65,15 @@ class Trampoline extends PluginBase implements Listener {
 			if ($id == 35 and $data == 5) {
 				$this->fallenQueue ( $player );
 				$player->addEntityMotion ( $player->getId (), + 3, 0, 0 );
+				$this->particle ( $player );
 			} else if ($id == 35 and $data == 4) {
 				$this->fallenQueue ( $player );
 				$player->addEntityMotion ( $player->getId (), + 1, 0, 0 );
+				$this->particle ( $player );
 			} else if ($id == 35 and $data == 10) {
 				$this->fallenQueue ( $player );
 				$player->addEntityMotion ( $player->getId (), + 5, 0, 0 );
+				$this->particle ( $player );
 			} else {
 				// left
 				$x = ( int ) round ( $player->x + 0.5 );
@@ -78,12 +86,15 @@ class Trampoline extends PluginBase implements Listener {
 				if ($id == 35 and $data == 5) {
 					$this->fallenQueue ( $player );
 					$player->addEntityMotion ( $player->getId (), - 3, 0, 0 );
+					$this->particle ( $player );
 				} else if ($id == 35 and $data == 4) {
 					$this->fallenQueue ( $player );
 					$player->addEntityMotion ( $player->getId (), - 1, 0, 0 );
+					$this->particle ( $player );
 				} else if ($id == 35 and $data == 10) {
 					$this->fallenQueue ( $player );
 					$player->addEntityMotion ( $player->getId (), - 5, 0, 0 );
+					$this->particle ( $player );
 				} else {
 					// north
 					$x = ( int ) round ( $player->x - 0.5 );
@@ -96,12 +107,15 @@ class Trampoline extends PluginBase implements Listener {
 					if ($id == 35 and $data == 5) {
 						$this->fallenQueue ( $player );
 						$player->addEntityMotion ( $player->getId (), 0, 0, + 3 );
+						$this->particle ( $player );
 					} else if ($id == 35 and $data == 4) {
 						$this->fallenQueue ( $player );
 						$player->addEntityMotion ( $player->getId (), 0, 0, + 1 );
+						$this->particle ( $player );
 					} else if ($id == 35 and $data == 10) {
 						$this->fallenQueue ( $player );
 						$player->addEntityMotion ( $player->getId (), 0, 0, + 5 );
+						$this->particle ( $player );
 					} else {
 						// north
 						$x = ( int ) round ( $player->x - 0.5 );
@@ -114,17 +128,27 @@ class Trampoline extends PluginBase implements Listener {
 						if ($id == 35 and $data == 5) {
 							$this->fallenQueue ( $player );
 							$player->addEntityMotion ( $player->getId (), 0, 0, - 3 );
+							$this->particle ( $player );
 						} else if ($id == 35 and $data == 4) {
 							$this->fallenQueue ( $player );
 							$player->addEntityMotion ( $player->getId (), 0, 0, - 1 );
+							$this->particle ( $player );
 						} else if ($id == 35 and $data == 10) {
 							$this->fallenQueue ( $player );
 							$player->addEntityMotion ( $player->getId (), 0, 0, - 5 );
+							$this->particle ( $player );
 						}
 					}
 				}
 			}
 		}
+	}
+	public function particle(Player $player) {
+		$player->getLevel ()->addParticle ( new DustParticle ( $player->setComponents ( $player->x + 0.4, $player->y + 2, $player->z ), 188, 32, 255, 255 ) );
+		$player->getLevel ()->addParticle ( new DustParticle ( $player->setComponents ( $player->x, $player->y, $player->z + 0.4 ), 188, 32, 255, 255 ) );
+		$player->getLevel ()->addParticle ( new DustParticle ( $player->setComponents ( $player->x - 0.6, $player->y, $player->z ), 188, 32, 255, 255 ) );
+		$player->getLevel ()->addParticle ( new DustParticle ( $player->setComponents ( $player->x, $player->y, $player->z - 0.6 ), 188, 32, 255, 255 ) );
+		$player->getLevel ()->addParticle ( new DustParticle ( $player->setComponents ( $player->x + 0.4, $player->y, $player->z + 0.4 ), 188, 32, 255, 255 ) );
 	}
 	public function preventFlyKick(PlayerKickEvent $event) {
 		if (isset ( $this->fallen [$event->getPlayer ()->getName ()] )) {

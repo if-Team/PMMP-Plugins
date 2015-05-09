@@ -3,7 +3,7 @@
 namespace ifteam\Trampoline\task;
 
 use pocketmine\scheduler\PluginTask;
-use Trampoline\Trampoline;
+use ifteam\Trampoline\Trampoline;
 
 class fallenTimeOutTask extends PluginTask {
 	public $name;
