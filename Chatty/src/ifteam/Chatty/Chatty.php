@@ -27,7 +27,7 @@ class Chatty extends PluginBase implements Listener {
 	public $messages, $db; // 메시지 변수, DB 변수
 	public $messageStack = [ ]; // 메시지 스택
 	public $nameTag = "";
-	public $m_version = 1; // 현재 메시지 버전
+	public $m_version = 2; // 현재 메시지 버전
 	const LOCAL_CHAT_DISTANCE = 50;
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
@@ -69,7 +69,12 @@ class Chatty extends PluginBase implements Listener {
 		$commandMap->register ( $fallback, $command );
 	}
 	public function get($var) {
-		return $this->messages [$this->messages ["default-language"] . "-" . $var];
+		if (isset ( $this->messages [$this->getServer ()->getLanguage ()->getLang ()] )) {
+			$lang = $this->getServer ()->getLanguage ()->getLang ();
+		} else {
+			$lang = "eng";
+		}
+		return $this->messages [$lang . "-" . $var];
 	}
 	public function initMessage() {
 		$this->saveResource ( "messages.yml", false );
@@ -88,19 +93,35 @@ class Chatty extends PluginBase implements Listener {
 		$name = $event->getPlayer ()->getName ();
 		
 		$this->messageStack [$name] = [ ];
-		if (! isset ( $this->db [$name] )) $this->db [$name] = [ ];
-		$this->db [$name] ["CHAT"] = true;
-		$this->db [$name] ["localCHAT"] = false;
+		if (! isset ( $this->db [$name] )) {
+			$this->db [$name] = [ ];
+			$this->db [$name] ["CHAT"] = true;
+			$this->db [$name] ["NameTAG"] = true;
+			$this->db [$name] ["localCHAT"] = false;
+		}
 	}
 	public function onQuit(PlayerQuitEvent $event) {
 		unset ( $this->messageStack [$event->getPlayer ()->getName ()] );
 		if (isset ( $this->packetQueue [$event->getPlayer ()->getName ()] )) unset ( $this->packetQueue [$event->getPlayer ()->getName ()] );
 	}
 	public function putStack($name, $message) {
-		if (mb_strlen ( $message, "UTF-8" ) > 50) $message = mb_substr ( $message, 0, 50, 'utf8' );
-		
-		array_push ( $this->messageStack [$name], $message );
-		if (count ( $this->messageStack [$name] ) > 4) array_shift ( $this->messageStack [$name] );
+		$messages = [ ];
+		$first = 0;
+		$end = 30;
+		$strlen = mb_strlen ( $message, "UTF-8" );
+		while ( 1 ) {
+			if ($strlen - $first > 30) {
+				$messages [] = mb_substr ( $message, $first, $end, 'utf8' );
+				$first = $first + 30;
+				$end = $end + 30;
+			} else {
+				$messages [] = mb_substr ( $message, $first, $end, 'utf8' );
+				break;
+			}
+		}
+		foreach ( $messages as $m )
+			array_push ( $this->messageStack [$name], $m );
+		if (count ( $this->messageStack [$name] ) > 6) array_shift ( $this->messageStack [$name] );
 	}
 	public function prePlayerCommand(PlayerCommandPreprocessEvent $event) {
 		if (strpos ( $event->getMessage (), "/" ) === 0) {return;}
@@ -109,7 +130,7 @@ class Chatty extends PluginBase implements Listener {
 		$this->getServer ()->getPluginManager ()->callEvent ( $myEvent = new PlayerChatEvent ( $sender, $event->getMessage () ) );
 		
 		if (! $myEvent->isCancelled ()) {
-			$message = $this->getServer()->getLanguage()->translateString($myEvent->getFormat(), [$myEvent->getPlayer()->getDisplayName(), $myEvent->getMessage()]);
+			$message = $this->getServer ()->getLanguage ()->translateString ( $myEvent->getFormat (), [ $myEvent->getPlayer ()->getDisplayName (),$myEvent->getMessage () ] );
 			
 			$this->getLogger ()->info ( $message );
 			foreach ( $this->getServer ()->getOnlinePlayers () as $player ) {
@@ -131,11 +152,8 @@ class Chatty extends PluginBase implements Listener {
 				return;
 			}
 			
-			if (isset ( $this->db [$event->getPlayer ()->getName ()] ["NameTAG"]) and $this->db [$event->getPlayer ()->getName ()] ["NameTAG"] == true) 
-			{
-				$event->setCancelled ();
+			if (isset ( $this->db [$event->getPlayer ()->getName ()] ["NameTAG"] ) and $this->db [$event->getPlayer ()->getName ()] ["NameTAG"] == true) {
 				$this->putStack ( $event->getPlayer ()->getName (), $event->getPacket ()->message );
-				return;
 			}
 		}
 	}
@@ -151,14 +169,15 @@ class Chatty extends PluginBase implements Listener {
 			
 			if (isset ( $this->packetQueue [$OnlinePlayer->getName ()] ["eid"] )) {
 				$this->packet ["RemovePlayerPacket"]->eid = $this->packetQueue [$OnlinePlayer->getName ()] ["eid"];
+				$this->packet ["RemovePlayerPacket"]->clientID = $this->packetQueue [$OnlinePlayer->getName ()] ["eid"];
 				$OnlinePlayer->dataPacket ( $this->packet ["RemovePlayerPacket"] ); // 네임택 제거패킷 전송
 			}
-			if (($OnlinePlayer->pitch / 180 * M_PI) < - 0.2) continue; // 하늘을 볼경우 패킷보내지않음
+			// if (($OnlinePlayer->pitch / 180 * M_PI) < - 0.2) continue; // 하늘을 볼경우 패킷보내지않음
 			
 			$allMessages = "";
 			if (! isset ( $this->messageStack [$OnlinePlayer->getName ()] )) continue;
 			foreach ( $this->messageStack [$OnlinePlayer->getName ()] as $message )
-				$allMessages .= TextWrapper::wrap ( TextFormat::clean ( $message ) ) . "\n"; // 색상표시시 \n이 작동안됨
+				$allMessages .= TextFormat::WHITE . $message . "\n"; // 색상표시시 \n이 작동안됨
 			
 			$this->packetQueue [$OnlinePlayer->getName ()] ["x"] = round ( $px );
 			$this->packetQueue [$OnlinePlayer->getName ()] ["y"] = round ( $py );
@@ -166,8 +185,9 @@ class Chatty extends PluginBase implements Listener {
 			$this->packetQueue [$OnlinePlayer->getName ()] ["eid"] = Entity::$entityCount ++;
 			
 			$this->packet ["AddPlayerPacket"]->eid = $this->packetQueue [$OnlinePlayer->getName ()] ["eid"];
+			$this->packet ["AddPlayerPacket"]->clientID = $this->packetQueue [$OnlinePlayer->getName ()] ["eid"];
 			$this->packet ["AddPlayerPacket"]->username = $this->nameTag . $allMessages;
-			$this->packet ["AddPlayerPacket"]->x = $px + (- \sin ( ($OnlinePlayer->yaw / 180 * M_PI) - 0.4 )) * 7;
+			$this->packet ["AddPlayerPacket"]->x = $px + (-\sin ( ($OnlinePlayer->yaw / 180 * M_PI) - 0.4 )) * 7;
 			$this->packet ["AddPlayerPacket"]->y = $py + 10;
 			$this->packet ["AddPlayerPacket"]->z = $pz + (\cos ( ($OnlinePlayer->yaw / 180 * M_PI) - 0.4 )) * 7; // *\cos ( $OnlinePlayer->pitch / 180 * M_PI )
 			$OnlinePlayer->dataPacket ( $this->packet ["AddPlayerPacket"] );
@@ -229,10 +249,6 @@ class Chatty extends PluginBase implements Listener {
 						$this->message ( $player, "NameTAG-ENABLED" );
 					}
 				} else {
-					$packet = new TextPacket ();
-					$packet->type = TextPacket::TYPE_RAW;
-					$packet->message = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
-					$player->directDataPacket ( $packet );
 					$this->db [$player->getName ()] ["NameTAG"] = true;
 					$this->message ( $player, "NameTAG-ENABLED" );
 				}
