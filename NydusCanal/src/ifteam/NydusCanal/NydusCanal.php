@@ -20,6 +20,7 @@ use pocketmine\math\Vector3;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\scheduler\CallbackTask;
 use pocketmine\event\player\PlayerChatEvent;
+use pocketmine\level\particle\DustParticle;
 
 class NydusCanal extends PluginBase implements Listener {
 	public $NydusCanal, $NydusCanal_List;
@@ -362,6 +363,7 @@ class NydusCanal extends PluginBase implements Listener {
 		$player->teleport ( new Position ( $x, $y, $z, $level ), $yaw, $pitch );
 		$player->addEntityMotion ( 0, 0, 0.6, 0 );
 		$player->sendMessage ( TextFormat::LIGHT_PURPLE . "[ 서버 ] " . $warp . " (으)로 워프 되었습니다" );
+		$this->particle ( $player );
 		if (isset ( $this->NydusCanal_List ["warp"] [$warp] ["price"] ) and $this->checkEconomyAPI ()) {
 			if (isset ( explode ( "+", $this->NydusCanal_List ["warp"] [$warp] ["price"] )[1] )) {
 				$player->sendMessage ( TextFormat::DARK_AQUA . "[ 서버 ] 보상금액 " . $this->NydusCanal_List ["warp"] [$warp] ["price"] . "$ 가 지급되었습니다." );
@@ -369,6 +371,13 @@ class NydusCanal extends PluginBase implements Listener {
 				$player->sendMessage ( TextFormat::DARK_AQUA . "[ 서버 ] 워프비용 " . $this->NydusCanal_List ["warp"] [$warp] ["price"] . "$ 가 지불되었습니다." );
 			}
 		}
+	}
+	public function particle(Player $player) {
+		$player->getLevel ()->addParticle ( new DustParticle ( $player->setComponents ( $player->x + 0.4, $player->y + 2, $player->z ), 188, 32, 255, 255 ) );
+		$player->getLevel ()->addParticle ( new DustParticle ( $player->setComponents ( $player->x, $player->y, $player->z + 0.4 ), 188, 32, 255, 255 ) );
+		$player->getLevel ()->addParticle ( new DustParticle ( $player->setComponents ( $player->x - 0.6, $player->y, $player->z ), 188, 32, 255, 255 ) );
+		$player->getLevel ()->addParticle ( new DustParticle ( $player->setComponents ( $player->x, $player->y, $player->z - 0.6 ), 188, 32, 255, 255 ) );
+		$player->getLevel ()->addParticle ( new DustParticle ( $player->setComponents ( $player->x + 0.4, $player->y, $player->z + 0.4 ), 188, 32, 255, 255 ) );
 	}
 	public function warpTimeout(Player $player, $warp) {
 		if (! isset ( $this->timeout [$warp] ["cancel"] [$player->getName ()] )) {
