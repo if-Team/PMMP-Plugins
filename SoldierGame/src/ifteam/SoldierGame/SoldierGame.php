@@ -1,6 +1,6 @@
 <?php
 
-namespace SoldierGame;
+namespace ifteam\SoldierGame;
 
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
