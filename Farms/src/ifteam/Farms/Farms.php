@@ -81,13 +81,9 @@ class Farms extends PluginBase implements Listener {
 		}
 	}
 	public function onBlockBreak(BlockBreakEvent $event) {
-		$block = $event->getBlock ();
-		$itemId = $event->getItem ()->getId ();
-		
-		$key = $block->x . "." . $block->y . "." . $block->z;
-		
+		$key = $event->getBlock ()->x . "." . $event->getBlock ()->y . "." . $event->getBlock ()->z;
 		foreach ( $this->crops as $crop ) {
-			if ($itemId == $crop ["item"] and isset ( $this->farmData [$key] )) {
+			if ( $event->getItem ()->getId () == $crop ["item"] and isset ( $this->farmData [$key] )) {
 				unset ( $this->farmData [$key] );
 			}
 		}
@@ -180,12 +176,11 @@ class Farms extends PluginBase implements Listener {
 			return true;
 		}
 		
-		$cropPosition = $position->add(0, $this->farmData[$key]["damage"], 0);
-		if($level->getBlock($cropPosition)->getId() !== Item::AIR){ //SOMETHING EXISTS
+		$cropPosition = $position->setComponents($position->x, $position->y+$this->farmData[$key]["damage"], $position->z);
+		if($level->getBlockIdAt($cropPosition->x, $cropPosition->y, $cropPosition->z) !== Item::AIR){ //SOMETHING EXISTS
 			return true;
 		}
-
-		$level->setBlock($position, Block::get($this->farmData[$key]["id"], 0));
+		$level->setBlock($cropPosition, Block::get($this->farmData[$key]["id"], 0));
         return false;
 	}
 
@@ -218,8 +213,8 @@ class Farms extends PluginBase implements Listener {
                         continue;
                     }
 
-                    $cropPosition = $position->add($xOffset, 0, $zOffset);
-                    if($level->getBlock($cropPosition)->getId() === Item::AIR){
+                    $cropPosition = $position->setComponents($position->x+$xOffset, $position->y, $position->z+$zOffset);
+                    if($level->getBlockIdAt($cropPosition->x, $cropPosition->y, $cropPosition->z) !== Item::AIR){ //SOMETHING EXISTS
                         $level->setBlock($cropPosition, $cropBlock);
                         return true;
                     }
