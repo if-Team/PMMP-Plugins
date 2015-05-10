@@ -144,11 +144,12 @@ class Trampoline extends PluginBase implements Listener {
 		}
 	}
 	public function particle(Player $player) {
-		$player->getLevel ()->addParticle ( new DustParticle ( $player->setComponents ( $player->x + 0.4, $player->y + 2, $player->z ), 188, 32, 255, 255 ) );
-		$player->getLevel ()->addParticle ( new DustParticle ( $player->setComponents ( $player->x, $player->y, $player->z + 0.4 ), 188, 32, 255, 255 ) );
-		$player->getLevel ()->addParticle ( new DustParticle ( $player->setComponents ( $player->x - 0.6, $player->y, $player->z ), 188, 32, 255, 255 ) );
-		$player->getLevel ()->addParticle ( new DustParticle ( $player->setComponents ( $player->x, $player->y, $player->z - 0.6 ), 188, 32, 255, 255 ) );
-		$player->getLevel ()->addParticle ( new DustParticle ( $player->setComponents ( $player->x + 0.4, $player->y, $player->z + 0.4 ), 188, 32, 255, 255 ) );
+		$pos = $player->add(0, 2, 0);
+		$player->getLevel ()->addParticle ( new DustParticle ( $pos->setComponents ( $pos->x + 0.4, $pos->y, $pos->z ), 188, 32, 255, 255 ) );
+		$player->getLevel ()->addParticle ( new DustParticle ( $pos->setComponents ( $pos->x, $pos->y, $pos->z + 0.4 ), 188, 32, 255, 255 ) );
+		$player->getLevel ()->addParticle ( new DustParticle ( $pos->setComponents ( $pos->x - 0.6, $pos->y, $pos->z ), 188, 32, 255, 255 ) );
+		$player->getLevel ()->addParticle ( new DustParticle ( $pos->setComponents ( $pos->x, $pos->y, $pos->z - 0.6 ), 188, 32, 255, 255 ) );
+		$player->getLevel ()->addParticle ( new DustParticle ( $pos->setComponents ( $pos->x + 0.4, $pos->y, $pos->z + 0.4 ), 188, 32, 255, 255 ) );
 	}
 	public function preventFlyKick(PlayerKickEvent $event) {
 		if (isset ( $this->fallen [$event->getPlayer ()->getName ()] )) {

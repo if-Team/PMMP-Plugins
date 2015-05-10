@@ -20,6 +20,7 @@ use pocketmine\command\Command;
 use pocketmine\Player;
 use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\network\protocol\TextPacket;
+use pocketmine\event\TranslationContainer;
 
 class Chatty extends PluginBase implements Listener {
 	public $packet = [ ]; // 전역 패킷 변수
@@ -41,7 +42,7 @@ class Chatty extends PluginBase implements Listener {
 		$this->packet ["AddPlayerPacket"]->clientID = 0;
 		$this->packet ["AddPlayerPacket"]->yaw = 0;
 		$this->packet ["AddPlayerPacket"]->pitch = 0;
-		$this->packet ["AddPlayerPacket"]->metadata = [ Entity::DATA_FLAGS => [ Entity::DATA_TYPE_BYTE,1 << Entity::DATA_FLAG_INVISIBLE ],Entity::DATA_AIR => [ Entity::DATA_TYPE_SHORT,300 ],Entity::DATA_SHOW_NAMETAG => [ Entity::DATA_TYPE_BYTE,1 ],Entity::DATA_NO_AI => [ Entity::DATA_TYPE_BYTE,1 ] ];
+		$this->packet ["AddPlayerPacket"]->metadata = [ Entity::DATA_FLAGS => [ Entity::DATA_TYPE_BYTE,1 << Entity::DATA_FLAG_INVISIBLE ],Entity::DATA_AIR => [ Entity::DATA_TYPE_SHORT,20 ],Entity::DATA_SHOW_NAMETAG => [ Entity::DATA_TYPE_BYTE,1 ] ];
 		
 		// 플러그인의 명령어 등록
 		$this->registerCommand ( $this->get ( "Chatty" ), $this->get ( "Chatty" ), "Chatty.commands", $this->get ( "Chatty-command-help" ), "/" . $this->get ( "Chatty" ) );
@@ -49,11 +50,11 @@ class Chatty extends PluginBase implements Listener {
 		$this->packet ["RemovePlayerPacket"] = new RemovePlayerPacket ();
 		$this->packet ["RemovePlayerPacket"]->clientID = 0;
 		
-		for($i = 0; $i <= 35; $i ++)
-			$this->nameTag .= "\n";
+		// for($i = 0; $i <= 35; $i ++)
+		// $this->nameTag .= "\n";
 		
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new ChattyTask ( $this ), 2 );
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new ChattyTask ( $this ), 1 );
 	}
 	public function onDisable() {
 		$save = new Config ( $this->getDataFolder () . "pluginDB.yml", Config::YAML );
@@ -96,7 +97,7 @@ class Chatty extends PluginBase implements Listener {
 		if (! isset ( $this->db [$name] )) {
 			$this->db [$name] = [ ];
 			$this->db [$name] ["CHAT"] = true;
-			$this->db [$name] ["NameTAG"] = true;
+			$this->db [$name] ["NameTAG"] = false;
 			$this->db [$name] ["localCHAT"] = false;
 		}
 	}
@@ -106,14 +107,15 @@ class Chatty extends PluginBase implements Listener {
 	}
 	public function putStack($name, $message) {
 		$messages = [ ];
+		$enter = 50;
 		$first = 0;
-		$end = 30;
+		$end = $enter;
 		$strlen = mb_strlen ( $message, "UTF-8" );
 		while ( 1 ) {
-			if ($strlen - $first > 30) {
+			if ($strlen - $first > $enter) {
 				$messages [] = mb_substr ( $message, $first, $end, 'utf8' );
-				$first = $first + 30;
-				$end = $end + 30;
+				$first = $first + $enter;
+				$end = $end + $enter;
 			} else {
 				$messages [] = mb_substr ( $message, $first, $end, 'utf8' );
 				break;
@@ -151,14 +153,19 @@ class Chatty extends PluginBase implements Listener {
 				$event->setCancelled ();
 				return;
 			}
-			
 			if (isset ( $this->db [$event->getPlayer ()->getName ()] ["NameTAG"] ) and $this->db [$event->getPlayer ()->getName ()] ["NameTAG"] == true) {
-				$this->putStack ( $event->getPlayer ()->getName (), $event->getPacket ()->message );
+				$message = $this->getServer ()->getLanguage ()->translate ( new TranslationContainer ( $event->getPacket ()->message, $event->getPacket ()->parameters ) );
+				$this->putStack ( $event->getPlayer ()->getName (), $message );
 			}
 		}
 	}
 	public function Chatty() {
 		foreach ( $this->getServer ()->getOnlinePlayers () as $OnlinePlayer ) {
+			if (isset ( $this->packetQueue [$OnlinePlayer->getName ()] ["eid"] )) {
+				$this->packet ["RemovePlayerPacket"]->eid = $this->packetQueue [$OnlinePlayer->getName ()] ["eid"];
+				$this->packet ["RemovePlayerPacket"]->clientID = $this->packetQueue [$OnlinePlayer->getName ()] ["eid"];
+				$OnlinePlayer->dataPacket ( $this->packet ["RemovePlayerPacket"] ); // 네임택 제거패킷 전송
+			}
 			if (! isset ( $this->db [$OnlinePlayer->getName ()] ["NameTAG"] )) continue;
 			if (isset ( $this->db [$OnlinePlayer->getName ()] ["NameTAG"] )) {
 				if ($this->db [$OnlinePlayer->getName ()] ["NameTAG"] == false) continue;
@@ -166,12 +173,6 @@ class Chatty extends PluginBase implements Listener {
 			$px = round ( $OnlinePlayer->x );
 			$py = round ( $OnlinePlayer->y );
 			$pz = round ( $OnlinePlayer->z );
-			
-			if (isset ( $this->packetQueue [$OnlinePlayer->getName ()] ["eid"] )) {
-				$this->packet ["RemovePlayerPacket"]->eid = $this->packetQueue [$OnlinePlayer->getName ()] ["eid"];
-				$this->packet ["RemovePlayerPacket"]->clientID = $this->packetQueue [$OnlinePlayer->getName ()] ["eid"];
-				$OnlinePlayer->dataPacket ( $this->packet ["RemovePlayerPacket"] ); // 네임택 제거패킷 전송
-			}
 			// if (($OnlinePlayer->pitch / 180 * M_PI) < - 0.2) continue; // 하늘을 볼경우 패킷보내지않음
 			
 			$allMessages = "";
@@ -187,8 +188,11 @@ class Chatty extends PluginBase implements Listener {
 			$this->packet ["AddPlayerPacket"]->eid = $this->packetQueue [$OnlinePlayer->getName ()] ["eid"];
 			$this->packet ["AddPlayerPacket"]->clientID = $this->packetQueue [$OnlinePlayer->getName ()] ["eid"];
 			$this->packet ["AddPlayerPacket"]->username = $this->nameTag . $allMessages;
+			// $this->packet ["AddPlayerPacket"]->x = $px + (-\sin ( ($OnlinePlayer->yaw / 180 * M_PI) - 0.4 )) * 7;
+			// $this->packet ["AddPlayerPacket"]->y = $py + 10;
+			// $this->packet ["AddPlayerPacket"]->z = $pz + (\cos ( ($OnlinePlayer->yaw / 180 * M_PI) - 0.4 )) * 7; // *\cos ( $OnlinePlayer->pitch / 180 * M_PI )
 			$this->packet ["AddPlayerPacket"]->x = $px + (-\sin ( ($OnlinePlayer->yaw / 180 * M_PI) - 0.4 )) * 7;
-			$this->packet ["AddPlayerPacket"]->y = $py + 10;
+			$this->packet ["AddPlayerPacket"]->y = $py + (- \sin ( $OnlinePlayer->pitch / 180 * M_PI )) * 7;
 			$this->packet ["AddPlayerPacket"]->z = $pz + (\cos ( ($OnlinePlayer->yaw / 180 * M_PI) - 0.4 )) * 7; // *\cos ( $OnlinePlayer->pitch / 180 * M_PI )
 			$OnlinePlayer->dataPacket ( $this->packet ["AddPlayerPacket"] );
 		}
