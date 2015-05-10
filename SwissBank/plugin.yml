@@ -1,0 +1,12 @@
+name: SwissBank
+main: ifteam\SwissBank\Main
+version: "1.0"
+author: ifteam
+api: [1.12.0]
+load: POSTWORLD
+
+permissions:
+ SwissBank.create:
+  default: true
+ SwissBank.use:
+  default: true

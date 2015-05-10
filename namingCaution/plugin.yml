@@ -1,7 +1,7 @@
 name: namingCaution
-main: hm\namingCaution\namingCaution
+main: ifteam\namingCaution\namingCaution
 version: 1.1-alpha
-author: hm
+author: ifteam
 api: [1.4.1]
 
 commands:

@@ -1,5 +1,5 @@
 name: Trampoline
-main: Trampoline\Trampoline
-version: 1.4
-author: hm
-api: [1.4.1]
+main: ifteam\Trampoline\Trampoline
+version: 1.6
+author: ifteam
+api: [1.12.0]

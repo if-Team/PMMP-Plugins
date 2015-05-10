@@ -1,5 +1,5 @@
 name: TAGBlock
-main: TAGBlock\TAGBlock
-version: 0.3-Alpha
-author: hm
-api: [1.4.1]
+main: ifteam\TAGBlock\TAGBlock
+version: 0.5-Alpha
+author: ifteam
+api: [1.12.0]

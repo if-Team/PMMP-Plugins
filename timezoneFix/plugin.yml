@@ -1,5 +1,5 @@
 name: timezoneFix
-main: timezoneFix\timezoneFix
-author: hm
+main: ifteam\timezoneFix\timezoneFix
+author: ifteam
 api: [1.4.1]
 version: 1.0-alpha

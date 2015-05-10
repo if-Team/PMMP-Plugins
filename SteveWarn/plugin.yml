@@ -1,5 +1,5 @@
 name: SteveWarn
-main: hm\SteveWarn\SteveWarn
+main: ifteam\SteveWarn\SteveWarn
 version: 1.0-alpha
-author: hm
+author: ifteam
 api: [1.4.1]

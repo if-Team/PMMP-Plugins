@@ -1,6 +1,6 @@
 name : OpenVPNLock
-main : OpenVPNLock\OpenVPNLock
-author : hm
+main : ifteam\OpenVPNLock\OpenVPNLock
+author : ifteam
 version : 1.0
 api : [1.4.1]
 

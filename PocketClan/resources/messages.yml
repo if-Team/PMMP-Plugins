@@ -1,0 +1,77 @@
+# IF YOU NEED A SOME OTHER LANGUAGE SETTINGS #
+# YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
+
+#PLEASE SET HERE TO YOUR LANGUAGE PREFIX
+m_version: 1
+
+#(KO) KOREAN
+kor: true
+kor-clan: "클랜"
+kor-clan-help: "사용법: /클랜 [생성/참여/탈퇴/목록]"
+kor-clan-desc: "클랜을 생성하거나 참여또는 탈퇴합니다!"
+kor-make: "생성"
+kor-join: "참여"
+kor-list: "목록"
+kor-leave: "탈퇴"
+kor-clanManage: "클랜관리"
+kor-clanManage-help: "사용법: /클랜관리 [삭제/밴/운영자]"
+kor-clanManage-desc: "자신의 클랜을 관리합니다!"
+kor-delete: "삭제"
+kor-delete-help: "사용법: /클랜 삭제 <닉네임>"
+kor-ban: "밴"
+kor-ban-help: "사용법: /클랜 밴 <닉네임>"
+kor-admin: "운영자"
+kor-admin-help: "사용법: /클랜 운영자 <닉네임>"
+kor-people: "인원"
+kor-default-prefix: "[포켓클랜]"
+kor-PocketClan-ClanMade: "클랜이 생성되었습니다"
+kor-PocketClan-cantfindclan: "해당 클랜을 찾을 수 없습니다"
+kor-command-inConsole: "게임 안에서만 사용 가능합니다"
+kor-aleady-inClan: "이미 해당 클랜에 가입해 있습니다"
+kor-clan-create-help: "클랜 생성 <이름> <클랜타입>"
+kor-clan-type: "클랜타입 [talk/pvp/company]"
+kor-none-player: "해당 유저를 찾을 수 없습니다"
+kor-type-notFound: "해당 클랜타입은 존재하지 않습니다 !"
+kor-leave-clan: "성공적으로 클랜을 탈퇴했습니다 !"
+kor-not-enough-money: "가지고 있는 돈이 부족합니다 !"
+kor-success-joined: "성공적으로 클랜에 가입했습니다 !"
+kor-clan-not-found: "해당 클랜을 찾을 수 없습니다 !"
+kor-need-money: "가 필요합니다 !"
+
+#(EN) ENGLISH
+eng: true
+eng-clan: "clan"
+eng-clan-help: "Usage: /clan [make/join/leave/list]"
+eng-clan-desc: "Create a clan or join or leave!"
+eng-make: "make"
+eng-join: "join"
+eng-list: "list"
+eng-leave: "leave"
+eng-clanManage: "clanManage"
+eng-clanManage-help: "Usage: /clanManage [delete/ban/admin]"
+eng-clanManage-desc: "Manage your clan!"
+eng-delete: "delete"
+eng-delete-help: "Usage: /clan delete <name>"
+eng-ban: "ban"
+eng-ban-help: "Usage: /clan ban <name>"
+eng-admin: "admin"
+eng-admin-help: "Usage: /clan admin <name>"
+eng-people: "people"
+
+eng-default-prefix: "[PocketClan]"
+eng-PocketClan-ClanMade: "Clan was made"
+eng-PocketClan-ClanJoin: "Succesfully joined in "
+eng-PocketClan-cantfindclan: "Clan not founded"
+eng-command-inConsole: "You can use commands only in game"
+eng-aleady-inClan: "You are already in Clan"
+eng-none-player: "Player not found"
+eng-type-notFound: "That type is not found!"
+eng-leave-clan: "Succesfully leaved Clan"
+eng-not-enough-money: "You don't have enough money"
+eng-success-joined: "Succesfully joined in"
+eng-clan-not-found: "Clan not found!"
+eng-player-not-found: "Player not found"
+eng-need-money: "Insufficient"
+
+# AND YOU CAN PROVIDE YOUR TRANSLATION       #
+# https://github.com/if-Team/PMMP-Plugins/tree/master/PocketClan/resources/messages.yml

@@ -1,5 +1,5 @@
 name: OverPower
-main: hm\OverPower\OverPower
-author: hm
+main: ifteam\OverPower\OverPower
+author: ifteam
 version: 1.1-alpha
 api: [1.4.1]

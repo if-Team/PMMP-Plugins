@@ -1,5 +1,10 @@
 name: EDGE
-main: EDGE\EDGE
-version: 0.1-Alpha
-author: hm
-api: [1.4.1]
+main: ifteam\EDGE\EDGE
+version: 0.4-Alpha
+author: ifteam
+api: [1.12.0]
+
+permissions:
+ edge.showingnametag:
+  default: true
+  description: Displays the EDGE to player

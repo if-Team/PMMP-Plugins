@@ -1,5 +1,5 @@
 name: Gentleman
-main: Gentleman\Gentleman
+main: ifteam\Gentleman\Gentleman
 version: 0.7-Alpha
-author: hm
-api: [1.4.1]
+author: ifteam
+api: [1.12.0]

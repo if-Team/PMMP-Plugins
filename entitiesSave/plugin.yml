@@ -1,5 +1,5 @@
 name: entitiesSave
-main: hm\entitiesSave\entitiesSave
-version: 1.0-alpha
-author: hm
-api: [1.4.1]
+main: ifteam\entitiesSave\entitiesSave
+version: 1.1-alpha
+author: ifteam
+api: [1.12.0]

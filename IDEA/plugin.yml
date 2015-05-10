@@ -1,7 +1,7 @@
 name: IDEA
-main: IDEA\IDEA
+main: ifteam\IDEA\IDEA
 version: 0.1-Alpha
-author: hm
+author: ifteam
 api: [1.4.1]
 
 permissions:

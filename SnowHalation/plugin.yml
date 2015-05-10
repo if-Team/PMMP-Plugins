@@ -1,8 +1,8 @@
 name: SnowHalation
-main: SnowHalation\SnowHalation
-version: 1.4-alpha
-author: hm
-api: [1.4.1]
+main: ifteam\SnowHalation\SnowHalation
+version: 1.6-alpha
+author: ifteam
+api: [1.12.0]
 load: STARTUP
 
 commands:

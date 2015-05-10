@@ -1,5 +1,5 @@
 name: GoodMorning
-main: hm\GoodMorning\GoodMorning
+main: ifteam\GoodMorning\GoodMorning
 version: 1.0-alpha
-author: hm
+author: ifteam
 api: [1.4.1]

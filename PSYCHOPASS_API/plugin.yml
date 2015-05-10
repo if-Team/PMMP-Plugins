@@ -1,7 +1,7 @@
 name: PSYCHOPASS_API
-main: hm\PSYCHOPASS\PSYCHOPASS_API
+main: ifteam\PSYCHOPASS\PSYCHOPASS_API
 version: 0.1-beta
-author: hm
+author: ifteam
 api: [1.4.1]
 
 commands:

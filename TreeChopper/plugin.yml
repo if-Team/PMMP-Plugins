@@ -1,7 +1,7 @@
 name: TreeChopper
-main: TreeChopper\TreeChopper
+main: ifteam\TreeChopper\TreeChopper
 version: 1.0-alpha
-author: hm
+author: ifteam
 api: [1.9.0]
 
 permissions:

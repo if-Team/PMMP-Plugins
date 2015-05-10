@@ -1,5 +1,5 @@
 name: Purge
-main: Purge\Purge
-version: 0.1-alpha
-author: hm
-api: [1.4.1]
+main: ifteam\Purge\Purge
+version: 0.2-alpha
+author: ifteam
+api: [1.12.0]

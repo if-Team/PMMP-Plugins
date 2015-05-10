@@ -1,0 +1,22 @@
+# IF YOU NEED A SOME OTHER LANGUAGE SETTINGS #
+# YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
+
+#PLEASE SET HERE TO YOUR LANGUAGE PREFIX
+m_version: 1
+
+#(EN) ENGLISH
+eng: true
+kor-default-prefix: "[ SERVER ]"
+eng-Sparklers: "Sparklers"
+eng-Sparklers-set-succeess: "You have installed the Sparklers!"
+eng-Sparklers-unset-succeess: "have deleted a Sparklers!"
+
+#(KO) KOREAN
+kor: true
+kor-default-prefix: "[ 서버 ]"
+kor-Sparklers: "스파클러"
+kor-Sparklers-set-succeess: "스파클러를 설치했습니다 !"
+kor-Sparklers-unset-succeess: "스파클러를 삭제했습니다 !"
+
+# AND YOU CAN PROVIDE YOUR TRANSLATION       #
+# https://github.com/if-Team/PMMP-Plugins/blob/master/Sparklers/resources/messages.yml

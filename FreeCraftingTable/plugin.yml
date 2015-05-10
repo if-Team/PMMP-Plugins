@@ -1,5 +1,5 @@
 name: FreeCraftingTable
-main: hm\FreeCraftingTable\FreeCraftingTable
-author: hm
+main: ifteam\FreeCraftingTable\FreeCraftingTable
+author: ifteam
 version: 1.0-alpha
 api: [1.4.1]

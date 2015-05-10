@@ -1,0 +1,55 @@
+version: 0
+default-language: en
+
+messages:
+  in-game-command:
+    en: "Please run this command in-game!"
+    ko: "게임 내에서 입력해 주세요!"
+
+  create-clan-command-name:
+    en: "create-clan"
+    ko: "클랜생성"
+
+  create-clan-command-description:
+    en: "Create your own clan."
+    ko: "자기 소유의 클랜을 만듭니다."
+
+  create-clan-command-usage:
+    en: "/create-clan <name>"
+    ko: "/클랜생성 <이름>"
+
+  clan-created:
+    en: "Your clan {%name} has been created!"
+    ko: "당신의 클랜 {%name}이(가) 생성되었습니다!"
+
+  delete-clan-command-name:
+    en: "delete-clan"
+    ko: "클랜삭제"
+
+  delete-clan-command-description:
+    en: "Delete your own clan."
+    ko: "자기 소유의 클랜을 삭제합니다."
+
+  delete-clan-command-usage:
+    en: "/delete-clan <name>"
+    ko: "/클랜삭제 <이름>"
+
+  clan-deleted:
+    en: "Your clan {%name} has been deleted!"
+    ko: "당신의 클랜 {%name}이(가) 삭제되었습니다!"
+
+  clan-already-exists:
+    en: "The clan {%name} is already exists!"
+    ko: "클랜 {%name}은(는) 이미 존재합니다!"
+
+  clan-not-found:
+    en: "The clan {%name} is not found!"
+    ko: "클랜 {%name}을(를) 찾을 수 없습니다!"
+
+  clan-leader-only:
+    en: "This feature is clan leader only!"
+    ko: "이 기능은 클랜 대표 전용입니다!"
+
+  clan-maximum-owning-count-exceed:
+    en: "You can only have up to {%count} different clans!"
+    ko: "당신은 최대 {%count}개의 클랜만을 가질 수 있습니다!"

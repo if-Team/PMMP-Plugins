@@ -1,7 +1,7 @@
 name: SoldierGame
-main: SoldierGame\SoldierGame
+main: ifteam\SoldierGame\SoldierGame
 version: 1.0-alpha
-author: hm
+author: ifteam
 api: [1.4.1]
 load: STARTUP
 
@@ -13,5 +13,5 @@ commands:
 
 permissions:
  soldiergame:
-  default: true
+  default: op
   description: Allows commands of SoldierGame

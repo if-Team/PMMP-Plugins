@@ -1,5 +1,5 @@
 name : LaunchCode
-main : LaunchCode\LaunchCode
-author : hmm
+main : ifteam\LaunchCode\LaunchCode
+author : ifteam
 version : 1.0
-api : [1.4.1]
+api : [1.12.0]

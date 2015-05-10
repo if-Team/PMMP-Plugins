@@ -1,0 +1,16 @@
+name: GoAwayAnna
+main: chalk\goawayanna\GoAwayAnna
+version: 0.1
+author: ChalkPE
+api: [1.12.0]
+
+commands:
+  okaybye:
+    description: Sets the address to move
+    usage: "/okaybye [<ip> [port]]"
+    permission: goawananna.okaybye
+
+permissions:
+  goawananna.okaybye:
+    description: Allows to set the address to move
+    default: op
