@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright 2014-2015 HmHmmHm
+ * Copyright 2014-2015 if(Team);
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,39 @@
  * limitations under the License.
  */
 
-/*  __    __       __    __
- * /＼ ＼_＼ ＼   /＼  "-./ ＼
- * ＼ ＼  __   ＼ ＼ ＼ ＼/＼＼
- *  ＼ ＼_＼ ＼ _＼＼ ＼_＼ ＼_＼
- *   ＼/_/  ＼/__/   ＼/_/ ＼/__/
- * ( *you can redistribute it and/or modify *) */
-
 namespace ifteam\SimpleArea;
 
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 
 class SimpleArea extends PluginBase implements Listener {
+    /** @var SimpleArea */
+    private static $instance = null;
+
+    /** @var Area[] */
+    private $areas = [];
+
+    public function onLoad(){
+        self::$instance = $this;
+    }
+
     public function onEnable(){
         @mkdir($this->getDataFolder());
+        $this->saveDefaultConfig();
+    }
+
+    /**
+     * @return SimpleArea
+     */
+    public static function getInstance(){
+        return self::$instance;
+    }
+
+    /**
+     * @return Area[]
+     */
+    public function getAreas(){
+        return $this->areas;
     }
 }
 
