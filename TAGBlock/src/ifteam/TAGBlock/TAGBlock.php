@@ -15,6 +15,9 @@ use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\entity\Entity;
 use pocketmine\event\player\PlayerQuitEvent;
 use ifteam\TAGBlock\task\TAGBlockTask;
+use pocketmine\command\CommandSender;
+use pocketmine\command\Command;
+use pocketmine\command\PluginCommand;
 
 class TAGBlock extends PluginBase implements Listener {
 	public $messages, $db, $temp;
@@ -32,12 +35,15 @@ class TAGBlock extends PluginBase implements Listener {
 		$this->packet ["AddPlayerPacket"]->pitch = 0;
 		$this->packet ["AddPlayerPacket"]->item = 0;
 		$this->packet ["AddPlayerPacket"]->meta = 0;
-		$this->packet ["AddPlayerPacket"]->slim = \false;
-		$this->packet ["AddPlayerPacket"]->skin = \str_repeat ( "\x00", 64 * 32 * 4 );
+		$this->packet ["AddPlayerPacket"]->slim =\false;
+		$this->packet ["AddPlayerPacket"]->skin =\str_repeat ( "\x00", 64 * 32 * 4 );
 		$this->packet ["AddPlayerPacket"]->metadata = [ Entity::DATA_FLAGS => [ Entity::DATA_TYPE_BYTE,1 << Entity::DATA_FLAG_INVISIBLE ] ]; // [ Entity::DATA_FLAGS => [ Entity::DATA_TYPE_BYTE,1 << Entity::DATA_FLAG_INVISIBLE ],Entity::DATA_AIR => [ Entity::DATA_TYPE_SHORT,300 ],Entity::DATA_SHOW_NAMETAG => [ Entity::DATA_TYPE_BYTE,1 ],Entity::DATA_NO_AI => [ Entity::DATA_TYPE_BYTE,1 ] ];
 		
 		$this->packet ["RemovePlayerPacket"] = new RemovePlayerPacket ();
 		$this->packet ["RemovePlayerPacket"]->clientID = 0;
+		
+		// 플러그인의 명령어 등록
+		$this->registerCommand ( "tagblock", "tagblock.add", $this->get ( "TAGBlock-description" ), $this->get ( "TAGBlock-command-help" ) );
 		
 		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new TAGBlockTask ( $this ), 60 );
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
@@ -51,7 +57,7 @@ class TAGBlock extends PluginBase implements Listener {
 		if (isset ( $this->temp [$event->getPlayer ()->getName ()] )) unset ( $this->temp [$event->getPlayer ()->getName ()] );
 	}
 	public function SignChange(SignChangeEvent $event) {
-		if (! $event->getPlayer ()->isOp ()) return;
+		if (! $event->getPlayer ()->hasPermission ("tagblock.add")) return;
 		if (strtolower ( $event->getLine ( 0 ) ) != $this->get ( "TAGBlock-line0" )) return;
 		
 		if ($event->getLine ( 1 ) != null) $message = $event->getLine ( 1 );
@@ -64,8 +70,35 @@ class TAGBlock extends PluginBase implements Listener {
 		$this->db ["TAGBlock"] [$block->level->getFolderName ()] [$blockPos] = $message;
 		$this->message ( $event->getPlayer (), $this->get ( "TAGBlock-added" ) );
 	}
+	public function onCommand(CommandSender $player, Command $command, $label, Array $args) {
+		switch (strtolower ( $command->getName () )) {
+			case "tagblock" :
+				if (! isset ( $args [4] ) or ! is_numeric ( $args [1] ) or ! is_numeric ( $args [2] ) or ! is_numeric ( $args [3] )) {
+					$this->message ( $player, $this->get ( "TAGBlock-command-help" ) );
+					return true;
+				}
+				$level = $this->getServer ()->getLevelByName ( $args [0] );
+				if (! $level instanceof Level) {
+					$this->message ( $player, $this->get ( "TAGBlock-level-doesnt-exist" ) );
+					return true;
+				}
+				$blockPos = "{$args [1]}.{$args [2]}.{$args [3]}";
+				
+				$message = $args;
+				array_shift ( $message );
+				array_shift ( $message );
+				array_shift ( $message );
+				array_shift ( $message );
+				$message = implode ( " ", $message );
+				
+				$this->db ["TAGBlock"] [$level->getFolderName ()] [$blockPos] = $message;
+				$this->message ( $player, $this->get ( "TAGBlock-added" ) );
+				break;
+		}
+		return true;
+	}
 	public function BlockBreak(BlockBreakEvent $event) {
-		if (! $event->getPlayer ()->isOp ()) return;
+		if (! $event->getPlayer ()->hasPermission ("tagblock.add")) return;
 		
 		$block = $event->getBlock ();
 		$blockPos = "{$block->x}.{$block->y}.{$block->z}";
@@ -122,7 +155,11 @@ class TAGBlock extends PluginBase implements Listener {
 		} else {
 			$lang = "eng";
 		}
-		return $this->messages [$lang . "-" . $var];
+		if (isset ( $this->messages [$lang . "-" . $var] )) {
+			return $this->messages [$lang . "-" . $var];
+		} else {
+			return $lang . "-" . $var;
+		}
 	}
 	public function initMessage() {
 		$this->saveResource ( "messages.yml", false );
@@ -137,11 +174,19 @@ class TAGBlock extends PluginBase implements Listener {
 			$this->saveResource ( $targetYmlName, true );
 		}
 	}
-	public function message($player, $text = "", $mark = null) {
+	public function registerCommand($name, $permission, $description = "", $usage = "") {
+		$commandMap = $this->getServer ()->getCommandMap ();
+		$command = new PluginCommand ( $name, $this );
+		$command->setDescription ( $description );
+		$command->setPermission ( $permission );
+		$command->setUsage ( $usage );
+		$commandMap->register ( $name, $command );
+	}
+	public function message(CommandSender $player, $text = "", $mark = null) {
 		if ($mark == null) $mark = $this->get ( "default-prefix" );
 		$player->sendMessage ( TextFormat::DARK_AQUA . $mark . " " . $text );
 	}
-	public function alert($player, $text = "", $mark = null) {
+	public function alert(CommandSender $player, $text = "", $mark = null) {
 		if ($mark == null) $mark = $this->get ( "default-prefix" );
 		$player->sendMessage ( TextFormat::RED . $mark . " " . $text );
 	}

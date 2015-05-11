@@ -2,7 +2,7 @@
 # YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
 
 #PLEASE SET HERE TO YOUR LANGUAGE PREFIX
-m_version: 2
+m_version: 3
 
 #(EN) ENGLISH
 eng: true
@@ -10,6 +10,9 @@ eng-default-prefix: "[ SERVER ]"
 eng-TAGBlock-line0: "tagblock"
 eng-TAGBlock-added: "TAGBlock Added !"
 eng-TAGBlock-deleted: "TAGBlock Deleted !"
+eng-TAGBlock-level-doesnt-exist: "Level doesn't exist !"
+eng-TAGBlock-command-help: "/tagblock <world> <x> <y> <z> <messages>"
+eng-TAGBlock-description: "Add the NameTAG in the desired position"
 
 #(IT) ITALIAN
 ita: true
@@ -17,6 +20,9 @@ ita-default-prefix: "[ SERVER ]"
 ita-TAGBlock-line0: "tagblock"
 ita-TAGBlock-added: "TAGBlock Aggiunto !"
 ita-TAGBlock-deleted: "TAGBlock Cancellato !"
+ita-TAGBlock-level-doesnt-exist: "non esiste livello!"
+ita-TAGBlock-command-help: "/tagblock <mondo> <x> <y> <z> <Messaggi>"
+ita-TAGBlock-description: "Aggiungere la targhetta nella posizione desiderata"
 
 #(JA) JAPANESE
 jpn: true
@@ -24,6 +30,9 @@ jpn-default-prefix: "[ サーバー ]"
 jpn-TAGBlock-line0: "タグブロック"
 jpn-TAGBlock-added: "タグブロックが追加されました ！"
 jpn-TAGBlock-deleted: "タグブロックが削除されました ！"
+jpn-TAGBlock-level-doesnt-exist: "レベルが存在しません！"
+jpn-TAGBlock-command-help: "/tagblock <世界> <X> <Y> <Z> <メッセージ>"
+jpn-TAGBlock-description: "所望の位置に名札を追加"
 
 #(KO) KOREAN
 kor: true
@@ -31,6 +40,9 @@ kor-default-prefix: "[ 서버 ]"
 kor-TAGBlock-line0: "태그블럭"
 kor-TAGBlock-added: "태그블럭이 추가되었습니다 !"
 kor-TAGBlock-deleted: "태그블럭이 삭제되었습니다 !"
+kor-TAGBlock-level-doesnt-exist: "해당 레벨이 존재하지 않습니다 !"
+kor-TAGBlock-command-help: "/tagblock <world> <x> <y> <z> <메시지>"
+kor-TAGBlock-description: "원하는 위치에 네임태그를 추가합니다 !"
 
 #(ZH-TW) CHINESE(TRADITIONAL)
 tha: ture
@@ -38,6 +50,9 @@ tha-default-prefix: "[ 伺服器 ]"
 tha-TAGBlock-line0: "標註方塊"
 tha-TAGBlock-added: "已添加標註方塊 !"
 tha-TAGBlock-deleted: "已刪除標註方塊 !"
+tha-TAGBlock-level-doesnt-exist: "水平不存在！"
+tha-TAGBlock-command-help: "/tagblock <世界> <X> <Y> <Z> <信息>"
+tha-TAGBlock-description: "添加的名稱標籤中的所需位置"
 
 #(ZH-CN) CHINESE(SIMPLIFIED)
 zho: true
@@ -45,6 +60,9 @@ zho-default-prefix: "[ 伺服器 ]"
 zho-TAGBlock-line0: "标注方块"
 zho-TAGBlock-added: "已添加标注方块 !"
 zho-TAGBlock-deleted: "已删除标注方块 !"
+zho-TAGBlock-level-doesnt-exist: "水平不存在！"
+zho-TAGBlock-command-help: "/tagblock <世界> <X> <Y> <Z> <信息>"
+zho-TAGBlock-description: "添加的名称标签中的所需位置"
 
 #(ES) Español (SPANISH)
 spa: true
@@ -52,6 +70,9 @@ spa-default-prefix: "[ SERVIDOR ]"
 spa-TAGBlock-line0: "tagblock"
 spa-TAGBlock-added: "TAGblock agregado !"
 spa-TAGBlock-deleted: "TAGblock eliminado !"
+spa-TAGBlock-level-doesnt-exist: "Nivel no existe!"
+spa-TAGBlock-command-help: "/ tagblock <mundo> <x> <y> <z> <Mensajes>"
+spa-TAGBlock-description: "Añadir la etiqueta con su nombre en la posición deseada"
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/blob/master/TAGBlock/resources/messages.yml
