@@ -22,7 +22,7 @@ use pocketmine\command\PluginCommand;
 class TAGBlock extends PluginBase implements Listener {
 	public $messages, $db, $temp;
 	public $packet = [ ]; // 전역 패킷 변수
-	public $m_version = 1; // 현재 메시지 버전
+	public $m_version = 3; // 현재 메시지 버전
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		
