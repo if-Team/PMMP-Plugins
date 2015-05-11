@@ -57,7 +57,7 @@ class TAGBlock extends PluginBase implements Listener {
 		if (isset ( $this->temp [$event->getPlayer ()->getName ()] )) unset ( $this->temp [$event->getPlayer ()->getName ()] );
 	}
 	public function SignChange(SignChangeEvent $event) {
-		if (! $event->getPlayer ()->hasPermission ("tagblock.add")) return;
+		if (! $event->getPlayer ()->hasPermission ( "tagblock.add" )) return;
 		if (strtolower ( $event->getLine ( 0 ) ) != $this->get ( "TAGBlock-line0" )) return;
 		
 		if ($event->getLine ( 1 ) != null) $message = $event->getLine ( 1 );
@@ -91,6 +91,11 @@ class TAGBlock extends PluginBase implements Listener {
 				array_shift ( $message );
 				$message = implode ( " ", $message );
 				
+				$lines = explode ( "\\n", $message );
+				$message = "";
+				foreach ( $lines as $line )
+					$message .= $line . "\n";
+				
 				$this->db ["TAGBlock"] [$level->getFolderName ()] [$blockPos] = $message;
 				$this->message ( $player, $this->get ( "TAGBlock-added" ) );
 				break;
@@ -98,7 +103,7 @@ class TAGBlock extends PluginBase implements Listener {
 		return true;
 	}
 	public function BlockBreak(BlockBreakEvent $event) {
-		if (! $event->getPlayer ()->hasPermission ("tagblock.add")) return;
+		if (! $event->getPlayer ()->hasPermission ( "tagblock.add" )) return;
 		
 		$block = $event->getBlock ();
 		$blockPos = "{$block->x}.{$block->y}.{$block->z}";
