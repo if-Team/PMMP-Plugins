@@ -123,7 +123,14 @@ class Chatty extends PluginBase implements Listener {
 		}
 		foreach ( $messages as $m )
 			array_push ( $this->messageStack [$name], $m );
-		if (count ( $this->messageStack [$name] ) > 6) array_shift ( $this->messageStack [$name] );
+		
+		while ( 1 ) {
+			if (count ( $this->messageStack [$name] ) > 6) {
+				array_shift ( $this->messageStack [$name] );
+			} else {
+				break;
+			}
+		}
 	}
 	public function prePlayerCommand(PlayerCommandPreprocessEvent $event) {
 		if (strpos ( $event->getMessage (), "/" ) === 0) {return;}
@@ -164,7 +171,7 @@ class Chatty extends PluginBase implements Listener {
 			if (isset ( $this->packetQueue [$OnlinePlayer->getName ()] ["eid"] )) {
 				$this->packet ["RemovePlayerPacket"]->eid = $this->packetQueue [$OnlinePlayer->getName ()] ["eid"];
 				$this->packet ["RemovePlayerPacket"]->clientID = $this->packetQueue [$OnlinePlayer->getName ()] ["eid"];
-				$OnlinePlayer->dataPacket ( $this->packet ["RemovePlayerPacket"] ); // 네임택 제거패킷 전송
+				$OnlinePlayer->directDataPacket ( $this->packet ["RemovePlayerPacket"] ); // 네임택 제거패킷 전송
 			}
 			if (! isset ( $this->db [$OnlinePlayer->getName ()] ["NameTAG"] )) continue;
 			if (isset ( $this->db [$OnlinePlayer->getName ()] ["NameTAG"] )) {
