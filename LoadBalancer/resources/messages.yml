@@ -1,0 +1,31 @@
+# IF YOU NEED A SOME OTHER LANGUAGE SETTINGS #
+# YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
+
+#PLEASE SET HERE TO YOUR LANGUAGE PREFIX
+m_version: 1
+
+#(EN) ENGLISH
+eng: true
+
+#(KO) KOREAN
+kor: true
+kor-default-prefix: "[LoadBalancer]"
+kor-please-choose-mode: "서버모드를 선택해주세요 (master/slave)"
+kor-master-mode-selected: "마스터모드가 선택되었습니다"
+kor-slave-mode-selected: "슬레이브모드가 선택되었습니다"
+kor-please-choose-passcode: "통신보안용 암호코드를 입력해주세요 (8자이상)"
+kor-too-short-passcode: "암호코드는 8자 이상이여야합니다"
+kor-wrong-passcode: "해당 암호코드는 사용하실 수 없습니다"
+kor-passcode-selected: "통신보안용 암호코드가 설정되었습니다"
+kor-please-choose-port: "통신용으로 사용할 포트를 입력해주세요"
+kor-wrong-port: "잘못된 포트입니다, 31~65534 범위에서 선택해주세요"
+kor-wrong-ip: "잘못된 아이피입니다, 000.000.000.000 과같이 입력해주세요"
+kor-port-selected: "통신용 포트가 설정되었습니다"
+kor-please-type-master-ip: "마스터서버의 아이피를 입력해주세요"
+kor-please-type-master-port: "마스터서버의 포트를 입력해주세요"
+kor-master-ip-selected: "마스터서버 아이피가 설정되었습니다"
+kor-master-port-selected: "마스터서버 포트가 설정되었습니다"
+kor-all-setup-complete: "모든 설정이 완료되었습니다"
+
+# AND YOU CAN PROVIDE YOUR TRANSLATION       #
+# https://github.com/if-Team/PMMP-Plugins/blob/master/LoadBalancer/resources/messages.yml
