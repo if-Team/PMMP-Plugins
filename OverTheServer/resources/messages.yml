@@ -1,0 +1,32 @@
+# IF YOU NEED A SOME OTHER LANGUAGE SETTINGS #
+# YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
+
+#PLEASE SET HERE TO YOUR LANGUAGE PREFIX
+m_version: 1
+
+#(EN) ENGLISH
+eng: true
+
+#(KO) KOREAN
+kor: true
+kor-default-prefix: "[ 서버 ]"
+kor-overtheserver: "overtheserver"
+kor-overtheserver-desc: "서버간 이동목록을 관리합니다"
+kor-overtheserver-help: "/overtheserver <add|del> <서버명> <아이피:포트>"
+kor-serverconnect: "서버이동"
+kor-serverconnect-desc: "명령어로 서버에 등록된 다른서버로 이동 합니다"
+kor-serverconnect-help: "/서버이동 <서버명>"
+kor-serverlist: "서버목록"
+kor-serverlist-desc: "서버에 등록되어있는 서버목록을 확인합니다"
+kor-serverlist-help: "/서버목록"
+kor-add: "add"
+kor-del: "del"
+kor-add-success: "서버 등록에 성공했습니다 !"
+kor-del-success: "서버 등록해제에 성공했습니다 !"
+kor-server-doesnt-exist: "해당 서버가 존재하지 않습니다 ! /서버목록으로 목록 확인가능"
+kor-ingame-only: "게임내에서만 사용 가능합니다 !"
+kor-print-all-server-list: "사용가능한 서버이동 목록을 표시합니다 !"
+kor-can-access-serverconnect: "/서버이동 <서버명> 으로 서버이동 가능 !"
+
+# AND YOU CAN PROVIDE YOUR TRANSLATION       #
+# https://github.com/if-Team/PMMP-Plugins/blob/master/examplePlugin/resources/messages.yml
