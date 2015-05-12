@@ -535,6 +535,11 @@ class CreativeEconomy extends PluginBase implements Listener {
 			$this->alert ( $player, $this->get ( "ur-not-use-market" ) );
 			return;
 		}
+		$count = intval ( $count );
+		if ($count < 1) {
+			$this->message ( $player, $this->get ( "please-choose-item" ) );
+			return;
+		}
 		if (! isset ( $this->purchaseQueue [$player->getName ()] ) and $item == null) {
 			$this->message ( $player, $this->get ( "please-choose-item" ) );
 			return;
@@ -628,7 +633,8 @@ class CreativeEconomy extends PluginBase implements Listener {
 		if (isset ( $this->purchaseQueue [$player->getName ()] ["id"] ) and $item == null) {
 			$item = $this->purchaseQueue [$player->getName ()] ["id"];
 		}
-		if ($item == null) {
+		$count = intval ( $count );
+		if ($item == null or $count < 1) {
 			$this->message ( $player, $this->get ( "please-choose-item" ) );
 			return;
 		}
