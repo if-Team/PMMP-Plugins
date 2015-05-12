@@ -19,6 +19,7 @@ class LoadBalancer extends PluginBase implements Listener {
 	public $messages, $db; // 메시지 변수, DB변수
 	public $m_version = 1; // 현재 메시지 버전
 	public $updateList = [ ];
+	public $cooltime = [ ];
 	public $callback;
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () ); // 플러그인 폴더생성
@@ -79,8 +80,18 @@ class LoadBalancer extends PluginBase implements Listener {
 		}
 	}
 	public function onDataPacketReceived(DataPacketReceiveEvent $event) {
-		if (isset ( $this->db ["mode"] )) if ($this->db ["mode"] == "master") {
-			if ($event->getPacket ()->pid () == 0x82) {
+		if ($event->getPacket ()->pid () == 0x82) {
+			if (! isset ( $this->cooltime [$event->getPlayer ()->getAddress ()] )) {
+				$this->cooltime [$event->getPlayer ()->getAddress ()] = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) );
+			} else {
+				$diff = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) ) - $this->cooltime [$event->getPlayer ()->getAddress ()];
+				if ($diff < 10) {
+					$event->setCancelled ();
+					return true;
+				}
+				$this->cooltime [$event->getPlayer ()->getAddress ()] = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) );
+			}
+			if (isset ( $this->db ["mode"] )) if ($this->db ["mode"] == "master") {
 				foreach ( $this->updateList as $ipport => $data ) {
 					if (! isset ( $priority )) {
 						$priority ["ip"] = explode ( ":", $ipport )[0];
@@ -97,7 +108,7 @@ class LoadBalancer extends PluginBase implements Listener {
 						$priority ["list"] = count ( $this->updateList [$ipport] ["list"] );
 					}
 				}
-				if ($priority ["list"] == 999) {
+				if (! isset ( $priority )) {
 					// NO EXTRA SERVER
 					$event->setCancelled ();
 					return true;
