@@ -117,7 +117,7 @@ class VIPPlus extends PluginBase implements Listener {
      * @param bool $override
      */
     public function loadVips($override = true){
-        $vipsConfig = new Config($this->getDataFolder() . "vips.yml", Config::YAML);
+        $vipsConfig = new Config($this->getDataFolder() . "vips.json", Config::JSON);
         if($override){
             $this->vips = [];
         }
@@ -131,7 +131,7 @@ class VIPPlus extends PluginBase implements Listener {
      * @return bool
      */
     public function saveVips(){
-        $vipsConfig = new Config($this->getDataFolder() . "vips.yml", Config::YAML);
+        $vipsConfig = new Config($this->getDataFolder() . "vips.json", Config::JSON);
         $vips = [];
 
         foreach($this->getVips() as $vip){
@@ -244,7 +244,7 @@ class VIPPlus extends PluginBase implements Listener {
         if($this->isVip($name)){
             return $this->getMessages()->getMessage("vip-already-vip", [$name]);
         }
-        array_push($this->getVips(), $name);
+        $this->getVips()[] = $name;
         $this->saveVips();
 
         $gratuityAmount = $this->getConfig()->get("vip-gratuity-amount", 0);
@@ -401,6 +401,6 @@ class VIPPlus extends PluginBase implements Listener {
             return;
         }
 
-        array_push($this->arrowQueue, $event->getProjectile()->getId());
+        $this->arrowQueue[] = $event->getProjectile()->getId();
     }
 }
