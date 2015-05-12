@@ -81,9 +81,9 @@ class LoadBalancer extends PluginBase implements Listener {
 	public function onDataPacketReceived(DataPacketReceiveEvent $event) {
 		if (isset ( $this->db ["mode"] )) if ($this->db ["mode"] == "master") {
 			if ($event->getPacket ()->pid () == 0x82) {
-				$priority = [ "list" => - 1 ];
+				$priority = [ "list" => 9999 ];
 				foreach ( $this->updateList as $ipport => $data ) {
-					if ($priority ["list"] < $data ["list"]) {
+					if ($priority ["list"] > $data ["list"]) {
 						if (count ( $data ["list"] ) >= $data ["max"]) {
 							continue;
 						}
