@@ -20,21 +20,22 @@ namespace ifteam\SimpleArea;
 
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
+use pocketmine\utils\Config;
 
 class SimpleArea extends PluginBase implements Listener {
     /** @var SimpleArea */
     private static $instance = null;
 
-    /** @var Area[] */
-    private $areas = [];
+    /** @var World[] */
+    private $worlds = [];
 
     public function onLoad(){
         self::$instance = $this;
     }
 
     public function onEnable(){
-        @mkdir($this->getDataFolder());
-        $this->saveDefaultConfig();
+        $this->loadConfigs();
+        $this->loadAreas();
     }
 
     /**
@@ -44,11 +45,23 @@ class SimpleArea extends PluginBase implements Listener {
         return self::$instance;
     }
 
+    private function loadConfigs(){
+        @mkdir($this->getDataFolder());
+        $this->saveDefaultConfig();
+    }
+
+    private function loadAreas(){
+        foreach($this->getServer()->getLevels() as $level){
+            $worldConfig = new Config($this->getServer()->getDataPath() . "worlds/" . $level->getFolderName() . "/areas.json", Config::JSON);
+            $this->worlds[] = World::createFromArray($level, $worldConfig->getAll());
+        }
+    }
+
     /**
-     * @return Area[]
+     * @return World[]
      */
-    public function getAreas(){
-        return $this->areas;
+    public function getWorlds(){
+        return $this->worlds;
     }
 }
 
