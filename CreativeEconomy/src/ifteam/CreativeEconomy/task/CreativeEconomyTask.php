@@ -3,7 +3,7 @@
 namespace ifteam\CreativeEconomy\task;
 
 use pocketmine\scheduler\PluginTask;
-use CreativeEconomy\CreativeEconomy;
+use ifteam\CreativeEconomy\CreativeEconomy;
 
 class CreativeEconomyTask extends PluginTask {
 	public function __construct(CreativeEconomy $owner) {
