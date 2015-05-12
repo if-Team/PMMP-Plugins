@@ -81,18 +81,23 @@ class LoadBalancer extends PluginBase implements Listener {
 	public function onDataPacketReceived(DataPacketReceiveEvent $event) {
 		if (isset ( $this->db ["mode"] )) if ($this->db ["mode"] == "master") {
 			if ($event->getPacket ()->pid () == 0x82) {
-				$priority = [ "list" => 9999 ];
 				foreach ( $this->updateList as $ipport => $data ) {
-					if ($priority ["list"] > $data ["list"]) {
+					if (! isset ( $priority )) {
+						$priority ["ip"] = explode ( ":", $ipport )[0];
+						$priority ["port"] = $this->updateList [$ipport] ["port"];
+						$priority ["list"] = count ( $this->updateList [$ipport] ["list"] );
+						continue;
+					}
+					if ($priority ["list"] > count ( $data ["list"] )) {
 						if (count ( $data ["list"] ) >= $data ["max"]) {
 							continue;
 						}
 						$priority ["ip"] = explode ( ":", $ipport )[0];
 						$priority ["port"] = $this->updateList [$ipport] ["port"];
-						$priority ["list"] = $this->updateList [$ipport] ["list"];
+						$priority ["list"] = count ( $this->updateList [$ipport] ["list"] );
 					}
 				}
-				if ($priority ["list"] == - 1) {
+				if ($priority ["list"] == 999) {
 					// NO EXTRA SERVER
 					$event->setCancelled ();
 					return true;
