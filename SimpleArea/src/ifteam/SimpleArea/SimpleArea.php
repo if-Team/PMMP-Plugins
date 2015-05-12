@@ -52,7 +52,7 @@ class SimpleArea extends PluginBase implements Listener {
 
     private function loadAreas(){
         foreach($this->getServer()->getLevels() as $level){
-            $worldConfig = new Config($this->getServer()->getDataPath() . "worlds/" . $level->getFolderName() . "/areas.json", Config::JSON);
+            $worldConfig = new Config($this->getServer()->getDataPath() . "worlds/" . $level->getFolderName() . "/areas.json", Config::JSON, ["areas" => []]);
             $this->worlds[] = World::createFromArray($level, $worldConfig->getAll());
         }
     }
