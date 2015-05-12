@@ -13,6 +13,7 @@ use pocketmine\utils\TextFormat;
 
 class notificationPlus extends PluginBase implements Listener {
 	public $messages, $db;
+	public $m_version = 1;
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		
@@ -27,10 +28,16 @@ class notificationPlus extends PluginBase implements Listener {
 		$save->save ();
 	}
 	public function get($var) {
-		return $this->messages [$this->messages ["default-language"] . "-" . $var];
+		if (isset ( $this->messages [$this->getServer ()->getLanguage ()->getLang ()] )) {
+			$lang = $this->getServer ()->getLanguage ()->getLang ();
+		} else {
+			$lang = "eng";
+		}
+		return $this->messages [$lang . "-" . $var];
 	}
 	public function initMessage() {
 		$this->saveResource ( "messages.yml", false );
+		$this->messagesUpdate ( "messages.yml" );
 		$this->messages = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
 	}
 	public function message($player, $text = "", $mark = null) {
@@ -40,6 +47,14 @@ class notificationPlus extends PluginBase implements Listener {
 	public function alert($player, $text = "", $mark = null) {
 		if ($mark == null) $mark = $this->get ( "default-prefix" );
 		$player->sendMessage ( TextFormat::RED . $mark . " " . $text );
+	}
+	public function messagesUpdate($targetYmlName) {
+		$targetYml = (new Config ( $this->getDataFolder () . $targetYmlName, Config::YAML ))->getAll ();
+		if (! isset ( $targetYml ["m_version"] )) {
+			$this->saveResource ( $targetYmlName, true );
+		} else if ($targetYml ["m_version"] < $this->m_version) {
+			$this->saveResource ( $targetYmlName, true );
+		}
 	}
 	// ---------------------------------------------------------------------------//
 	public function userCommand(PlayerCommandPreprocessEvent $event) {

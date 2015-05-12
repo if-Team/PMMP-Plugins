@@ -1,5 +1,5 @@
 name: notificationPlus
 main: ifteam\notificationPlus\notificationPlus
-version: 0.1-Alpha
+version: 0.2-Alpha
 author: ifteam
 api: [1.12.0]
