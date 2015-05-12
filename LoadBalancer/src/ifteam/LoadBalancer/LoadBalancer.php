@@ -85,22 +85,18 @@ class LoadBalancer extends PluginBase implements Listener {
 				foreach ( $this->updateList as $ipport => $data ) {
 					if ($priority ["list"] < $data ["list"]) {
 						if (count ( $data ["list"] ) >= $data ["max"]) {
-							echo "THAT SERVER IS OVERFLOW\n";
 							continue;
 						}
 						$priority ["ip"] = explode ( ":", $ipport )[0];
 						$priority ["port"] = $this->updateList [$ipport] ["port"];
 						$priority ["list"] = $this->updateList [$ipport] ["list"];
-						echo "SERVER FOUND!";
 					}
 				}
 				if ($priority ["list"] == - 1) {
 					// NO EXTRA SERVER
-					echo "NO EXTRA SERVER\n";
 					$event->setCancelled ();
 					return true;
 				}
-				echo "전송테스트시작 * IP:" . $priority ["ip"] . " PORT:" . $priority ["port"] . "\n";
 				$event->getPlayer ()->dataPacket ( (new StrangePacket ( $priority ["ip"], $priority ["port"] ))->setChannel ( Network::CHANNEL_ENTITY_SPAWNING ) );
 				$event->setCancelled ();
 				return true;
@@ -223,14 +219,6 @@ class LoadBalancer extends PluginBase implements Listener {
 	// ----------------------------------------------------------------------------------
 	public function onPacketReceive(CustomPacketReceiveEvent $ev) {
 		$data = json_decode ( $ev->getPacket ()->data );
-		if (! is_array ( $data )) {
-			echo "[테스트] 어레이가 아닌 정보 전달됨\n";
-			return;
-		}
-		if ($data [0] != $this->db ["passcode"]) {
-			echo "[테스트] 패스코드가 다른 정보 전달됨\n";
-			return;
-		}
 		if ($this->db ["mode"] == "master") {
 			$this->updateList [$ev->getPacket ()->address . ":" . $ev->getPacket ()->port] ["list"] = $data [1];
 			$this->updateList [$ev->getPacket ()->address . ":" . $ev->getPacket ()->port] ["max"] = $data [2];
