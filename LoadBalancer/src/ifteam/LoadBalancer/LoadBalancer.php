@@ -39,9 +39,7 @@ class LoadBalancer extends PluginBase implements Listener {
 		if (! isset ( $this->db ["mode"] )) {
 			$this->getServer ()->getLogger ()->info ( TextFormat::DARK_AQUA . $this->get ( "please-choose-mode" ) );
 		} else {
-			if ($this->db ["mode"] == "slave") {
-				$this->callback = $this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new LoadBalancerTask ( $this ), 20 );
-			}
+			$this->callback = $this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new LoadBalancerTask ( $this ), 20 );
 		}
 	}
 	public function get($var) {
@@ -56,19 +54,19 @@ class LoadBalancer extends PluginBase implements Listener {
 		if ($this->db ["mode"] == "master") {
 			$allPlayerList = [ ];
 			$allMax = 0;
-			foreach ( $this->updateList as $ip => $data ) {
+			foreach ( $this->updateList as $ipport => $data ) {
 				// CHECK TIMEOUT
-				$progress = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) ) - $this->updateList [$ip] ["lastcontact"];
+				$progress = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) ) - $this->updateList [$ipport] ["lastcontact"];
 				if ($progress > 4) {
-					unset ( $this->updateList [$ip] );
+					unset ( $this->updateList [$ipport] );
 					continue;
 				}
 				// RECALCULATING PLAYER LIST
-				foreach ( $this->updateList [$ip] ["list"] as $player ) {
+				foreach ( $this->updateList [$ipport] ["list"] as $player ) {
 					$allPlayerList [] = $player;
 				}
 				// RECALCULATING MAX LIST
-				$allMax += $this->updateList ["max"];
+				$allMax += $this->updateList [$ipport] ["max"];
 			}
 			// TODO REALLY PREVIEW PLAYER LIST
 			$motd = $this->getServer ()->getConfigString ( "motd", "Minecraft: PE Server" );
@@ -77,26 +75,32 @@ class LoadBalancer extends PluginBase implements Listener {
 			$playerlist = [ ];
 			foreach ( $this->getServer ()->getOnlinePlayers () as $player )
 				$playerlist [] = $player->getName ();
-			CPAPI::sendPacket ( new DataPacket ( $this->db ["master-ip"], $this->db ["master-port"], json_encode ( [ $this->db ["passcode"],$playerlist,$this->getServer ()->getMaxPlayers () ] ) ) );
+			CPAPI::sendPacket ( new DataPacket ( $this->db ["master-ip"], $this->db ["master-port"], json_encode ( [ $this->db ["passcode"],$playerlist,$this->getServer ()->getMaxPlayers (),$this->getServer ()->getPort () ] ) ) );
 		}
 	}
 	public function onDataPacketReceived(DataPacketReceiveEvent $event) {
-		if (isset ( $this->db ["mode"] )) if ($this->db ["mode"] == "slave") {
+		if (isset ( $this->db ["mode"] )) if ($this->db ["mode"] == "master") {
 			if ($event->getPacket ()->pid () == 0x82) {
 				$priority = [ "list" => - 1 ];
-				foreach ( $this->updateList as $ip => $data ) {
+				foreach ( $this->updateList as $ipport => $data ) {
 					if ($priority ["list"] < $data ["list"]) {
-						if ($data ["list"] >= $data ["max"]) continue;
-						$priority ["ip"] = $ip;
-						$priority ["port"] = $this->updateList [$ip] ["port"];
-						$priority ["list"] = $this->updateList [$ip] ["list"];
+						if (count ( $data ["list"] ) >= $data ["max"]) {
+							echo "THAT SERVER IS OVERFLOW\n";
+							continue;
+						}
+						$priority ["ip"] = explode ( ":", $ipport )[0];
+						$priority ["port"] = $this->updateList [$ipport] ["port"];
+						$priority ["list"] = $this->updateList [$ipport] ["list"];
+						echo "SERVER FOUND!";
 					}
 				}
 				if ($priority ["list"] == - 1) {
 					// NO EXTRA SERVER
+					echo "NO EXTRA SERVER\n";
 					$event->setCancelled ();
 					return true;
 				}
+				echo "전송테스트시작 * IP:" . $priority ["ip"] . " PORT:" . $priority ["port"] . "\n";
 				$event->getPlayer ()->dataPacket ( (new StrangePacket ( $priority ["ip"], $priority ["port"] ))->setChannel ( Network::CHANNEL_ENTITY_SPAWNING ) );
 				$event->setCancelled ();
 				return true;
@@ -220,18 +224,18 @@ class LoadBalancer extends PluginBase implements Listener {
 	public function onPacketReceive(CustomPacketReceiveEvent $ev) {
 		$data = json_decode ( $ev->getPacket ()->data );
 		if (! is_array ( $data )) {
-			echo "[테스트] 어레이가 아닌 정보 전달됨";
+			echo "[테스트] 어레이가 아닌 정보 전달됨\n";
 			return;
 		}
 		if ($data [0] != $this->db ["passcode"]) {
-			echo "[테스트] 패스코드가 다른 정보 전달됨";
+			echo "[테스트] 패스코드가 다른 정보 전달됨\n";
 			return;
 		}
 		if ($this->db ["mode"] == "master") {
-			$this->updateList [$ev->getPacket ()->address] ["list"] = $data [1];
-			$this->updateList [$ev->getPacket ()->address] ["max"] = $data [2];
-			$this->updateList [$ev->getPacket ()->address] ["port"] = $ev->getPacket ()->port;
-			$this->updateList [$ev->getPacket ()->address] ["lastcontact"] = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) );
+			$this->updateList [$ev->getPacket ()->address . ":" . $ev->getPacket ()->port] ["list"] = $data [1];
+			$this->updateList [$ev->getPacket ()->address . ":" . $ev->getPacket ()->port] ["max"] = $data [2];
+			$this->updateList [$ev->getPacket ()->address . ":" . $ev->getPacket ()->port] ["port"] = $data [3];
+			$this->updateList [$ev->getPacket ()->address . ":" . $ev->getPacket ()->port] ["lastcontact"] = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) );
 		}
 	}
 	public function makeTimestamp($date) {
