@@ -28,7 +28,7 @@ class Main extends PluginBase implements Listener {
 		
 		$this->initMessage (); // 기본언어메시지 초기화
 		                       
-		// YAML 형식의 DB생성 후 불러오기
+		// YAML 형식의 DB 생성 후 불러오기
 		$this->db = (new Config ( $this->getDataFolder () . "pluginDB.yml", Config::YAML, [ ] ))->getAll ();
 		
 		// 커스텀 패킷 이용
@@ -333,5 +333,3 @@ class Main extends PluginBase implements Listener {
 		}
 	}
 }
-
-?>
