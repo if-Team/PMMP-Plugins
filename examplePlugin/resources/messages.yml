@@ -2,12 +2,13 @@
 # YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
 
 #PLEASE SET HERE TO YOUR LANGUAGE PREFIX
-default-language: ko
 m_version: 1
 
 #(EN) ENGLISH
+eng: true
 
 #(KO) KOREAN
+kor: true
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/blob/master/examplePlugin/resources/messages.yml

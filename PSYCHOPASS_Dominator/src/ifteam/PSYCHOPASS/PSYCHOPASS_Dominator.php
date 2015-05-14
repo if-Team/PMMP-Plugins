@@ -667,23 +667,25 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 		}
 		$keylist = array_keys ( $this->subban_data );
 		foreach ( $keylist as $index => $target_key ) {
-			if ($this->subban_data [$target_key] ["name"] == $name) {
-				
-				$this->pardon_data [$name] ["time"] = date ( $this->getMessage ( "time" ) );
-				if (isset ( $this->subban_data [$name] ["cause"] )) {
-					$this->pardon_data [$name] ["before-cause"] = $this->subban_data [$name] ["cause"];
-				} else {
-					$this->pardon_data [$name] ["before-cause"] = "";
+			if(isset($this->subban_data [$target_key] ["name"] )){
+				if ($this->subban_data [$target_key] ["name"] == $name) {
+					
+					$this->pardon_data [$name] ["time"] = date ( $this->getMessage ( "time" ) );
+					if (isset ( $this->subban_data [$name] ["cause"] )) {
+						$this->pardon_data [$name] ["before-cause"] = $this->subban_data [$name] ["cause"];
+					} else {
+						$this->pardon_data [$name] ["before-cause"] = "";
+					}
+					$this->pardon_data [$name] ["cause"] = $cause;
+					$this->pardon_data [$name] ["executor"] = $executor->getName ();
+					
+					array_splice ( $this->subban_data, $index, 1 );
+					$success_find ++;
+					
+					$executor->sendMessage ( TextFormat::DARK_AQUA . $name . " " . $this->getMessage ( "deleted-subban" ) );
+					$this->getServer ()->broadcastMessage ( TextFormat::DARK_AQUA . $name . $this->getMessage ( "broadcast-pardon-subban" ) . ":" . $cause );
+					break;
 				}
-				$this->pardon_data [$name] ["cause"] = $cause;
-				$this->pardon_data [$name] ["executor"] = $executor->getName ();
-				
-				array_splice ( $this->subban_data, $index, 1 );
-				$success_find ++;
-				
-				$executor->sendMessage ( TextFormat::DARK_AQUA . $name . " " . $this->getMessage ( "deleted-subban" ) );
-				$this->getServer ()->broadcastMessage ( TextFormat::DARK_AQUA . $name . $this->getMessage ( "broadcast-pardon-subban" ) . ":" . $cause );
-				break;
 			}
 		}
 		if (isset ( $this->ipban_data [$name] )) {
