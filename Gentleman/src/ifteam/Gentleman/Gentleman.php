@@ -9,15 +9,22 @@ use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\utils\TextFormat;
 use pocketmine\event\player\PlayerCommandPreprocessEvent;
 use pocketmine\Player;
-use pocketmine\event\player\PlayerLoginEvent;
+use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\block\SignChangeEvent;
+use pocketmine\event\Event;
+use ifteam\Gentleman\task\GentlemanAsyncTask;
+use pocketmine\block\Block;
+use pocketmine\tile\Sign;
+use pocketmine\level\Position;
+use pocketmine\event\player\PlayerKickEvent;
 
 class Gentleman extends PluginBase implements Listener {
 	private static $instance = null;
-	public $list, $messages;
-	public $badQueue = [ ];
-	public $oldChat = [ ], $oldSign = [ ];
 	public $m_version = 1;
+	public $messages, $list, $dictionary;
+	public $badQueue = [ ], $oldChat = [ ];
+	public $chatCheck = [ ], $signCheck = [ ];
+	public $commandCheck = [ ], $nameCheck = [ ];
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		$this->initMessage ();
@@ -33,71 +40,147 @@ class Gentleman extends PluginBase implements Listener {
 	}
 	public function onChat(PlayerChatEvent $event) {
 		if ($event->getPlayer ()->isOp ()) return;
-		$find = $this->checkSwearWord ( $event->getMessage () );
-		if ($find != null) {
-			$event->getPlayer ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "some-badwords-found" ) . ": " . $event->getMessage () . "( " . $this->get ( "doubt" ) . ": " . $find . " ) " );
-			$event->getPlayer ()->sendMessage ( TextFormat::RED . $this->get ( "be-careful-about-badwords" ) );
+		if (! isset ( $this->chatCheck [$event->getPlayer ()->getName () . ">" . $event->getMessage ()] )) {
+			$this->chatCheck [$event->getPlayer ()->getName () . ">" . $event->getMessage ()] = false;
+			$this->getServer ()->getScheduler ()->scheduleAsyncTask ( new GentlemanAsyncTask ( $event->getPlayer ()->getName (), $event->getFormat (), $event->getMessage (), $this->badQueue, $this->dictionary, "chat", true ) );
 			$event->setCancelled ();
-			$this->cautionNotice ( $event->getPlayer (), $event->getMessage () . "( " . $find . " ) " );
 			return;
-		}
-		if (isset ( $this->oldChat [$event->getPlayer ()->getName ()] )) {
-			$find = $this->checkSwearWord ( $this->oldChat [$event->getPlayer ()->getName ()] . $event->getMessage () );
-			if ($find != null) {
-				$event->getPlayer ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "some-badwords-found" ) . ": " . $event->getMessage () . "( " . $this->get ( "doubt" ) . ": " . $find . " ) " );
-				$event->getPlayer ()->sendMessage ( TextFormat::RED . $this->get ( "be-careful-about-badwords" ) );
+		} else {
+			if (! $this->chatCheck [$event->getPlayer ()->getName () . ">" . $event->getMessage ()]) {
 				$event->setCancelled ();
-				$this->cautionNotice ( $event->getPlayer (), $event->getMessage () . "( " . $find . " ) " );
 				return;
+			} else {
+				unset ( $this->chatCheck [$event->getPlayer ()->getName () . ">" . $event->getMessage ()] );
 			}
 		}
-		$this->oldChat [$event->getPlayer ()->getName ()] = $event->getMessage ();
+	}
+	public function userCommand(PlayerCommandPreprocessEvent $event) {
+		$command = $event->getMessage ();
+		if ($event->getPlayer ()->isOp ()) return;
+		$command = explode ( ' ', $command );
+		if ($command [0] != "/me" and $command [0] != "/tell" and $command [0] != "/w" and $command [0] != "/환영말") return;
+		
+		if (! isset ( $this->commandCheck [$event->getPlayer ()->getName () . ">" . $event->getMessage ()] )) {
+			$this->commandCheck [$event->getPlayer ()->getName () . ">" . $event->getMessage ()] = false;
+			$this->getServer ()->getScheduler ()->scheduleAsyncTask ( new GentlemanAsyncTask ( $event->getPlayer ()->getName (), null, $event->getMessage (), $this->badQueue, $this->dictionary, "command", true ) );
+			$event->setCancelled ();
+		} else {
+			if (! $this->commandCheck [$event->getPlayer ()->getName () . ">" . $event->getMessage ()]) {
+				$event->setCancelled ();
+				return;
+			} else {
+				unset ( $this->commandCheck [$event->getPlayer ()->getName () . ">" . $event->getMessage ()] );
+			}
+		}
 	}
 	public function signPlace(SignChangeEvent $event) {
 		if ($event->getPlayer ()->isOp ()) return;
 		$message = "";
 		foreach ( $event->getLines () as $line )
-			$message .= $line;
-		$find = $this->checkSwearWord ( $message );
-		if ($find != null) {
-			$event->getPlayer ()->sendMessage ( TextFormat::RED . $this->get ( "some-badwords-found" ) . ": " . $message . " ( " . $this->get ( "doubt" ) . ": " . $find . " )" );
-			$event->getPlayer ()->sendMessage ( TextFormat::RED . $this->get ( "be-careful-about-badwords" ) );
+			$message .= $line . "\n";
+		
+		if (! isset ( $this->signCheck [$event->getPlayer ()->getName () . ">" . $message] )) {
+			$this->signCheck [$event->getPlayer ()->getName () . ">" . $message] = false;
+			$blockPos = "{$event->getBlock ()->x}:{$event->getBlock ()->y}:{$event->getBlock ()->z}";
+			$this->getServer ()->getScheduler ()->scheduleAsyncTask ( new GentlemanAsyncTask ( $event->getPlayer ()->getName (), [ $event->getBlock ()->getId (),$event->getBlock ()->getDamage (),$blockPos ], $message, $this->badQueue, $this->dictionary, "sign", true ) );
 			$event->setCancelled ();
-			$this->cautionNotice ( $event->getPlayer (), $message . " ( " . $find . " ) " );
 			return;
-		}
-		if (isset ( $this->oldSign [$event->getPlayer ()->getName ()] )) {
-			$find = $this->checkSwearWord ( $this->oldSign [$event->getPlayer ()->getName ()] . $message );
-			if ($find != null) {
-				$event->getPlayer ()->sendMessage ( TextFormat::RED . $this->get ( "some-badwords-found" ) . ": " . $message . " ( " . $this->get ( "doubt" ) . ": " . $find . " )" );
-				$event->getPlayer ()->sendMessage ( TextFormat::RED . $this->get ( "be-careful-about-badwords" ) );
+		} else {
+			if (! $this->signCheck [$event->getPlayer ()->getName () . ">" . $message]) {
 				$event->setCancelled ();
-				$this->cautionNotice ( $event->getPlayer (), $find );
+				return;
+			} else {
+				unset ( $this->signCheck [$event->getPlayer ()->getName () . ">" . $message] );
+			}
+		}
+	}
+	public function onJoin(PlayerJoinEvent $event) {
+		if ($event->getPlayer ()->isOp ()) return;
+		if (! isset ( $this->nameCheck [$event->getPlayer ()->getName ()] )) {
+			$this->nameCheck [$event->getPlayer ()->getName ()] = true;
+			$this->getServer ()->getScheduler ()->scheduleAsyncTask ( new GentlemanAsyncTask ( $event->getPlayer ()->getName (), $event->getJoinMessage (), $event->getPlayer ()->getName (), $this->badQueue, $this->dictionary, "name", true ) );
+			$event->setJoinMessage ( "" );
+		} else {
+			if (! $this->nameCheck [$event->getPlayer ()->getName ()]) {
+				$event->setCancelled ();
 				return;
 			}
 		}
-		$this->oldSign [$event->getPlayer ()->getName ()] = $message;
 	}
-	public function userCommand(PlayerCommandPreprocessEvent $event) {
-		$command = $event->getMessage ();
-		
-		if ($event->getPlayer ()->isOp ()) return;
-		$command = explode ( ' ', $command );
-		if ($command [0] == "/me" or $command [0] == "/tell" or $command [0] == "/w" or $command [0] == "/환영말") {
-			$find = $this->checkSwearWord ( $event->getMessage () );
-			if ($find != null) {
-				$event->getPlayer ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "some-badwords-found" ) . ": " . " (" . $this->get ( "doubt" ) . ": " . $find . " )" );
-				$event->setCancelled ();
-				$this->cautionNotice ( $event->getPlayer (), $event->getMessage () . " ( " . $find . " )" );
-			}
+	public function asyncProcess($name, $format, $message, $find, $eventType) {
+		$player = $this->getServer ()->getPlayer ( $name );
+		if (! $player instanceof Player) return;
+		switch ($eventType) {
+			case "chat" :
+				if ($find == null) {
+					if (isset ( $this->chatCheck [$name . ">" . $message] )) {
+						$this->chatCheck [$name . ">" . $message] = true;
+						$this->getServer ()->getPluginManager ()->callEvent ( $event = new PlayerChatEvent ( $player, $message, $format ) );
+						if (! $event->isCancelled ()) {
+							$this->getServer ()->broadcastMessage ( $this->getServer ()->getLanguage ()->translateString ( $event->getFormat (), [ $event->getPlayer ()->getDisplayName (),$event->getMessage () ] ), $event->getRecipients () );
+						}
+					}
+				} else {
+					$player->sendMessage ( TextFormat::RED . $this->get ( "some-badwords-found" ) . ": " . $message . "( " . $this->get ( "doubt" ) . ": " . $find . " ) " );
+					$player->sendMessage ( TextFormat::RED . $this->get ( "be-careful-about-badwords" ) );
+					$this->cautionNotice ( $player, $message . "( " . $find . " ) " );
+					return;
+				}
+				break;
+			case "command" :
+				if ($find == null) {
+					if (isset ( $this->commandCheck [$player->getName () . ">" . $message] )) {
+						$this->commandCheck [$player->getName () . ">" . $message] = true;
+						$this->getServer ()->getPluginManager ()->callEvent ( $event = new PlayerCommandPreprocessEvent ( $player, $message ) );
+						if (! $event->isCancelled ()) {
+							$this->getServer ()->dispatchCommand ( $event->getPlayer (), substr ( $event->getMessage (), 1 ) );
+						}
+					}
+				} else {
+					$player->sendMessage ( TextFormat::RED . $this->get ( "some-badwords-found" ) . ": " . $message . " ( " . $this->get ( "doubt" ) . ": " . $find . " )" );
+					$player->sendMessage ( TextFormat::RED . $this->get ( "be-careful-about-badwords" ) );
+					$this->cautionNotice ( $player, $message . " ( " . $find . " ) " );
+					return;
+				}
+				break;
+			case "sign" :
+				if ($find == null) {
+					if (isset ( $this->signCheck [$player->getName () . ">" . $message] )) {
+						$this->signCheck [$player->getName () . ">" . $message] = true;
+						$blockPos = explode ( ":", $format [2] );
+						$block = Block::get ( $format [0], $format [1], new Position ( $blockPos [0], $blockPos [1], $blockPos [2], $player->getLevel () ) );
+						$lines = explode ( "\n", $message );
+						$event = new SignChangeEvent ( $block, $player, [ TextFormat::clean ( $lines [0], $player->getRemoveFormat () ),TextFormat::clean ( $lines [1], $player->getRemoveFormat () ),TextFormat::clean ( $lines [2], $player->getRemoveFormat () ),TextFormat::clean ( $lines [3], $player->getRemoveFormat () ) ] );
+						$this->getServer ()->getPluginManager ()->callEvent ( $event );
+						$tile = $player->getLevel ()->getTile ( $block );
+						if (! $tile instanceof Sign) return;
+						if (! $event->isCancelled ()) {
+							$tile->setText ( $lines [0], $lines [1], $lines [2], $lines [3] );
+						}
+					}
+				} else {
+					$message = explode ( "\n", $message );
+					$message = implode ( " ", $message );
+					$player->sendMessage ( TextFormat::RED . $this->get ( "some-badwords-found" ) . ": " . $message . " ( " . $this->get ( "doubt" ) . ": " . $find . " )" );
+					$player->sendMessage ( TextFormat::RED . $this->get ( "be-careful-about-badwords" ) );
+					$this->cautionNotice ( $player, $message . " ( " . $find . " ) " );
+					return;
+				}
+				break;
+			case "name" :
+				if (isset ( $this->nameCheck [$player->getName ()] )) {
+					$this->nameCheck [$player->getName ()] = true;
+					if (strlen ( trim ( $format ) ) > 0) $this->getServer ()->broadcastMessage ( $format );
+				} else {
+					$player->kick ( $this->get ( "badwords-nickname" ) );
+					return;
+				}
+				break;
 		}
 	}
-	public function onLogin(PlayerLoginEvent $event) {
-		if ($event->getPlayer ()->isOp ()) return;
-		$find = $this->checkSwearWord ( $event->getPlayer ()->getName () );
-		if ($find != null) {
-			$event->setCancelled ();
-			$event->setKickMessage ( $this->get ( "badwords-nickname" ) );
+	public function onKick(PlayerKickEvent $event) {
+		if ($event->getReason () == $this->get ( "badwords-nickname" )) {
+			$event->setQuitMessage ( "" );
 		}
 	}
 	public function cautionNotice(Player $player, $word) {
@@ -112,8 +195,10 @@ class Gentleman extends PluginBase implements Listener {
 	public function initMessage() {
 		$this->saveResource ( "messages.yml", false );
 		$this->saveResource ( "badwords.json", false );
+		$this->saveResource ( "dictionary.yml", false ); // $dictionary
 		$this->messages = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
 		$this->list = (new Config ( $this->getDataFolder () . "badwords.json", Config::JSON ))->getAll ();
+		$this->dictionary = (new Config ( $this->getDataFolder () . "dictionary.yml", Config::YAML ))->getAll ();
 		$this->makeQueue ();
 	}
 	public function makeQueue() {
@@ -121,9 +206,9 @@ class Gentleman extends PluginBase implements Listener {
 			$this->badQueue [] = $this->cutWords ( $badword );
 	}
 	public function cutWords($str) {
-		$cut_array = array ();
+		$cut_array = [ ];
 		for($i = 0; $i < mb_strlen ( $str, "UTF-8" ); $i ++)
-			array_push ( $cut_array, mb_substr ( $str, $i, 1, 'UTF-8' ) );
+			$cut_array [] = mb_substr ( $str, $i, 1, 'UTF-8' );
 		return $cut_array;
 	}
 	public function get($var) {
@@ -142,31 +227,21 @@ class Gentleman extends PluginBase implements Listener {
 	}
 	public function parseXEDatabaseToJSON() {
 		$parseBadwords = file_get_contents ( $this->getDataFolder () . "badwords.txt" );
-		$parseBadwords = mb_convert_encoding ( $parseBadwords, "UTF-8", "CP949" );
-		$parseBadwords = explode ( ' ', $parseBadwords );
+		// $parseBadwords = mb_convert_encoding ( $parseBadwords, "UTF-8", "CP949" );
+		$parseBadwords = explode ( "\n", $parseBadwords );
 		
-		$list = [ "badwords" => [ ] ];
-		foreach ( $parseBadwords as $badword )
-			$list ["badwords"] [] = $badword;
-		
-		$this->list = new Config ( $this->getDataFolder () . "badwords.json", Config::JSON, $list );
-		$this->list->save ();
-	}
-	public function checkSwearWord($word) {
-		$word = $this->cutWords ( $word );
-		foreach ( $this->badQueue as $queue ) { // 비속어단어별 [바,보]
-			$wordLength = count ( $queue );
-			$find_count = [ ];
-			foreach ( $queue as $match_alpha ) { // 비속어글자별 [바], [보]
-				foreach ( $word as $used_alpha ) // 유저글자별 [ 나,는,바,보,다]
-					if (strtolower ( $match_alpha ) == strtolower ( $used_alpha )) {
-						$find_count [$match_alpha] = 0; // ["바"=>0 "보"=0]
-						break;
-					}
-				if ($wordLength == count ( $find_count )) return implode ( "", $queue );
-			}
+		$checkDuplicate = [ ];
+		foreach ( $parseBadwords as $index => $badword ) {
+			$checkDuplicate [$badword] = $index;
 		}
-		return null;
+		
+		foreach ( $checkDuplicate as $badword => $data ) {
+			$list ["badwords"] [] = $badword;
+		}
+		$this->list = new Config ( $this->getDataFolder () . "badwords_conv.yml", Config::YAML, [ ] );
+		
+		$this->list = new Config ( $this->getDataFolder () . "badwords_conv.json", Config::JSON, $this->list->getAll () );
+		$this->list->save ();
 	}
 }
 
