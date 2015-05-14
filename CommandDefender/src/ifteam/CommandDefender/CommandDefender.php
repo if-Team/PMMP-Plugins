@@ -5,6 +5,7 @@ namespace ifteam\CommandDefender;
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerCommandPreprocessEvent;
+use pocketmine\event\player\PlayerChatEvent;
 
 class CommandDefender extends PluginBase implements Listener {
 	public $queue = [ ];
@@ -18,11 +19,25 @@ class CommandDefender extends PluginBase implements Listener {
 		foreach ( $this->queue as $index => $data )
 			unset ( $this->queue [$index] );
 	}
-	public function CommandDefender(PlayerCommandPreprocessEvent $event) {
+	public function onChat(PlayerChatEvent $event) {
+		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new PlayerChatEventTask ( $this, $event ), 2 );
+	}
+	public function chatCheck($event) {
+		if (! $event instanceof PlayerChatEvent) return;
+		if (! isset ( $this->queue [$event->getPlayer ()->getAddress ()] )) $this->queue [$event->getPlayer ()->getAddress ()] = 1;
+		$this->queue [$event->getPlayer ()->getAddress ()] ++;
+		
+		if ($this->queue [$event->getPlayer ()->getAddress ()] >= 4) {
+			$event->getPlayer ()->kick ( "채팅도배" );
+			$this->getServer ()->blockAddress ( $event->getPlayer ()->getAddress (), 20 );
+		}
+	}
+	public function onPreCommand(PlayerCommandPreprocessEvent $event) {
 		if (! isset ( $this->queue [$event->getPlayer ()->getAddress ()] )) $this->queue [$event->getPlayer ()->getAddress ()] = 1;
 		$this->queue [$event->getPlayer ()->getAddress ()] ++;
 		
 		if ($this->queue [$event->getPlayer ()->getAddress ()] >= 5) { // 2초에 5번명령어 사용시 20초간 킥
+			$event->getPlayer ()->kick ( "명령어도배" );
 			$this->getServer ()->blockAddress ( $event->getPlayer ()->getAddress (), 20 );
 		}
 	}
