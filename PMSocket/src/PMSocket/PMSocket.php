@@ -2,6 +2,7 @@
 namespace PMSocket;
 
 use pocketmine\event\Listener;
+use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\plugin\PluginBase;
 use ifteam\CustomPacket\event\CustomPacketReceiveEvent;
 use ifteam\CustomPacket\DataPacket;
@@ -9,6 +10,7 @@ use ifteam\CustomPacket\CPAPI;
 use pocketmine\utils\TextFormat;
 
 class PMSocket extends PluginBase implements Listener {
+    public $adr, $port;
     public function onEnable() {
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
         $this->getLogger()->info(TextFormat::GOLD . "[PMSocket]enabled");
@@ -18,9 +20,17 @@ class PMSocket extends PluginBase implements Listener {
             return;
         }
     }
+    public function onChat(PlayerChatEvent $ev) {
+        CPAPI::sendPacket(new DataPacket($this->adr, $this->port, "[CHAT] "."<".$ev->getPlayer()->getName()."> ".$ev->getMessage()));
+    }
     public function onPacketReceive(CustomPacketReceiveEvent $ev) {
-        $this->getLogger()->info("PacketRecieved : ".$ev->getPacket()->data);
-        $this->getLogger()->info("Address - ".$ev->getPacket()->address.":".$ev->getPacket()->port);
-        CPAPI::sendPacket(new DataPacket($ev->getPacket()->address, $ev->getPacket()->port, "hello"));
+        $data = explode(" ", $ev->getPacket()->data);
+        $this->port = $ev->getPacket()->port;
+        $this->adr = $ev->getPacket()->address;
+        switch($data[0]) {
+            case "connect" :
+                $this->getLogger()->info("Connected in ".$this->adr.":".$this->port);
+                break;
+        }
     }
 }
