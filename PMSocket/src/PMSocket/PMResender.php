@@ -4,6 +4,9 @@ namespace PMSocket;
 
 use pocketmine\event\Listener;
 use ifteam\CustomPacket\event\CustomPacketReceiveEvent;
+use ifteam\CustomPacket\CPAPI;
+use ifteam\CustomPacket\DataPacket;
+use PMSocket\PMAttachment;
 
 class PMResender implements Listener {
 	private $adr = null, $port = null;
@@ -21,9 +24,9 @@ class PMResender implements Listener {
 					$this->adr = $ev->getPacket ()->address;
 					$this->port = $ev->getPacket ()->port;
 					$this->att->LogIn ( $this->adr, $this->port );
-					$this->getLogger ()->info ( "Connected in " . $this->adr . ":" . $this->port );
+					echo ( "Connected in " . $this->adr . ":" . $this->port );
 				} else {
-					$this->getLogger ()->info ( "Tried to Connect in " . $this->adr . ":" . $this->port );
+					echo ( "Tried to Connect in " . $this->adr . ":" . $this->port );
 					CPAPI::sendPacket ( new DataPacket ( $this->adr, $this->port, "cantconnect" ) );
 				}
 				break;
