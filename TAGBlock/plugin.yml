@@ -1,5 +1,9 @@
 name: TAGBlock
-main: TAGBlock\TAGBlock
-version: 0.4-Alpha
-author: hm
+main: ifteam\TAGBlock\TAGBlock
+version: 0.6-Alpha
+author: ifteam
 api: [1.12.0]
+
+permissions:
+ tagblock.add:
+  default: OP

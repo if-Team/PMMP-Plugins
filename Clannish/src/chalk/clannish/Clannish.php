@@ -23,99 +23,250 @@
  */
 namespace chalk\clannish;
 
+use chalk\clannish\clan\Clan;
+use chalk\clannish\clan\ClanMember;
+use chalk\clannish\command\ChattingRoomCommand;
+use chalk\clannish\command\CreateClanCommand;
+use chalk\utils\Messages;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerChatEvent;
+use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
 
 class Clannish extends PluginBase implements Listener {
-    /** @var array */
-    private $data = [];
+    /** @var Clannish */
+    private static $instance = null;
 
     /** @var string */
-    private $language = "en";
+    private static $bannedCharactersPattern = "/[^a-z-]+/";
 
-    /** @var array */
-    private $resources = [];
+    /** @var int */
+    private $maximumOwningClansCount = 1;
+
+    /** @var Clan[] */
+    private $clans = [];
+
+    /** @var Messages */
+    private $messages = [];
+
+    /* ====================================================================================================================== *
+     *                         Below methods are plugin implementation part. Please do not call them!                         *
+     * ====================================================================================================================== */
+
+    public function onLoad(){
+        self::$instance = $this;
+    }
 
     public function onEnable(){
+        $this->loadConfig();
+        $this->loadClans();
+        $this->loadMessages();
+
+        $this->registerAll();
+    }
+
+    public function loadConfig(){
         @mkdir($this->getDataFolder());
-
-        $dataConfig = new Config($this->getDataFolder() . "data.json", Config::JSON);
-        $dataConfig->save();
-        $this->data = $dataConfig->getAll();
-
-        $this->saveResource("resources.json", false);
-        $resourcesConfig = new Config($this->getDataFolder() . "resources.json", Config::JSON);
-        $resourcesConfig->save();
-        $this->resources = $resourcesConfig->getAll();
-
         $this->saveDefaultConfig();
-        $this->language = $this->getConfig()->get("current-language", $this->getConfig()->get("default-language"));
 
-        $this->getServer()->getPluginManager()->registerEvents($this, $this);
-        $this->registerCommands();
+        self::$bannedCharactersPattern = $this->getConfig()->get("clan-name-pattern", "/[^a-z-]+/");
+        $this->maximumOwningClansCount = $this->getConfig()->get("maximum-owning-clans-count", 1);
     }
 
-    public function registerCommands(){
-        $map = [
-            "ChattingRoomCommand" => "chalk\\clannish\\command\\ChattingRoomCommand"
-        ];
+    public function loadClans($override = true){
+        if($override){
+            $this->clans = [];
+        }
 
-        foreach($this->getResource("commands") as $command){
-            $this->getServer()->getCommandMap()->register("clannish", new $map[$command["type"]]($this, $command));
+        $clansConfig = new Config($this->getDataFolder() . "clans.yml", Config::YAML);
+        foreach($clansConfig->getAll() as $index => $array){
+            $this->clans[] = Clan::createFromArray($index, $array);
         }
     }
 
-    public function onPlayerChat(PlayerChatEvent $event){
-        $sender = $event->getPlayer();
-        if(!$sender->hasPermission("Clannish")){
-            return;
+    public function saveClans(){
+        $clansConfig = new Config($this->getDataFolder() . "clans.yml", Config::YAML);
+        $clans = [];
+
+        foreach($this->getClans() as $clan){
+            $clans[$clan->getName()] = $clan->toArray();
         }
-        
-        $key = strToLower($sender->getName());
-        if(isset($this->data[$key]) and $this->data[$key]["room"] !== "main"){
-            $event->setCancelled(true);
-            foreach($this->data[$key]["roomMembers"] as $member){
-                //TODO: Implements this stuff
-            }
-        }
+
+        $clansConfig->setAll($clans);
+        $clansConfig->save();
     }
 
     /**
-     * @return array
+     * @param bool $override
      */
-    public function getData(){
-        return $this->data;
+    public function loadMessages($override = false){
+        $this->saveResource("messages.yml", $override);
+
+        $messagesConfig = new Config($this->getDataFolder() . "messages.yml", Config::YAML);
+        $this->messages = new Messages($messagesConfig->getAll());
+    }
+
+    /**
+     * @return Messages
+     */
+    public function getMessages(){
+        return $this->messages;
+    }
+
+    public function registerAll(){
+        $this->registerCommand("create-clan", CreateClanCommand::class);
+        $this->getServer()->getPluginManager()->registerEvents($this, $this);
+    }
+
+    /**
+     * @param string $name
+     * @param class $class
+     */
+    public function registerCommand($name, $class){
+        $this->getServer()->getCommandMap()->register("Clannish", new $class(
+            $this,
+            $this->getMessages()->getMessage($name . "-command-name"),
+            $this->getMessages()->getMessage($name . "-command-description"),
+            $this->getMessages()->getMessage($name . "-command-usage")
+        ));
+    }
+
+    /* ====================================================================================================================== *
+     *                                     Below methods are API part. You can call them!                                     *
+     * ====================================================================================================================== */
+
+    /**
+     * @return Clannish
+     */
+    public static function getInstance(){
+        return self::$instance;
     }
 
     /**
      * @return string
      */
-    public function getLanguage(){
-        return $this->language;
+    public static function getBannedCharactersPattern(){
+        return self::$bannedCharactersPattern;
     }
 
     /**
-     * @return array
+     * @return int
      */
-    public function getResources(){
-        return $this->resources;
+    public function getMaximumOwningClansCount(){
+        return $this->maximumOwningClansCount;
     }
 
     /**
-     * @param string $key
-     * @return mixed
+     * @return Clan[]
      */
-    public function getResource($key){
-        $resource = $this->getResources()[$this->getLanguage()];
-        if(!isset($resource)){
-            $resource = $this->getResources()[$this->getConfig()->get("default-language")];
+    public function getClans(){
+        return $this->clans;
+    }
+
+    /**
+     * @param string|Player|ClanMember $name
+     * @return Clan[]
+     */
+    public function getJoinedClans($name){
+        $name = Clannish::validateName($name);
+
+        $joinedClans = [];
+        foreach($this->getClans() as $clan){
+            if($clan->isMember($name)){
+                $joinedClans[] = $clan;
+            }
         }
 
-        foreach(explode(".", $key) as $k){
-            $resource = $resource[$k];
+        return $joinedClans;
+    }
+
+    /**
+     * @param string|Player|ClanMember $name
+     * @return Clan[]
+     */
+    public function getOwningClans($name){
+        $name = Clannish::validateName($name);
+
+        $owningClans = [];
+        foreach($this->getJoinedClans($name) as $clan){
+            if($clan->getLeader()->getName() === $name){
+                $owningClans[] = $clan;
+            }
         }
-        return $resource;
+
+        return $owningClans;
+    }
+
+    /**
+     * @param string|Player|Clan|ClanMember $name
+     * @param bool $checkPattern
+     * @return string
+     */
+    public static function validateName($name, $checkPattern = false){
+        if($name instanceof Player or $name instanceof Clan or $name instanceof ClanMember){
+            $name = $name->getName();
+        }
+
+        $name = strToLower($name);
+
+        if($checkPattern){
+            $name = preg_replace(self::getBannedCharactersPattern(), "", $name);
+        }
+
+        return $name;
+    }
+
+    /**
+     * @param string|Clan $name
+     * @return int
+     */
+    private function indexOfClan($name){
+        $name = Clannish::validateName($name);
+
+        foreach($this->getClans() as $index => $clan){
+            if($name === $clan->getName()){
+                return $index;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * @param string|Clan $name
+     * @return null|Clan
+     */
+    public function getClan($name){
+        $name = Clannish::validateName($name);
+
+        $index = $this->indexOfClan($name);
+        if($index < 0){
+            return null;
+        }else{
+            return $this->getClans()[$index];
+        }
+    }
+
+    /**
+     * @param string|Clan $name
+     * @return bool
+     */
+    public function isClan($name){
+        $name = Clannish::validateName($name);
+
+        return $this->getClan($name) !== null;
+    }
+
+    /* ====================================================================================================================== *
+     *                                Below methods are non-API part. Please do not call them!                                *
+     * ====================================================================================================================== */
+
+    public function onPlayerChat(PlayerChatEvent $event){
+        $sender = $event->getPlayer();
+        if(!$sender->hasPermission("Clannish.activity")){
+            return;
+        }
+
+        //TODO: Implement this method
     }
 }

@@ -2,18 +2,19 @@
 # YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
 
 #PLEASE SET HERE TO YOUR LANGUAGE PREFIX
-default-language: en
-m_version: 1
+m_version: 2
 
 #(EN) ENGLISH
-en-serverinfo: "< SERVER INFO >"
-en-usercount: "ONLINE : "
-en-mymoney: "MYMONEY : "
+eng: true
+eng-serverinfo: "< SERVER INFO >"
+eng-usercount: "ONLINE : "
+eng-mymoney: "MYMONEY : "
 
 #(KO) KOREAN
-ko-serverinfo: "< 서버 정보 >"
-ko-usercount: "접속인원 : "
-ko-mymoney: "보유금액 : "
+kor: true
+kor-serverinfo: "< 서버 정보 >"
+kor-usercount: "접속인원 : "
+kor-mymoney: "보유금액 : "
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/blob/master/EDGE/resources/messages.yml

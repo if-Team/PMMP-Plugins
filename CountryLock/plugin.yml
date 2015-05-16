@@ -1,5 +1,5 @@
 name : CountryLock
-main : CountryLock\CountryLock
-author : hm
+main : ifteam\CountryLock\CountryLock
+author : ifteam
 version : 1.0
 api : [1.4.1]

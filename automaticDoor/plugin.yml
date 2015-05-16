@@ -1,5 +1,5 @@
 name: automaticDoor
-main: hm\automaticDoor\automaticDoor
+main: ifteam\automaticDoor\automaticDoor
 version: 1.1-alpha
-author: hm
+author: ifteam
 api: [1.12.0]

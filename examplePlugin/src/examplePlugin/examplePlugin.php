@@ -7,6 +7,8 @@ use pocketmine\event\Listener;
 use pocketmine\utils\Config;
 use pocketmine\command\PluginCommand;
 use pocketmine\utils\TextFormat;
+use pocketmine\command\CommandSender;
+use pocketmine\command\Command;
 
 class examplePlugin extends PluginBase implements Listener {
 	private static $instance = null; // 인스턴스 변수
@@ -41,8 +43,20 @@ class examplePlugin extends PluginBase implements Listener {
 		// 서버이벤트를 받아오게끔 플러그인 리스너를 서버에 등록
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
+	public function onCommand(CommandSender $player, Command $command, $label, Array $args) {
+		switch (strtolower ( $command->getName () )) {
+			case $this->get ( "commands-buy" ) :
+				break;
+		}
+		return true;
+	}
 	public function get($var) {
-		return $this->messages [$this->messages ["default-language"] . "-" . $var];
+		if (isset ( $this->messages [$this->getServer ()->getLanguage ()->getLang ()] )) {
+			$lang = $this->getServer ()->getLanguage ()->getLang ();
+		} else {
+			$lang = "eng";
+		}
+		return $this->messages [$lang . "-" . $var];
 	}
 	public static function getInstance() {
 		return static::$instance;
@@ -60,13 +74,13 @@ class examplePlugin extends PluginBase implements Listener {
 			$this->saveResource ( $targetYmlName, true );
 		}
 	}
-	public function registerCommand($name, $fallback, $permission, $description = "", $usage = "") {
+	public function registerCommand($name, $permission, $description = "", $usage = "") {
 		$commandMap = $this->getServer ()->getCommandMap ();
 		$command = new PluginCommand ( $name, $this );
 		$command->setDescription ( $description );
 		$command->setPermission ( $permission );
 		$command->setUsage ( $usage );
-		$commandMap->register ( $fallback, $command );
+		$commandMap->register ( $name, $command );
 	}
 	public function message($player, $text = "", $mark = null) {
 		if ($mark == null) $mark = $this->get ( "default-prefix" );

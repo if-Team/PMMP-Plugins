@@ -1,5 +1,5 @@
 name: placebo
-main: placebo\placebo
-version: 1.0-alpha
-author: hm
+main: ifteam\placebo\placebo
+version: 1.1-alpha
+author: ifteam
 api: [1.4.1]

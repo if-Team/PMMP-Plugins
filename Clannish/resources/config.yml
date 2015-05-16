@@ -1,4 +1,4 @@
 ---
-default-language: en
-current-language: en
+maximum-owning-clans-count: 1
+banned-characters-pattern: "/[^a-z-]+/"
 ...

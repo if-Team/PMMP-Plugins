@@ -1,5 +1,5 @@
 name: CommandDefender
-main: CommandDefender\CommandDefender
-version: 0.2-Alpha
-author: hm
+main: ifteam\CommandDefender\CommandDefender
+version: 0.3-Alpha
+author: ifteam
 api: [1.12.0]

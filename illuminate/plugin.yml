@@ -1,5 +1,5 @@
 name: illuminate
-main: hm\illuminate\illuminate
+main: ifteam\illuminate\illuminate
 version: 1.5-alpha
-author: hm
+author: ifteam
 api: [1.4.1]

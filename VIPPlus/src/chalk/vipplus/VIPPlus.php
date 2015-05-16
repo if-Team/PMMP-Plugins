@@ -76,7 +76,6 @@ class VIPPlus extends PluginBase implements Listener {
         $this->loadMessages();
 
         $this->registerAll();
-
     }
 
     public function onDisable(){
@@ -86,15 +85,19 @@ class VIPPlus extends PluginBase implements Listener {
     private function registerAll(){
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
 
-        $healCommand = new PluginCommand($this->getMessages()->getMessage("vip-heal-command-name"), $this);
-        $healCommand->setUsage($healCommand->getName());
-        $healCommand->setDescription($this->getMessages()->getMessage("vip-heal-command-description"));
-        $this->getServer()->getCommandMap()->register("VIPPlus", $healCommand);
+        $this->registerCommand("vip-heal");
+        $this->registerCommand("vip-inferno");
+    }
 
-        $infernoCommand = new PluginCommand($this->getMessages()->getMessage("vip-inferno-command-name"), $this);
-        $infernoCommand->setUsage($healCommand->getName());
-        $infernoCommand->setDescription($this->getMessages()->getMessage("vip-inferno-command-description"));
-        $this->getServer()->getCommandMap()->register("VIPPlus", $infernoCommand);
+    /**
+     * @param string $name
+     */
+    private function registerCommand($name){
+        $command = new PluginCommand($this->getMessages()->getMessage($name . "-command-name"), $this);
+        $command->setUsage($command->getName());
+        $command->setDescription($this->getMessages()->getMessage($name . "-command-description"));
+
+        $this->getServer()->getCommandMap()->register("VIPPlus", $command);
     }
 
     public function loadConfig(){
@@ -114,13 +117,13 @@ class VIPPlus extends PluginBase implements Listener {
      * @param bool $override
      */
     public function loadVips($override = true){
+        $vipsConfig = new Config($this->getDataFolder() . "vips.json", Config::JSON);
         if($override){
             $this->vips = [];
         }
 
-        $vipsConfig = new Config($this->getDataFolder() . "vips.yml", Config::YAML);
-        foreach($vipsConfig->getAll() as $name => $data){
-            array_push($this->vips, new VIP($name, $data));
+        foreach($vipsConfig->getAll() as $index => $data){
+            $this->vips[] = VIP::createFromArray($index, $data);
         }
     }
 
@@ -128,11 +131,14 @@ class VIPPlus extends PluginBase implements Listener {
      * @return bool
      */
     public function saveVips(){
-        $vipsConfig = new Config($this->getDataFolder() . "vips.yml", Config::YAML);
+        $vipsConfig = new Config($this->getDataFolder() . "vips.json", Config::JSON);
+        $vips = [];
+
         foreach($this->getVips() as $vip){
-            $vipsConfig->set($vip->getName(), $vip->getData());
+            $vips[$vip->getName()] = $vip->toArray();
         }
 
+        $vipsConfig->setAll($vips);
         return $vipsConfig->save();
     }
 
@@ -181,11 +187,11 @@ class VIPPlus extends PluginBase implements Listener {
     }
 
     /**
-     * @param string|Player $name
+     * @param string|Player|VIP $name
      * @return string
      */
     private static function validateName($name){
-        if($name instanceof Player){
+        if($name instanceof Player or $name instanceof VIP){
             $name = $name->getName();
         }
 
@@ -193,7 +199,7 @@ class VIPPlus extends PluginBase implements Listener {
     }
 
     /**
-     * @param string|Player $name
+     * @param string|Player|VIP $name
      * @return int
      */
     private function indexOfVip($name){
@@ -208,32 +214,28 @@ class VIPPlus extends PluginBase implements Listener {
     }
 
     /**
-     * @param string|Player $name
-     * @return null|VIP
+     * @param string|Player|VIP $name
+     * @return VIP|null
      */
     public function getVip($name){
         $name = VIPPlus::validateName($name);
 
         $index = $this->indexOfVip($name);
-        if($index < 0){
-            return null;
-        }else{
-            return $this->getVips()[$index];
-        }
+        return $index >= 0 ? $this->getVips()[$index] : null;
     }
 
     /**
-     * @param string|Player $name
+     * @param string|Player|VIP $name
      * @return bool
      */
     public function isVip($name){
         $name = VIPPlus::validateName($name);
 
-        return $this->getVip($name) !== 0;
+        return $this->getVip($name) !== null;
     }
 
     /**
-     * @param string|Player $name
+     * @param string|Player|VIP $name
      * @return null|string
      */
     public function addVip($name){
@@ -242,7 +244,7 @@ class VIPPlus extends PluginBase implements Listener {
         if($this->isVip($name)){
             return $this->getMessages()->getMessage("vip-already-vip", [$name]);
         }
-        array_push($this->getVips(), $name);
+        $this->getVips()[] = $name;
         $this->saveVips();
 
         $gratuityAmount = $this->getConfig()->get("vip-gratuity-amount", 0);
@@ -254,7 +256,7 @@ class VIPPlus extends PluginBase implements Listener {
     }
 
     /**
-     * @param string|Player $name
+     * @param string|Player|VIP $name
      * @return null|string
      */
     public function removeVip($name){
@@ -354,6 +356,10 @@ class VIPPlus extends PluginBase implements Listener {
 
         $vip->setArmor($this->armorContents);
         $vip->setPrefix($this->prefix);
+        
+        $attachment = $event->getPlayer()->addAttachment($this);
+        $attachment->setPermission("infinite.VIP", true); //Enable VIP mode for InfiniteBlock plugin
+        $attachment->setPermission("Farms.VIP", true); //Enable VIP mode for Farms plugin
     }
 
     public function onVipChat(PlayerChatEvent $event){
@@ -395,6 +401,6 @@ class VIPPlus extends PluginBase implements Listener {
             return;
         }
 
-        array_push($this->arrowQueue, $event->getProjectile()->getId());
+        $this->arrowQueue[] = $event->getProjectile()->getId();
     }
 }

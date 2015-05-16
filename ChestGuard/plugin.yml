@@ -1,5 +1,5 @@
 name: ChestGuard
-main: ChestGuard\ChestGuard
-author: hm
+main: ifteam\ChestGuard\ChestGuard
+author: ifteam
 version: 1.1-alpha
 api: [1.4.1]
