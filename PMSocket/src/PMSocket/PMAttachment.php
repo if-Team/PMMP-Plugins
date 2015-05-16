@@ -11,10 +11,11 @@ class PMAttachment extends \ThreadedLoggerAttachment {
 
     public function LogIn($adr, $port) {
         $this->adr = $adr;
+        $this->port = $port;
     }
 
     public function LogOut($adr, $port) {
-        $this->port = $port;
+
     }
 
     public final function call($level, $message) {
