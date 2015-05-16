@@ -3,3 +3,12 @@ main: PMSocket\PMSocket
 version: 0.1-alpha
 author: IchiKaku
 api: [1.12.0]
+
+commands:
+  pmsocket:
+    usage: /pmsocket
+    permission: PMSocket.commands
+    
+permissions:
+ PMSocket.commands:
+  default: OP
