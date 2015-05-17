@@ -24,6 +24,8 @@
 namespace chalk\minigames;
 
 use chalk\utils\Messages;
+use pocketmine\command\Command;
+use pocketmine\command\CommandSender;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\Listener;
 use pocketmine\Player;
@@ -78,6 +80,21 @@ class MiniGames extends PluginBase implements Listener {
         return $this->messages;
     }
 
+    /**
+     * @param CommandSender $sender
+     * @param Command $command
+     * @param string $commandAlias
+     * @param array $args
+     * @return bool
+     */
+    public function onCommand(CommandSender $sender, Command $command, $commandAlias, array $args){
+        if(!($this->isEnabled() and $sender->hasPermission("minigames.play"))){
+            return false;
+        }
+
+        return true;
+    }
+
     public function onPlayerDamageByPlayerEvent(EntityDamageByEntityEvent $event){
         $attacker = $event->getDamager();
         $victim = $event->getEntity();
@@ -86,6 +103,8 @@ class MiniGames extends PluginBase implements Listener {
             return;
         }
 
-        //TODO: Implement this stuff
+        if(!($attacker->hasPermission("minigames.play") and $victim->hasPermission("minigames.play"))){
+            return;
+        }
     }
 }

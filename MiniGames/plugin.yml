@@ -1,5 +1,16 @@
 name: MiniGames
-author: ChalkPE
 main: chalk\minigames\MiniGames
 api: [1.12.0]
 version: "0.1"
+author: ChalkPE
+website: http://chalk.pe
+
+permissions:
+  minigames.play:
+    default: true
+    description: Give a permission to play all minigames.
+
+commands:
+  minigames:
+    usage: /minigames
+    permission: minigames.play
