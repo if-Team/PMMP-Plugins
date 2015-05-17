@@ -7,7 +7,7 @@ use ifteam\CustomPacket\event\CustomPacketReceiveEvent;
 use ifteam\CustomPacket\CPAPI;
 use ifteam\CustomPacket\DataPacket;
 
-class PMResender implements Listener{
+class PMResender implements Listener {
     private $updateList = [];
     private $password;
 
@@ -16,10 +16,10 @@ class PMResender implements Listener{
     }
 
     public function stream($level, $message){
-        echo $message . " - PONG!\n"; // TEST
+        echo $message . " - PONG!\n";
 
         foreach($this->updateList as $address => $data){
-            echo "PING! :" . $address . "\n"; //
+            echo "PING! :" . $address . "\n";
 
             $progress = time() - $this->updateList[$address]["LastContact"];
             if($progress > 9){
@@ -36,14 +36,14 @@ class PMResender implements Listener{
         $data = json_decode($event->getPacket()->data);
 
         if(!is_array($data)){
-            echo "[테스트] 어레이가 아닌 정보 전달됨\n";
+            echo "[테스트] 배열이 아닌 정보 전달됨\n";
             $event->getPacket()->printDump();
             return;
         }
 
-        if($data[0] != $this->password){
-            echo "[테스트] 패스코드가 다른 정보 전달됨\n";
-            var_dump($data[0]);
+        if($data["password"] != $this->password){
+            echo "[테스트] 패스워드가 다른 정보 전달됨\n";
+            var_dump($data["password"]);
             return;
         }
 
@@ -52,11 +52,11 @@ class PMResender implements Listener{
 
         $address = $ip . ":" . $port;
 
-        switch($data[1]){
+        switch($data["type"]){
             case "update":
                 $this->updateList[$address]["LastContact"] = time();
 
-                CPAPI::sendPacket(new DataPacket($ip, $port, json_encode([$this->password, "inside", "success"])));
+                CPAPI::sendPacket(new DataPacket($ip, $port, json_encode(["password" => $this->password, "type" => "inside", "state" => "succeed"])));
                 break;
 
             case "disconnect":
@@ -64,7 +64,7 @@ class PMResender implements Listener{
                     unset($this->updateList[$address]["LastContact"]);
                 }
 
-                CPAPI::sendPacket(new DataPacket($ip, $port, json_encode([$this->password, "inside", "disconnected"])));
+                CPAPI::sendPacket(new DataPacket($ip, $port, json_encode(["password" => $this->password, "type" => "inside", "state" => "disconnected"])));
                 break;
         }
     }
