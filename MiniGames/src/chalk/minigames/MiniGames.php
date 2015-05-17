@@ -23,14 +23,19 @@
 
 namespace chalk\minigames;
 
+use chalk\utils\Messages;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\Listener;
 use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
+use pocketmine\utils\Config;
 
 class MiniGames extends PluginBase implements Listener {
     /** @var MiniGames */
     private static $instance;
+
+    /** @var Messages */
+    private $messages;
 
     /** @var bool */
     private $enabled = true;
@@ -41,6 +46,7 @@ class MiniGames extends PluginBase implements Listener {
 
     public function onEnable(){
         $this->loadConfigs();
+        $this->loadMessages();
         $this->registerAll();
     }
 
@@ -53,6 +59,23 @@ class MiniGames extends PluginBase implements Listener {
 
     public function registerAll(){
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
+    }
+
+    /**
+     * @param bool $override
+     */
+    public function loadMessages($override = false){
+        $this->saveResource("messages.yml", $override);
+
+        $messagesConfig = new Config($this->getDataFolder() . "messages.yml", Config::YAML);
+        $this->messages = new Messages($messagesConfig->getAll());
+    }
+
+    /**
+     * @return Messages
+     */
+    public function getMessages(){
+        return $this->messages;
     }
 
     public function onPlayerDamageByPlayerEvent(EntityDamageByEntityEvent $event){
