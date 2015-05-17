@@ -6,60 +6,68 @@ use pocketmine\event\Listener;
 use ifteam\CustomPacket\event\CustomPacketReceiveEvent;
 use ifteam\CustomPacket\CPAPI;
 use ifteam\CustomPacket\DataPacket;
-use PMSocket\PMAttachment;
 
-class PMResender implements Listener {
-	private $updateList = [ ];
-	private $password;
-	public function __construct($password) {
-		$this->password = $password;
-	}
-	public function stream($level, $message) {
-		echo $message . " - PONG!\n"; // TEST
-		foreach ( $this->updateList as $ipport => $data ) {
-			echo "PING! :" . $ipport . "\n"; //
-			$progress = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) ) - $this->updateList [$ipport] ["lastcontact"];
-			if ($progress > 9) {
-				unset ( $this->updateList [$ipport] );
-				continue;
-			}
-			$ipport = explode ( ":", $ipport );
-			CPAPI::sendPacket ( new DataPacket ( $ipport [0], $ipport [1], json_encode ( [ $this->password,"console",$level,$message ] ) ) );
-		}
-	}
-	public function onPacketReceive(CustomPacketReceiveEvent $ev) {
-		$data = json_decode ( $ev->getPacket ()->data );
-		if (! is_array ( $data )) {
-			echo "[테스트] 어레이가 아닌 정보 전달됨\n";
-			$ev->getPacket ()->printDump ();
-			return;
-		}
-		if ($data [0] != $this->password) {
-			echo "[테스트] 패스코드가 다른 정보 전달됨\n";
-			var_dump ( $data [0] );
-			return;
-		}
-		switch ($data [1]) {
-			case "update" :
-				$this->updateList [$ev->getPacket ()->address . ":" . $ev->getPacket ()->port] ["lastcontact"] = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) );
-				CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, json_encode ( [ $this->password,"inside","success" ] ) ) );
-				break;
-			case "disconnect" :
-				if (isset ( $this->updateList [$ev->getPacket ()->address . ":" . $ev->getPacket ()->port] ["lastcontact"] )) {
-					unset ( $this->updateList [$ev->getPacket ()->address . ":" . $ev->getPacket ()->port] ["lastcontact"] );
-				}
-				CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, json_encode ( [ $this->password,"inside","disconnected" ] ) ) );
-		}
-	}
-	public function makeTimestamp($date) {
-		$yy = substr ( $date, 0, 4 );
-		$mm = substr ( $date, 5, 2 );
-		$dd = substr ( $date, 8, 2 );
-		$hh = substr ( $date, 11, 2 );
-		$ii = substr ( $date, 14, 2 );
-		$ss = substr ( $date, 17, 2 );
-		return mktime ( $hh, $ii, $ss, $mm, $dd, $yy );
-	}
+class PMResender implements Listener{
+    private $updateList = [];
+    private $password;
+
+    public function __construct($password){
+        $this->password = $password;
+    }
+
+    public function stream($level, $message){
+        echo $message . " - PONG!\n"; // TEST
+
+        foreach($this->updateList as $address => $data){
+            echo "PING! :" . $address . "\n"; //
+
+            $progress = time() - $this->updateList[$address]["LastContact"];
+            if($progress > 9){
+                unset($this->updateList[$address]);
+                continue;
+            }
+
+            $address = explode(":", $address);
+            CPAPI::sendPacket(new DataPacket($address[0], $address[1], json_encode([$this->password, "console", $level, $message])));
+        }
+    }
+
+    public function onPacketReceive(CustomPacketReceiveEvent $event){
+        $data = json_decode($event->getPacket()->data);
+
+        if(!is_array($data)){
+            echo "[테스트] 어레이가 아닌 정보 전달됨\n";
+            $event->getPacket()->printDump();
+            return;
+        }
+
+        if($data[0] != $this->password){
+            echo "[테스트] 패스코드가 다른 정보 전달됨\n";
+            var_dump($data[0]);
+            return;
+        }
+
+        $ip = $event->getPacket()->address;
+        $port = $event->getPacket()->port;
+
+        $address = $ip . ":" . $port;
+
+        switch($data[1]){
+            case "update":
+                $this->updateList[$address]["LastContact"] = time();
+
+                CPAPI::sendPacket(new DataPacket($ip, $port, json_encode([$this->password, "inside", "success"])));
+                break;
+
+            case "disconnect":
+                if(isset($this->updateList[$address]["LastContact"])){
+                    unset($this->updateList[$address]["LastContact"]);
+                }
+
+                CPAPI::sendPacket(new DataPacket($ip, $port, json_encode([$this->password, "inside", "disconnected"])));
+                break;
+        }
+    }
 }
 
 ?>
