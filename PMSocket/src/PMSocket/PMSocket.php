@@ -20,7 +20,7 @@ class PMSocket extends PluginBase implements Listener {
     private $resender = null;
 
     public function onEnable(){
-        @mkdir($this->getDataFolder()); // 플러그인 폴더생성
+        @mkdir($this->getDataFolder());
         $this->db = (new Config($this->getDataFolder() . "database.yml", Config::YAML, []))->getAll();
 
         if($this->getServer()->getPluginManager()->getPlugin("CustomPacket") === null){
@@ -29,14 +29,14 @@ class PMSocket extends PluginBase implements Listener {
             return;
         }
         
-        $this->getLogger()->info(TextFormat::GOLD . "[PMSocket] Enabled");
+        $this->getLogger()->info(TextFormat::GOLD . "[PMSocket] Successfully enabled!");
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
         
-        if(isset($this->db["pass"])){
+        if(isset($this->db["password"])){
             $this->registerAttachment();
         }else{
-            $this->getLogger()->info(TextFormat::GOLD . "[PMSocket] Please register your communicate password");
-            $this->getLogger()->info(TextFormat::GOLD . "[PMSocket] /pmsocket setpass <password>");
+            $this->getLogger()->info(TextFormat::GOLD . "[PMSocket] Please register your password for communication.");
+            $this->getLogger()->info(TextFormat::GOLD . "[PMSocket] /pmsocket password <password>");
         }
     }
 
@@ -60,14 +60,14 @@ class PMSocket extends PluginBase implements Listener {
         }
 
         if(!isset($args[0])){
-            $sender->sendMessage(TextFormat::GOLD . "/pmsocket setpass <password>");
+            $sender->sendMessage(TextFormat::GOLD . "/pmsocket password <password>");
             return true;
         }
 
-        switch(strtolower($args[0])){
-            case "setpass" :
+        switch(strToLower($args[0])){
+            case "password":
                 if(!isset($args[1])){
-                    $sender->sendMessage(TextFormat::GOLD . "[PMSocket] /pmsocket setpass <password>");
+                    $sender->sendMessage(TextFormat::GOLD . "[PMSocket] /pmsocket password <password>");
                     return true;
                 }
 
