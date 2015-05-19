@@ -13,6 +13,8 @@ use ifteam\CustomPacket\DataPacket;
 use ifteam\CustomPacket\CPAPI;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\network\Network;
+use ifteam\LoadBalancer\dummy\DummyInterface;
+use ifteam\LoadBalancer\dummy\DummyPlayer;
 
 class LoadBalancer extends PluginBase implements Listener {
 	private static $instance = null; // 인스턴스 변수
@@ -20,14 +22,15 @@ class LoadBalancer extends PluginBase implements Listener {
 	public $m_version = 1; // 현재 메시지 버전
 	public $updateList = [ ];
 	public $cooltime = [ ];
-	public $callback;
+	public $callback, $dummyInterface;
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () ); // 플러그인 폴더생성
 		
 		$this->initMessage ();
 		$this->db = (new Config ( $this->getDataFolder () . "pluginDB.yml", Config::YAML, [ ] ))->getAll ();
 		
-		if (self::$instance == null) self::$instance = $this;
+		if (self::$instance == null)
+			self::$instance = $this;
 		
 		if ($this->getServer ()->getPluginManager ()->getPlugin ( "CustomPacket" ) === null) {
 			$this->getServer ()->getLogger ()->critical ( "[CustomPacket Example] CustomPacket plugin was not found. This plugin will be disabled." );
@@ -40,6 +43,8 @@ class LoadBalancer extends PluginBase implements Listener {
 		if (! isset ( $this->db ["mode"] )) {
 			$this->getServer ()->getLogger ()->info ( TextFormat::DARK_AQUA . $this->get ( "please-choose-mode" ) );
 		} else {
+			if ($this->db ["mode"] == "master")
+				$this->dummyInterface = new DummyInterface ( $this->getServer () );
 			$this->callback = $this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new LoadBalancerTask ( $this ), 20 );
 		}
 	}
@@ -64,19 +69,39 @@ class LoadBalancer extends PluginBase implements Listener {
 				}
 				// RECALCULATING PLAYER LIST
 				foreach ( $this->updateList [$ipport] ["list"] as $player ) {
-					$allPlayerList [] = $player;
+					$allPlayerList [$player] = true;
 				}
 				// RECALCULATING MAX LIST
 				$allMax += $this->updateList [$ipport] ["max"];
 			}
-			// TODO REALLY PREVIEW PLAYER LIST
-			$motd = $this->getServer ()->getConfigString ( "motd", "Minecraft: PE Server" );
-			$this->getServer ()->getNetwork ()->setName ( $motd . " (" . count ( $allPlayerList ) . "/" . $allMax . ")" );
+			// APPLY MAX LIST
+			$reflection_class = new \ReflectionClass ( $this->getServer () );
+			$property = $reflection_class->getProperty ( 'maxPlayers' );
+			$property->setAccessible ( true );
+			$property->setValue ( $this->getServer (), $allMax );
+			
+			// RECALCULATING PLAYER LIST
+			foreach ( $this->getServer ()->getOnlinePlayers () as $onlinePlayer ) {
+				if (! $onlinePlayer instanceof DummyPlayer)
+					continue;
+				if (! isset ( $allPlayerList [$onlinePlayer->getName ()] ))
+					$onlinePlayer->close ();
+			}
+			foreach ( $allPlayerList as $name => $bool ) {
+				$findPlayer = $this->getServer ()->getPlayer ( $name );
+				if ($findPlayer == null)
+					$this->dummyInterface->openSession ( $name );
+			}
 		} else if ($this->db ["mode"] == "slave") {
 			$playerlist = [ ];
 			foreach ( $this->getServer ()->getOnlinePlayers () as $player )
 				$playerlist [] = $player->getName ();
-			CPAPI::sendPacket ( new DataPacket ( $this->db ["master-ip"], $this->db ["master-port"], json_encode ( [ $this->db ["passcode"],$playerlist,$this->getServer ()->getMaxPlayers (),$this->getServer ()->getPort () ] ) ) );
+			CPAPI::sendPacket ( new DataPacket ( $this->db ["master-ip"], $this->db ["master-port"], json_encode ( [ 
+					$this->db ["passcode"],
+					$playerlist,
+					$this->getServer ()->getMaxPlayers (),
+					$this->getServer ()->getPort () 
+			] ) ) );
 		}
 	}
 	public function onDataPacketReceived(DataPacketReceiveEvent $event) {
@@ -91,32 +116,33 @@ class LoadBalancer extends PluginBase implements Listener {
 				}
 				$this->cooltime [$event->getPlayer ()->getAddress ()] = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) );
 			}
-			if (isset ( $this->db ["mode"] )) if ($this->db ["mode"] == "master") {
-				foreach ( $this->updateList as $ipport => $data ) {
-					if (! isset ( $priority )) {
-						$priority ["ip"] = explode ( ":", $ipport )[0];
-						$priority ["port"] = $this->updateList [$ipport] ["port"];
-						$priority ["list"] = count ( $this->updateList [$ipport] ["list"] );
-						continue;
-					}
-					if ($priority ["list"] > count ( $data ["list"] )) {
-						if (count ( $data ["list"] ) >= $data ["max"]) {
+			if (isset ( $this->db ["mode"] ))
+				if ($this->db ["mode"] == "master") {
+					foreach ( $this->updateList as $ipport => $data ) {
+						if (! isset ( $priority )) {
+							$priority ["ip"] = explode ( ":", $ipport )[0];
+							$priority ["port"] = $this->updateList [$ipport] ["port"];
+							$priority ["list"] = count ( $this->updateList [$ipport] ["list"] );
 							continue;
 						}
-						$priority ["ip"] = explode ( ":", $ipport )[0];
-						$priority ["port"] = $this->updateList [$ipport] ["port"];
-						$priority ["list"] = count ( $this->updateList [$ipport] ["list"] );
+						if ($priority ["list"] > count ( $data ["list"] )) {
+							if (count ( $data ["list"] ) >= $data ["max"]) {
+								continue;
+							}
+							$priority ["ip"] = explode ( ":", $ipport )[0];
+							$priority ["port"] = $this->updateList [$ipport] ["port"];
+							$priority ["list"] = count ( $this->updateList [$ipport] ["list"] );
+						}
 					}
-				}
-				if (! isset ( $priority )) {
-					// NO EXTRA SERVER
+					if (! isset ( $priority )) {
+						// NO EXTRA SERVER
+						$event->setCancelled ();
+						return true;
+					}
+					$event->getPlayer ()->dataPacket ( (new StrangePacket ( $priority ["ip"], $priority ["port"] ))->setChannel ( Network::CHANNEL_ENTITY_SPAWNING ) );
 					$event->setCancelled ();
 					return true;
 				}
-				$event->getPlayer ()->dataPacket ( (new StrangePacket ( $priority ["ip"], $priority ["port"] ))->setChannel ( Network::CHANNEL_ENTITY_SPAWNING ) );
-				$event->setCancelled ();
-				return true;
-			}
 		}
 		return false;
 	}
@@ -220,11 +246,13 @@ class LoadBalancer extends PluginBase implements Listener {
 		}
 	}
 	public function message($player, $text = "", $mark = null) {
-		if ($mark == null) $mark = $this->get ( "default-prefix" );
+		if ($mark == null)
+			$mark = $this->get ( "default-prefix" );
 		$player->sendMessage ( TextFormat::DARK_AQUA . $mark . " " . $text );
 	}
 	public function alert($player, $text = "", $mark = null) {
-		if ($mark == null) $mark = $this->get ( "default-prefix" );
+		if ($mark == null)
+			$mark = $this->get ( "default-prefix" );
 		$player->sendMessage ( TextFormat::RED . $mark . " " . $text );
 	}
 	public function onDisable() {
