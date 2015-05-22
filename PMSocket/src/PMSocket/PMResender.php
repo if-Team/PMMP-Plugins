@@ -33,6 +33,7 @@ class PMResender implements Listener {
     }
 
     public function onPacketReceive(CustomPacketReceiveEvent $event){
+    	$event->getPacket()->printDump();
         $data = json_decode($event->getPacket()->data);
 
         if(!is_array($data)){
