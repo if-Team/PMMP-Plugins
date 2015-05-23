@@ -12,9 +12,7 @@ use pocketmine\utils\TextFormat;
 use pocketmine\command\PluginCommand;
 use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
-use pocketmine\Player;
 use pocketmine\event\player\PlayerChatEvent;
-use pocketmine\event\Event;
 
 class EchoChat extends PluginBase implements Listener {
 	private static $instance = null; // 인스턴스 변수
@@ -31,7 +29,7 @@ class EchoChat extends PluginBase implements Listener {
 		// 커스텀 패킷 이용
 		// 마스터모드시 커스텀패킷 없어도 사용가능하게끔
 		if ($this->getServer ()->getPluginManager ()->getPlugin ( "CustomPacket" ) === null) {
-			$this->getServer ()->getLogger ()->critical ( "[CustomPacket Example] CustomPacket plugin was not found. This plugin will be disabled." );
+			$this->getLogger ()->critical ( "CustomPacket plugin was not found. This plugin will be disabled." );
 			$this->getServer ()->getPluginManager ()->disablePlugin ( $this );
 			return;
 		}
@@ -69,11 +67,11 @@ class EchoChat extends PluginBase implements Listener {
 		$command->setUsage ( $usage );
 		$commandMap->register ( $name, $command );
 	}
-	public function message($player, $text = "", $mark = null) {
+	public function message(CommandSender $player, $text = "", $mark = null) {
 		if ($mark == null) $mark = $this->get ( "default-prefix" );
 		$player->sendMessage ( TextFormat::DARK_AQUA . $mark . " " . $text );
 	}
-	public function alert($player, $text = "", $mark = null) {
+	public function alert(CommandSender $player, $text = "", $mark = null) {
 		if ($mark == null) $mark = $this->get ( "default-prefix" );
 		$player->sendMessage ( TextFormat::RED . $mark . " " . $text );
 	}
@@ -96,12 +94,12 @@ class EchoChat extends PluginBase implements Listener {
 				}
 				$ip = explode ( ".", $args [1] );
 				if (! isset ( $ip [3] ) or ! is_numeric ( $ip [0] ) or ! is_numeric ( $ip [1] ) or ! is_numeric ( $ip [2] ) or ! is_numeric ( $ip [3] )) {
-					$this->message ( $sender, $this->get ( "wrong-ip" ) );
-					return;
+					$this->message ( $player, $this->get ( "wrong-ip" ) );
+					return true;
 				}
 				if (! is_numeric ( $args [2] ) or $args [2] <= 30 or $args [2] >= 65535) {
-					$this->message ( $sender, $this->get ( "wrong-port" ) );
-					return;
+					$this->message ( $player, $this->get ( "wrong-port" ) );
+					return true;
 				}
 				
 				$this->db ["echoserver"] [$args [1] . ":" . $args [2]] = 0;
@@ -117,12 +115,12 @@ class EchoChat extends PluginBase implements Listener {
 				}
 				$ip = explode ( ".", $args [1] );
 				if (! isset ( $ip [3] ) or ! is_numeric ( $ip [0] ) or ! is_numeric ( $ip [1] ) or ! is_numeric ( $ip [2] ) or ! is_numeric ( $ip [3] )) {
-					$this->message ( $sender, $this->get ( "wrong-ip" ) );
-					return;
+					$this->message ( $player, $this->get ( "wrong-ip" ) );
+					return true;
 				}
 				if (! is_numeric ( $args [2] ) or $args [2] <= 30 or $args [2] >= 65535) {
-					$this->message ( $sender, $this->get ( "wrong-port" ) );
-					return;
+					$this->message ( $player, $this->get ( "wrong-port" ) );
+					return true;
 				}
 				if (isset ( $this->db ["echoserver"] [$args [1] . ":" . $args [2]] )) {
 					unset ( $this->db ["echoserver"] [$args [1] . ":" . $args [2]] );
@@ -161,7 +159,7 @@ class EchoChat extends PluginBase implements Listener {
 	public function onChat(PlayerChatEvent $event) {
 		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new EchoChatTask ( $this, $event ), 2 );
 	}
-	public function sendPacket(Event $event) {
+	public function sendPacket(PlayerChatEvent $event) {
 		if ($event->isCancelled ()) return;
 		if (! isset ( $this->db ["name"] )) return;
 		if (! isset ( $this->db ["pass"] )) return;

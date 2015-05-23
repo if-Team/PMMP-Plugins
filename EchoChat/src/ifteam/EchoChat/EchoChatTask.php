@@ -14,7 +14,7 @@ class EchoChatTask extends PluginTask {
 	public function onRun($currentTick) {
 		/**
 		 *
-		 * @var $owner EDGE
+		 * @var $owner EchoChat
 		 */
 		$owner = $this->getOwner ();
 		$owner->sendPacket ( $this->event );

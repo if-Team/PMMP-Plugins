@@ -14,7 +14,6 @@ use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\network\protocol\AddPlayerPacket;
 use pocketmine\network\protocol\RemovePlayerPacket;
 use pocketmine\entity\Entity;
-use pocketmine\utils\TextWrapper;
 use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
 use pocketmine\Player;
@@ -110,9 +109,9 @@ class Chatty extends PluginBase implements Listener {
 		$enter = 50;
 		$first = 0;
 		$end = $enter;
-		$strlen = mb_strlen ( $message, "UTF-8" );
+		$strLen = mb_strlen ( $message, "UTF-8" );
 		while ( 1 ) {
-			if ($strlen - $first > $enter) {
+			if ($strLen - $first > $enter) {
 				$messages [] = mb_substr ( $message, $first, $end, 'utf8' );
 				$first = $first + $enter;
 				$end = $end + $enter;
@@ -224,7 +223,7 @@ class Chatty extends PluginBase implements Listener {
 		}
 		
 		if (! $player instanceof Player) {
-			$this->alert ( $player, "onlyinGame" );
+			$this->alert ( $player, "onlyInGame" );
 			return true;
 		}
 		switch ($args [0]) {
