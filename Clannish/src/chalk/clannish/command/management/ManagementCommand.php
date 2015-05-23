@@ -21,7 +21,7 @@
  * @since 2015-05-03 13:13
  * @copyright Apache-v2.0
  */
-namespace chalk\clannish\command;
+namespace chalk\clannish\command\management;
 
 use chalk\clannish\Clannish;
 use chalk\clannish\ClannishCommand;

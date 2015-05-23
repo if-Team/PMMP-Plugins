@@ -18,17 +18,16 @@
 
 /**
  * @author ChalkPE <amato0617@gmail.com>
- * @since 2015-04-08 21:19
+ * @since 2015-05-03 13:17
  * @copyright Apache-v2.0
  */
-namespace chalk\clannish\command;
+namespace chalk\clannish\command\management;
 
-use chalk\clannish\clan\Clan;
-use chalk\clannish\clan\ClanMember;
 use chalk\clannish\Clannish;
+use chalk\clannish\command\InGameCommand;
 use pocketmine\command\CommandSender;
 
-class CreateClanCommand extends ManagementCommand implements InGameCommand {
+class DeleteClanCommand extends ManagementCommand implements InGameCommand {
     /**
      * @param Clannish $plugin
      * @param string $name
@@ -51,20 +50,20 @@ class CreateClanCommand extends ManagementCommand implements InGameCommand {
 
         $clanName = Clannish::validateName($args[0], true);
         $leaderName = Clannish::validateName($sender->getName());
+        $clan = Clannish::getInstance()->getClan($clanName);
 
-        if(Clannish::getInstance()->isClan($clanName)){
-            $this->sendMessage($sender, "clan-already-exists", ["name" => $clanName]);
+        if($clan === null){
+            $this->sendMessage($sender, "clan-not-found", ["name" => $clanName]);
             return true;
         }
 
-        $owningClans = Clannish::getInstance()->getOwningClans($leaderName);
-        if(count($owningClans) > Clannish::getInstance()->getMaximumOwningClansCount()){
-            $this->sendMessage($sender, "clan-maximum-owning-count-exceed", ["count" => Clannish::getInstance()->getMaximumOwningClansCount()]);
+        if(!$clan->getMember($leaderName)->isLeader()){
+            $this->sendMessage($sender, "clan-leader-only");
             return true;
         }
 
-        Clannish::getInstance()->getClans()[] = new Clan($clanName, [new ClanMember($leaderName, ["grade" => ClanMember::GRADE_LEADER])]);
-        $this->sendMessage($sender, "clan-created", ["name" => $clanName]);
+        unset($clan);
+        $this->sendMessage($sender, "clan-deleted", ["name" => $clanName]);
         return true;
     }
 }
