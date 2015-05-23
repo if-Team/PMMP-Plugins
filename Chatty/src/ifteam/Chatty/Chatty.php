@@ -44,7 +44,7 @@ class Chatty extends PluginBase implements Listener {
         $this->packet["AddPlayerPacket"]->metadata = [Entity::DATA_FLAGS => [Entity::DATA_TYPE_BYTE, 1 << Entity::DATA_FLAG_INVISIBLE], Entity::DATA_AIR => [Entity::DATA_TYPE_SHORT, 20], Entity::DATA_SHOW_NAMETAG => [Entity::DATA_TYPE_BYTE, 1]];
 
         // 플러그인의 명령어 등록
-        $this->registerCommand($this->get("Chatty"), $this->get("Chatty"), "Chatty.commands", $this->get("Chatty-command-help"), "/" . $this->get("Chatty"));
+        $this->registerCommand($this->getMessage("Chatty"), $this->getMessage("Chatty"), "Chatty.commands", $this->getMessage("Chatty-command-help"), "/" . $this->getMessage("Chatty"));
 
         $this->packet["RemovePlayerPacket"] = new RemovePlayerPacket();
         $this->packet["RemovePlayerPacket"]->clientID = 0;
@@ -68,7 +68,7 @@ class Chatty extends PluginBase implements Listener {
         $commandMap->register($fallback, $command);
     }
 
-    public function get($var){
+    public function getMessage($var){
         if(isset($this->messages[$this->getServer()->getLanguage()->getLang()])){
             $lang = $this->getServer()->getLanguage()->getLang();
         }else{
@@ -85,9 +85,9 @@ class Chatty extends PluginBase implements Listener {
 
     public function updateMessage($targetYmlName){
         $targetYml = (new Config($this->getDataFolder() . $targetYmlName, Config::YAML))->getAll();
-        if(!isset($targetYml["m_version"])){
+        if(!isset($targetYml["message-version"])){
             $this->saveResource($targetYmlName, true);
-        }else if($targetYml["m_version"] < self::MESSAGE_VERSION){
+        }else if($targetYml["message-version"] < self::MESSAGE_VERSION){
             $this->saveResource($targetYmlName, true);
         }
     }
@@ -98,9 +98,9 @@ class Chatty extends PluginBase implements Listener {
         $this->messageStack[$name] = [];
         if(!isset($this->db[$name])){
             $this->db[$name] = [];
-            $this->db[$name]["CHAT"] = true;
-            $this->db[$name]["NameTAG"] = false;
-            $this->db[$name]["localCHAT"] = false;
+            $this->db[$name]["chat"] = true;
+            $this->db[$name]["nametag"] = false;
+            $this->db[$name]["local-chat"] = true;
         }
     }
 
@@ -155,7 +155,7 @@ class Chatty extends PluginBase implements Listener {
 
         $this->getLogger()->info($message);
         foreach($this->getServer()->getOnlinePlayers() as $player){
-            if(isset($this->db[$player->getName()]["localCHAT"]) and $this->db[$player->getName()]["localCHAT"] === true){
+            if(isset($this->db[$player->getName()]["local-chat"]) and $this->db[$player->getName()]["local-chat"] === true){
                 if($sender->distance($player) > self::LOCAL_CHAT_DISTANCE){
                     continue;
                 }
@@ -169,12 +169,12 @@ class Chatty extends PluginBase implements Listener {
             return;
         }
 
-        if(isset($this->db[$event->getPlayer()->getName()]["CHAT"]) and $this->db[$event->getPlayer()->getName()]["CHAT"] == false){
+        if(isset($this->db[$event->getPlayer()->getName()]["chat"]) and $this->db[$event->getPlayer()->getName()]["chat"] == false){
             $event->setCancelled();
             return;
         }
 
-        if(isset($this->db[$event->getPlayer()->getName()]["NameTAG"]) and $this->db[$event->getPlayer()->getName()]["NameTAG"] == true){
+        if(isset($this->db[$event->getPlayer()->getName()]["nametag"]) and $this->db[$event->getPlayer()->getName()]["nametag"] == true){
             $message = $this->getServer()->getLanguage()->translate(new TranslationContainer($event->getPacket()->message, $event->getPacket()->parameters));
             $this->putStack($event->getPlayer()->getName(), $message);
         }
@@ -188,14 +188,13 @@ class Chatty extends PluginBase implements Listener {
                 $OnlinePlayer->directDataPacket($this->packet["RemovePlayerPacket"]); // 네임택 제거패킷 전송
             }
 
-            if(!isset($this->db[$OnlinePlayer->getName()]["NameTAG"]) or $this->db[$OnlinePlayer->getName()]["NameTAG"] == false){
+            if(!isset($this->db[$OnlinePlayer->getName()]["nametag"]) or $this->db[$OnlinePlayer->getName()]["nametag"] == false){
                 continue;
             }
 
             $px = round($OnlinePlayer->x);
             $py = round($OnlinePlayer->y);
             $pz = round($OnlinePlayer->z);
-            // if(($OnlinePlayer->pitch / 180 * M_PI) < - 0.2) continue; // 하늘을 볼경우 패킷보내지않음
 
             $allMessages = "";
             if(!isset($this->messageStack[$OnlinePlayer->getName()])){
@@ -224,22 +223,22 @@ class Chatty extends PluginBase implements Listener {
 
     public function sendMessage(CommandSender $player, $text, $prefix = null){
         if($prefix == null){
-            $prefix = $this->get("default-prefix");
+            $prefix = $this->getMessage("default-prefix");
         }
 
-        $player->sendMessage(TextFormat::DARK_AQUA . $prefix . " " . $this->get($text));
+        $player->sendMessage(TextFormat::DARK_AQUA . $prefix . " " . $this->getMessage($text));
     }
 
     public function sendAlert(CommandSender $player, $text, $prefix = null){
         if($prefix == null){
-            $prefix = $this->get("default-prefix");
+            $prefix = $this->getMessage("default-prefix");
         }
 
-        $player->sendMessage(TextFormat::RED . $prefix . " " . $this->get($text));
+        $player->sendMessage(TextFormat::RED . $prefix . " " . $this->getMessage($text));
     }
 
     public function onCommand(CommandSender $player, Command $command, $label, Array $args){
-        if(strtolower($command->getName()) != $this->get("Chatty")){
+        if(strtolower($command->getName()) != $this->getMessage("Chatty")){
             return true;
         }
 
@@ -247,13 +246,13 @@ class Chatty extends PluginBase implements Listener {
             helpPage:
             $this->sendMessage($player, "help-on");
             $this->sendMessage($player, "help-off");
-            $this->sendMessage($player, "help-local-CHAT");
-            $this->sendMessage($player, "help-NameTAG-CHAT");
+            $this->sendMessage($player, "help-local-chat");
+            $this->sendMessage($player, "help-nametag");
             return true;
         }
 
         if(!$player instanceof Player){
-            $this->sendAlert($player, "onlyInGame");
+            $this->sendAlert($player, "only-in-game");
             return true;
         }
 
@@ -262,40 +261,33 @@ class Chatty extends PluginBase implements Listener {
                 goto helpPage;
                 break;
 
-            case $this->get("on"):
-                $this->db[$player->getName()]["CHAT"] = true;
-                $this->sendMessage($player, "CHAT-ENABLED");
+            case $this->getMessage("on"):
+                $this->db[$player->getName()]["chat"] = true;
+                $this->sendMessage($player, "chat-enabled");
                 break;
-            case $this->get("off"):
-                $this->db[$player->getName()]["CHAT"] = false;
-                $this->sendMessage($player, "CHAT-DISABLED");
+
+            case $this->getMessage("off"):
+                $this->db[$player->getName()]["chat"] = false;
+                $this->sendMessage($player, "chat-disabled");
                 break;
-            case $this->get("local-CHAT"):
-                if(isset($this->db[$player->getName()]["localCHAT"])){
-                    if($this->db[$player->getName()]["localCHAT"] == true){
-                        $this->db[$player->getName()]["localCHAT"] = false;
-                        $this->sendMessage($player, "localCHAT-DISABLED");
-                    }else{
-                        $this->db[$player->getName()]["localCHAT"] = true;
-                        $this->sendMessage($player, "localCHAT-ENABLED");
-                    }
+
+            case $this->getMessage("local-chat"):
+                if(!isset($this->db[$player->getName()]["local-chat"]) or $this->db[$player->getName()]["local-chat"] == false){
+                    $this->db[$player->getName()]["local-chat"] = true;
+                    $this->sendMessage($player, "local-chat-enabled");
                 }else{
-                    $this->db[$player->getName()]["localCHAT"] = true;
-                    $this->sendMessage($player, "localCHAT-ENABLED");
+                    $this->db[$player->getName()]["local-chat"] = false;
+                    $this->sendMessage($player, "local-chat-disabled");
                 }
                 break;
-            case $this->get("NameTAG-CHAT"):
-                if(isset($this->db[$player->getName()]["NameTAG"])){
-                    if($this->db[$player->getName()]["NameTAG"] == true){
-                        $this->db[$player->getName()]["NameTAG"] = false;
-                        $this->sendMessage($player, "NameTAG-DISABLED");
-                    }else{
-                        $this->db[$player->getName()]["NameTAG"] = true;
-                        $this->sendMessage($player, "NameTAG-ENABLED");
-                    }
+
+            case $this->getMessage("nametag"):
+                if(!isset($this->db[$player->getName()]["nametag"]) or $this->db[$player->getName()]["nametag"] == false){
+                    $this->db[$player->getName()]["nametag"] = true;
+                    $this->sendMessage($player, "nametag-enabled");
                 }else{
-                    $this->db[$player->getName()]["NameTAG"] = true;
-                    $this->sendMessage($player, "NameTAG-ENABLED");
+                    $this->db[$player->getName()]["nametag"] = false;
+                    $this->sendMessage($player, "nametag-disabled");
                 }
                 break;
         }
