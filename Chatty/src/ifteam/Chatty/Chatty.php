@@ -180,7 +180,7 @@ class Chatty extends PluginBase implements Listener {
         }
     }
 
-    public function Chatty(){
+    public function tick(){
         foreach($this->getServer()->getOnlinePlayers() as $OnlinePlayer){
             if(isset($this->packetQueue[$OnlinePlayer->getName()]["eid"])){
                 $this->packet["RemovePlayerPacket"]->eid = $this->packetQueue[$OnlinePlayer->getName()]["eid"];
@@ -245,7 +245,7 @@ class Chatty extends PluginBase implements Listener {
     }
 
     public function onCommand(CommandSender $player, Command $command, $label, Array $args){
-        if(strtolower($command->getName()) != $this->getMessage("Chatty")){
+        if(strToLower($command->getName()) != $this->getMessage("Chatty")){
             return true;
         }
 
@@ -260,7 +260,7 @@ class Chatty extends PluginBase implements Listener {
         }
 
         switch($args[0]){
-            default :
+            default:
                 $this->sendHelpMessage($player);
                 break;
 
