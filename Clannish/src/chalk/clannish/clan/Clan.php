@@ -35,9 +35,6 @@ class Clan implements Arrayable {
     /** @var ClanMember[] */
     private $members = [];
 
-    /** @var ClanMember */
-    private $leader = null;
-
     /**
      * @param string $name
      * @param ClanMember[] $members
@@ -48,12 +45,7 @@ class Clan implements Arrayable {
 
         foreach($this->getMembers() as $member){
             $member->setClan($this);
-
-            if($member->isLeader() and $this->getLeader() === null){
-                $this->leader = $member;
-            }
         }
-
     }
 
     /**
@@ -138,9 +130,27 @@ class Clan implements Arrayable {
     /**
      * @return ClanMember
      */
-    public function getLeader(){
-        return $this->leader;
+    public function getManager(){
+        foreach($this->getMembers() as $member){
+            if($member->isManager()){
+                return $member;
+            }
+        }
+
+        return null;
     }
 
-    //TODO: getters for co-leader and elder
+    /**
+     * @return ClanMember[]
+     */
+    public function getStaffs(){
+        $staffs = [];
+        foreach($this->getMembers() as $member){
+            if($member->isStaff()){
+                $staffs[] = $member;
+            }
+        }
+
+        return $staffs;
+    }
 }

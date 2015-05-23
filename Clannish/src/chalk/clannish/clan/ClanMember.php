@@ -30,9 +30,8 @@ use pocketmine\Player;
 use pocketmine\Server;
 
 class ClanMember implements Arrayable {
-    const GRADE_LEADER = "leader";
-    const GRADE_CO_LEADER = "co-leader";
-    const GRADE_ELDER = "elder";
+    const GRADE_MANAGER = "manager";
+    const GRADE_STAFF = "staff";
     const GRADE_MEMBER = "member";
 
     /** @var string */
@@ -130,7 +129,25 @@ class ClanMember implements Arrayable {
         return $this->getData()["grade"];
     }
 
-    public function isLeader(){
-        return $this->getGrade() === ClanMember::GRADE_LEADER;
+    public function isManager(){
+        return $this->getGrade() === ClanMember::GRADE_MANAGER;
+    }
+
+    public function isStaff(){
+        return $this->getGrade() === ClanMember::GRADE_STAFF;
+    }
+
+    public function isMember(){
+        return $this->getGrade() === ClanMember::GRADE_MEMBER;
+    }
+
+    public function setGrade($grade){
+        if($this->getGrade() === $grade){
+            return;
+        }
+
+        if($grade === ClanMember::GRADE_MANAGER or $grade === ClanMember::GRADE_STAFF or $grade === ClanMember::GRADE_MEMBER){
+            $this->getData()["grade"] = $grade;
+        }
     }
 }
