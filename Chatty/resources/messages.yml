@@ -22,7 +22,7 @@ kor-help-off: "/대화 끄기 - 모든 대화를 표시하지 않습니다"
 kor-help-local-CHAT: "/대화 근거리 - 주변 유저들의 대화만 듣습니다"
 kor-help-NameTAG-CHAT: "/대화 방식변경 - 네임택 채팅을 끄거나 킵니다"
 
-kor-onlyinGame: "게임내에서만 사용가능합니다"
+kor-onlyInGame: "게임내에서만 사용가능합니다"
 kor-NameTAG-ENABLED: "네임택 채팅이 활성화되었습니다"
 kor-NameTAG-DISABLED: "네임택 채팅이 비활성화되었습니다"
 kor-localCHAT-ENABLED: "근거리 대화가 활성화 되었습니다"
