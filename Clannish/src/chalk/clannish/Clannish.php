@@ -26,6 +26,8 @@ namespace chalk\clannish;
 use chalk\clannish\clan\Clan;
 use chalk\clannish\clan\ClanMember;
 use chalk\clannish\command\management\CreateClanCommand;
+use chalk\clannish\command\management\DelegateManagerCommand;
+use chalk\clannish\command\management\DeleteClanCommand;
 use chalk\utils\Messages;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerChatEvent;
@@ -115,6 +117,9 @@ class Clannish extends PluginBase implements Listener {
 
     public function registerAll(){
         $this->registerCommand("create-clan", CreateClanCommand::class);
+        $this->registerCommand("delete-clan", DeleteClanCommand::class);
+        $this->registerCommand("delegate-manager", DelegateManagerCommand::class);
+
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
     }
 

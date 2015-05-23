@@ -34,6 +34,18 @@ messages:
     en: "/delete-clan <name>"
     ko: "/클랜삭제 <이름>"
 
+  delegate-manager-command-name:
+    en: "delegate-manager"
+    ko: "매니저위임"
+
+  delegate-manager-command-description:
+    en: "Delegate the manager permission of your own clan."
+    ko: "자기 소유의 클랜의 매니저 권한을 위임합니다."
+
+  delegate-manager-command-usage:
+    en: "/delegate-manager <clan name> <member to delegate>"
+    ko: "/매니저위임 <클랜 이름> <위임할 멤버>"
+
   clan-deleted:
     en: "Your clan {%name} has been deleted!"
     ko: "당신의 클랜 {%name}이(가) 삭제되었습니다!"
@@ -53,3 +65,11 @@ messages:
   clan-maximum-owning-count-exceed:
     en: "You can only have up to {%count} different clans!"
     ko: "당신은 최대 {%count}개의 클랜만을 가질 수 있습니다!"
+
+  clan-member-not-found:
+    en: "Clan member {%name} is not found!"
+    ko: "클랜 멤버 {%name}을(를) 찾을 수 없습니다!"
+
+  clan-manager-delegated:
+    en: "The manager of the clan {%name} delegated to {%member}!"
+    ko: "클랜 {%name}의 매니저가 {%member}에게 위임되었습니다!"
