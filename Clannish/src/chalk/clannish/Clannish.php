@@ -189,7 +189,7 @@ class Clannish extends PluginBase implements Listener {
 
         $owningClans = [];
         foreach($this->getJoinedClans($name) as $clan){
-            if($clan->getLeader()->getName() === $name){
+            if($clan->getManager()->getName() === $name){
                 $owningClans[] = $clan;
             }
         }
@@ -262,7 +262,7 @@ class Clannish extends PluginBase implements Listener {
 
     public function onPlayerChat(PlayerChatEvent $event){
         $sender = $event->getPlayer();
-        if(!$sender->hasPermission("Clannish.activity")){
+        if(!$sender->hasPermission("clannish.activity")){
             return;
         }
 

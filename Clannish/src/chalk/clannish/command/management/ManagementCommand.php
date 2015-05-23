@@ -34,6 +34,6 @@ abstract class ManagementCommand extends ClannishCommand {
      * @param string $usage
      */
     public function __construct(Clannish $plugin, $name, $description = "", $usage = ""){
-        parent::__construct($plugin, $name, $description, $usage, "Clannish.management");
+        parent::__construct($plugin, $name, $description, $usage, "clannish.management");
     }
 }

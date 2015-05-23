@@ -51,20 +51,21 @@ class CreateClanCommand extends ManagementCommand implements InGameCommand {
         }
 
         $clanName = Clannish::validateName($args[0], true);
-        $leaderName = Clannish::validateName($sender->getName());
+        $managerName = Clannish::validateName($sender->getName());
 
         if(Clannish::getInstance()->isClan($clanName)){
             $this->sendMessage($sender, "clan-already-exists", ["name" => $clanName]);
             return true;
         }
 
-        $owningClans = Clannish::getInstance()->getOwningClans($leaderName);
+        $owningClans = Clannish::getInstance()->getOwningClans($managerName);
         if(count($owningClans) > Clannish::getInstance()->getMaximumOwningClansCount()){
             $this->sendMessage($sender, "clan-maximum-owning-count-exceed", ["count" => Clannish::getInstance()->getMaximumOwningClansCount()]);
             return true;
         }
 
-        Clannish::getInstance()->getClans()[] = new Clan($clanName, [new ClanMember($leaderName, ["grade" => ClanMember::GRADE_LEADER])]);
+        Clannish::getInstance()->getClans()[] = new Clan($clanName, [new ClanMember($managerName, ["grade" => ClanMember::GRADE_MANAGER])]);
+
         $this->sendMessage($sender, "clan-created", ["name" => $clanName]);
         return true;
     }

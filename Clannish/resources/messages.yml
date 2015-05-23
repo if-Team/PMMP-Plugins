@@ -46,9 +46,9 @@ messages:
     en: "The clan {%name} is not found!"
     ko: "클랜 {%name}을(를) 찾을 수 없습니다!"
 
-  clan-leader-only:
-    en: "This feature is clan leader only!"
-    ko: "이 기능은 클랜 대표 전용입니다!"
+  clan-manager-only:
+    en: "This feature is clan manager only!"
+    ko: "이 기능은 클랜 매니저 전용입니다!"
 
   clan-maximum-owning-count-exceed:
     en: "You can only have up to {%count} different clans!"

@@ -5,18 +5,18 @@ author: ChalkPE
 api: [1.4.1, 1.12.0]
 
 permissions:
-  Clannish.*:
+  clannish.*:
     description: Allows player to use all features of Clannish
     default: op
     children:
-      Clannish.operation:
+      clannish.operation:
         description: Allows player to operate all clans of Clannish
         default: op
 
-      Clannish.management:
+      clannish.management:
         description: Allows player to create, remove or manage own clan of Clannish
         default: true
 
-      Clannish.activity:
+      clannish.activity:
         description: Allows player to be active in any clans of Clannish
         default: true

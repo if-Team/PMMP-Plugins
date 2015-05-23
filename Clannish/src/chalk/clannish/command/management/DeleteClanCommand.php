@@ -49,7 +49,8 @@ class DeleteClanCommand extends ManagementCommand implements InGameCommand {
         }
 
         $clanName = Clannish::validateName($args[0], true);
-        $leaderName = Clannish::validateName($sender->getName());
+        $managerName = Clannish::validateName($sender->getName());
+
         $clan = Clannish::getInstance()->getClan($clanName);
 
         if($clan === null){
@@ -57,13 +58,16 @@ class DeleteClanCommand extends ManagementCommand implements InGameCommand {
             return true;
         }
 
-        if(!$clan->getMember($leaderName)->isLeader()){
-            $this->sendMessage($sender, "clan-leader-only");
+        if(!($clan->getMember($managerName)->isManager() or $sender->hasPermission("clannish.operation"))){
+            $this->sendMessage($sender, "clan-manager-only");
             return true;
         }
 
-        unset($clan);
-        $this->sendMessage($sender, "clan-deleted", ["name" => $clanName]);
+        $index = array_search($clan, Clannish::getInstance()->getClans());
+        if($index !== false){
+            array_splice(Clannish::getInstance()->getClans(), $index, 1);
+            $this->sendMessage($sender, "clan-deleted", ["name" => $clanName]);
+        }
         return true;
     }
 }
