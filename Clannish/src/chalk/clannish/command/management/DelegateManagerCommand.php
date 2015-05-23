@@ -37,7 +37,7 @@ class DelegateManagerCommand extends ManagementCommand implements InGameCommand 
             return true;
         }
 
-        if(!$clan->getMember($managerName)->isManager()){
+        if(!($clan->getMember($managerName)->isManager() or $sender->hasPermission("clannish.operation"))){
             $this->sendMessage($sender, "clan-manager-only");
             return true;
         }
