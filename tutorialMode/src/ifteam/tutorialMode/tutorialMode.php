@@ -22,6 +22,7 @@ use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\command\CommandSender;
 use pocketmine\event\player\PlayerChatEvent;
+use pocketmine\math\Vector3;
 
 class tutorialMode extends PluginBase implements Listener {
 	private static $instance = null; // 인스턴스 변수
@@ -51,7 +52,6 @@ class tutorialMode extends PluginBase implements Listener {
 			$this->continue [strtolower ( $event->getPlayer ()->getName () )] = [ "mine" => false,"shop" => false,"notice" => false,"wild" => false ];
 			$this->message ( $event->getPlayer (), $this->get ( "start-tutorial" ) );
 			$this->message ( $event->getPlayer (), $this->get ( "please-read-the-sign" ) );
-			$this->tutorialClear ( $event->getPlayer () );
 		}
 	}
 	public function onChat(PlayerChatEvent $event) {
@@ -173,11 +173,16 @@ class tutorialMode extends PluginBase implements Listener {
 				$data = explode ( ".", $this->db [$stage] );
 				if (! isset ( $data [3] )) continue; // POSDATA EXCEPTION
 				
-				$level = $this->getServer ()->getLevelByName ( $data [3] );
-				if (! $level instanceof Level) continue; // LEVEL EXCEPTION
+				if ($data [3] == $player->getLevel ()->getFolderName ()) {
+					$pos = new Vector3 ( $data [0], $data [1], $data [2] );
+				} else {
+					$level = $this->getServer ()->getLevelByName ( $data [3] );
+					if (! $level instanceof Level) continue; // LEVEL EXCEPTION
+					$pos = new Position ( $data [0], $data [1], $data [2], $level );
+				}
 				
 				$this->message ( $player, $this->get ( $stage ) . " " . $this->get ( "tutorial-start" ) );
-				$player->teleport ( new Position ( $data [0], $data [1], $data [2], $level ) );
+				$player->teleport ( $pos );
 				return;
 			}
 		}
@@ -200,10 +205,7 @@ class tutorialMode extends PluginBase implements Listener {
 			}
 			if ($event->getEntity () instanceof Player) {
 				if (isset ( $this->continue [strtolower ( $event->getEntity ()->getName () )] )) {
-					if ($event->getDamager () instanceof Player) {
-						$event->setCancelled ();
-						return;
-					}
+					$event->setCancelled ();
 				}
 			}
 		}
