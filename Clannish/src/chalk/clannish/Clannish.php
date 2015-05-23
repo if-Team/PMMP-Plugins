@@ -21,6 +21,7 @@
  * @since 2015-04-07 21:53
  * @copyright Apache-v2.0
  */
+
 namespace chalk\clannish;
 
 use chalk\clannish\clan\Clan;

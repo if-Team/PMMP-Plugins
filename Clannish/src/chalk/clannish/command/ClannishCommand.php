@@ -21,6 +21,7 @@
  * @since 2015-04-08 19:06
  * @copyright Apache-v2.0
  */
+
 namespace chalk\clannish;
 
 use chalk\clannish\command\InGameCommand;
