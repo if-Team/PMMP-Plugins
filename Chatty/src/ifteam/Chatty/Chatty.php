@@ -237,17 +237,20 @@ class Chatty extends PluginBase implements Listener {
         $player->sendMessage(TextFormat::RED . $prefix . " " . $this->getMessage($text));
     }
 
+    public function sendHelpMessage(CommandSender $sender){
+        $this->sendMessage($sender, "help-on");
+        $this->sendMessage($sender, "help-off");
+        $this->sendMessage($sender, "help-local-chat");
+        $this->sendMessage($sender, "help-nametag");
+    }
+
     public function onCommand(CommandSender $player, Command $command, $label, Array $args){
         if(strtolower($command->getName()) != $this->getMessage("Chatty")){
             return true;
         }
 
         if(!isset($args[0])){
-            helpPage:
-            $this->sendMessage($player, "help-on");
-            $this->sendMessage($player, "help-off");
-            $this->sendMessage($player, "help-local-chat");
-            $this->sendMessage($player, "help-nametag");
+            $this->sendHelpMessage($player);
             return true;
         }
 
@@ -258,7 +261,7 @@ class Chatty extends PluginBase implements Listener {
 
         switch($args[0]){
             default :
-                goto helpPage;
+                $this->sendHelpMessage($player);
                 break;
 
             case $this->getMessage("on"):
