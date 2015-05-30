@@ -2,6 +2,7 @@
 
 namespace ifteam\Chatty;
 
+use chalk\utils\Messages;
 use pocketmine\event\player\PlayerCommandPreprocessEvent;
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
@@ -29,14 +30,13 @@ class Chatty extends PluginBase implements Listener {
     /** @var array */
     private $db = [], $lastNametags = [], $messageStack = [];
 
-    /** @var string[] */
-    private $messages = [];
+    /** @var Messages */
+    private $messages = null;
+    const MESSAGE_VERSION = 1;
 
     const MESSAGE_LENGTH = 50;
     const MESSAGE_MAX_LINES = 5;
     const LOCAL_CHAT_DISTANCE = 50;
-
-    const MESSAGE_VERSION = 2; //A VERSION OF THE YAML FILE
 
     public function onEnable(){
         @mkdir($this->getDataFolder());
@@ -50,8 +50,7 @@ class Chatty extends PluginBase implements Listener {
         $this->packets["AddPlayerPacket"]->pitch    = 0;
         $this->packets["AddPlayerPacket"]->metadata = [Entity::DATA_FLAGS => [Entity::DATA_TYPE_BYTE, 1 << Entity::DATA_FLAG_INVISIBLE], Entity::DATA_AIR => [Entity::DATA_TYPE_SHORT, 20], Entity::DATA_SHOW_NAMETAG => [Entity::DATA_TYPE_BYTE, 1]];
 
-        // 플러그인의 명령어 등록
-        $this->registerCommand($this->getMessage("Chatty"), $this->getMessage("Chatty"), "Chatty.commands", $this->getMessage("Chatty-command-help"), "/" . $this->getMessage("Chatty"));
+        $this->registerCommand("chatty");
 
         $this->packets["RemovePlayerPacket"] = new RemovePlayerPacket();
         $this->packets["RemovePlayerPacket"]->clientID = 0;
@@ -66,34 +65,33 @@ class Chatty extends PluginBase implements Listener {
         $save->save();
     }
 
-    public function registerCommand($name, $fallback, $permission, $description = "", $usage = ""){
-        $command = new PluginCommand($name, $this);
-        $command->setDescription($description);
-        $command->setPermission($permission);
-        $command->setUsage($usage);
-
-        $this->getServer()->getCommandMap()->register($fallback, $command);
+    /**
+     * @param string $name
+     */
+    public function registerCommand($name){
+        $this->getServer()->getCommandMap()->register("Chatty", new PluginCommand(
+            $this,
+            $this->getMessages()->getMessage($name . "-command-name"),
+            $this->getMessages()->getMessage($name . "-command-description"),
+            $this->getMessages()->getMessage($name . "-command-usage")
+        ));
     }
 
-    public function getMessage($var){
-        if(isset($this->messages[$this->getServer()->getLanguage()->getLang()])){
-            $lang = $this->getServer()->getLanguage()->getLang();
-        }else{
-            $lang = "eng";
-        }
-        return $this->messages[$lang . "-" . $var];
+    public function getMessages(){
+        return $this->messages;
     }
 
     public function initMessages(){
         $this->saveResource("messages.yml", false);
         $this->updateMessages("messages.yml");
-        $this->messages = (new Config($this->getDataFolder() . "messages.yml", Config::YAML))->getAll();
+
+        $this->messages = new Messages((new Config($this->getDataFolder() . "messages.yml", Config::YAML))->getAll());
     }
 
-    public function updateMessages($targetYmlName){
-        $targetYml = (new Config($this->getDataFolder() . $targetYmlName, Config::YAML))->getAll();
-        if(!isset($targetYml["message-version"]) or $targetYml["message-version"] < self::MESSAGE_VERSION){
-            $this->saveResource($targetYmlName, true);
+    public function updateMessages($filename){
+        $messages = (new Config($this->getDataFolder() . $filename, Config::YAML))->getAll();
+        if(!isset($messages["version"]) or $messages["version"] < self::MESSAGE_VERSION){
+            $this->saveResource($filename, true);
         }
     }
 
@@ -206,35 +204,27 @@ class Chatty extends PluginBase implements Listener {
 
     public function sendMessage(CommandSender $player, $text, $prefix = null){
         if($prefix === null){
-            $prefix = $this->getMessage("default-prefix");
+            $prefix = $this->getMessages()->getMessage("default-prefix");
         }
 
-        $player->sendMessage(TextFormat::DARK_AQUA . $prefix . " " . $this->getMessage($text));
+        $player->sendMessage(TextFormat::DARK_AQUA . $prefix . " " . $this->getMessages()->getMessage($text));
     }
 
     public function sendAlert(CommandSender $player, $text, $prefix = null){
         if($prefix === null){
-            $prefix = $this->getMessage("default-prefix");
+            $prefix = $this->getMessages()->getMessage("default-prefix");
         }
 
-        $player->sendMessage(TextFormat::RED . $prefix . " " . $this->getMessage($text));
-    }
-
-    public function sendHelpMessage(CommandSender $sender){
-        $this->sendMessage($sender, "help-on");
-        $this->sendMessage($sender, "help-off");
-        $this->sendMessage($sender, "help-local-chat");
-        $this->sendMessage($sender, "help-nametag");
+        $player->sendMessage(TextFormat::RED . $prefix . " " . $this->getMessages()->getMessage($text));
     }
 
     public function onCommand(CommandSender $player, Command $command, $label, Array $args){
-        if(strToLower($command->getName()) !== $this->getMessage("Chatty")){
+        if(strToLower($command->getName()) !== $this->getMessages()->getMessage("chatty-command-name")){
             return true;
         }
 
         if(!isset($args[0])){
-            $this->sendHelpMessage($player);
-            return true;
+            return false;
         }
 
         if(!$player instanceof Player){
@@ -244,20 +234,19 @@ class Chatty extends PluginBase implements Listener {
 
         switch($args[0]){
             default:
-                $this->sendHelpMessage($player);
-                break;
+                return false;
 
-            case $this->getMessage("on"):
+            case $this->getMessages()->getMessage("chatty-on-command-name"):
                 $this->db[$player->getName()]["chat"] = true;
                 $this->sendMessage($player, "chat-enabled");
                 break;
 
-            case $this->getMessage("off"):
+            case $this->getMessages()->getMessage("chatty-off-command-name"):
                 $this->db[$player->getName()]["chat"] = false;
                 $this->sendMessage($player, "chat-disabled");
                 break;
 
-            case $this->getMessage("local-chat"):
+            case $this->getMessages()->getMessage("chatty-local-chat-command-name"):
                 if(!isset($this->db[$player->getName()]["local-chat"]) or $this->db[$player->getName()]["local-chat"] == false){
                     $this->db[$player->getName()]["local-chat"] = true;
                     $this->sendMessage($player, "local-chat-enabled");
@@ -267,7 +256,7 @@ class Chatty extends PluginBase implements Listener {
                 }
                 break;
 
-            case $this->getMessage("nametag"):
+            case $this->getMessages()->getMessage("chatty-nametag-command-name"):
                 if(!isset($this->db[$player->getName()]["nametag"]) or $this->db[$player->getName()]["nametag"] == false){
                     $this->db[$player->getName()]["nametag"] = true;
                     $this->sendMessage($player, "nametag-enabled");

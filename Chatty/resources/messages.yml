@@ -1,34 +1,51 @@
-# IF YOU NEED A SOME OTHER LANGUAGE SETTINGS #
-# YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
+version: 1
+default-language: kor
 
-#PLEASE SET HERE TO YOUR LANGUAGE PREFIX
-message-version: 2
+messages:
+  default-prefix:
+    kor: "[ 서버 ]"
 
-#(EN) ENGLISH
+  chatty-command-name:
+    kor: "대화"
 
-#(KO) KOREAN
-kor: true
-kor-default-prefix: "[ 서버 ]"
+  chatty-command-description:
+    kor: "대화와 관련된 명령어를 제공합니다"
 
-kor-Chatty: "대화"
-kor-on: "켜기"
-kor-off: "끄기"
-kor-local-chat: "근거리"
-kor-nametag: "방식변경"
+  chatty-command-usage:
+    kor: "/대화 켜기 - 모든 대화를 표시합니다\n/대화 끄기 - 모든 대화를 표시하지 않습니다\n/대화 근거리 - 주변 유저들의 대화만 듣습니다\n/대화 방식변경 - 네임택 채팅을 끄거나 킵니다"
 
-kor-Chatty-command-help: "대화와 관련된 명령어를 제공합니다"
-kor-help-on: "/대화 켜기 - 모든 대화를 표시합니다"
-kor-help-off: "/대화 끄기 - 모든 대화를 표시하지 않습니다"
-kor-help-local-chat: "/대화 근거리 - 주변 유저들의 대화만 듣습니다"
-kor-help-nametag: "/대화 방식변경 - 네임택 채팅을 끄거나 킵니다"
+  chatty-on-command-name:
+    kor: "켜기"
 
-kor-only-in-game: "게임내에서만 사용가능합니다"
-kor-nametag-enabled: "네임택 채팅이 활성화되었습니다"
-kor-nametag-disabled: "네임택 채팅이 비활성화되었습니다"
-kor-local-chat-enabled: "근거리 대화가 활성화 되었습니다"
-kor-local-chat-disabled: "근거리 대화가 비활성화 되었습니다"
-kor-chat-enabled: "모든 대화를 표시합니다"
-kor-chat-disabled: "모든 대화를 표시하지 않습니다"
+  chatty-off-command-name:
+    kor: "끄기"
 
-# AND YOU CAN PROVIDE YOUR TRANSLATION       #
+  chatty-local-chat-command-name:
+    kor: "근거리"
+
+  chatty-nametag-command-name:
+    kor: "방식변경"
+    
+  in-game-only: 
+    kor: "게임내에서만 사용가능합니다"
+
+  nametag-enabled:
+    kor: 네임택 채팅이 활성화되었습니다
+
+  nametag-disabled:
+    kor: 네임택 채팅이 비활성화되었습니다
+
+  local-chat-enabled:
+    kor: 근거리 대화가 활성화 되었습니다
+
+  local-chat-disabled:
+    kor: 근거리 대화가 비활성화 되었습니다
+
+  chat-enabled:
+    kor: 모든 대화를 표시합니다
+
+  chat-disabled:
+    kor: 모든 대화를 표시하지 않습니다
+
+# YOU CAN PROVIDE YOUR TRANSLATION
 # https://github.com/if-Team/PMMP-Plugins/blob/master/Chatty/resources/messages.yml
