@@ -18,54 +18,58 @@ use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
 use pocketmine\Player;
 use pocketmine\event\player\PlayerChatEvent;
+use pocketmine\network\protocol\DataPacket;
 use pocketmine\network\protocol\TextPacket;
 use pocketmine\event\TranslationContainer;
 
 class Chatty extends PluginBase implements Listener {
-    public $packet = []; // 전역 패킷 변수
-    public $packetQueue = []; // 패킷 큐
-    public $messages, $db; // 메시지 변수, DB 변수
-    public $messageStack = []; // 메시지 스택
+    /** @var DataPacket[] */
+    private $packets = [];
 
-    const MESSAGE_VERSION = 2; // 현재 메시지 버전
+    /** @var array */
+    private $packetQueue = [], $messageStack = [], $db = [], $messages = [];
+
+    const MESSAGE_LENGTH = 50;
+    const MESSAGE_MAX_LINES = 5;
     const LOCAL_CHAT_DISTANCE = 50;
+
+    const MESSAGE_VERSION = 2; //A VERSION OF THE YAML FILE
 
     public function onEnable(){
         @mkdir($this->getDataFolder());
-        $this->initMessage(); // 기본언어메시지 초기화
+        $this->initMessage();
 
-        // YAML 형식의 DB 생성 후 불러오기
-        $this->db = (new Config($this->getDataFolder() . "pluginDB.yml", Config::YAML, []))->getAll();
+        $this->db = (new Config($this->getDataFolder() . "database.yml", Config::YAML, []))->getAll();
 
-        $this->packet["AddPlayerPacket"] = new AddPlayerPacket();
-        $this->packet["AddPlayerPacket"]->clientID = 0;
-        $this->packet["AddPlayerPacket"]->yaw = 0;
-        $this->packet["AddPlayerPacket"]->pitch = 0;
-        $this->packet["AddPlayerPacket"]->metadata = [Entity::DATA_FLAGS => [Entity::DATA_TYPE_BYTE, 1 << Entity::DATA_FLAG_INVISIBLE], Entity::DATA_AIR => [Entity::DATA_TYPE_SHORT, 20], Entity::DATA_SHOW_NAMETAG => [Entity::DATA_TYPE_BYTE, 1]];
+        $this->packets["AddPlayerPacket"] = new AddPlayerPacket();
+        $this->packets["AddPlayerPacket"]->clientID = 0;
+        $this->packets["AddPlayerPacket"]->yaw      = 0;
+        $this->packets["AddPlayerPacket"]->pitch    = 0;
+        $this->packets["AddPlayerPacket"]->metadata = [Entity::DATA_FLAGS => [Entity::DATA_TYPE_BYTE, 1 << Entity::DATA_FLAG_INVISIBLE], Entity::DATA_AIR => [Entity::DATA_TYPE_SHORT, 20], Entity::DATA_SHOW_NAMETAG => [Entity::DATA_TYPE_BYTE, 1]];
 
         // 플러그인의 명령어 등록
         $this->registerCommand($this->getMessage("Chatty"), $this->getMessage("Chatty"), "Chatty.commands", $this->getMessage("Chatty-command-help"), "/" . $this->getMessage("Chatty"));
 
-        $this->packet["RemovePlayerPacket"] = new RemovePlayerPacket();
-        $this->packet["RemovePlayerPacket"]->clientID = 0;
+        $this->packets["RemovePlayerPacket"] = new RemovePlayerPacket();
+        $this->packets["RemovePlayerPacket"]->clientID = 0;
 
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
         $this->getServer()->getScheduler()->scheduleRepeatingTask(new ChattyTask($this), 1);
     }
 
     public function onDisable(){
-        $save = new Config($this->getDataFolder() . "pluginDB.yml", Config::YAML);
+        $save = new Config($this->getDataFolder() . "database.yml", Config::YAML);
         $save->setAll($this->db);
         $save->save();
     }
 
     public function registerCommand($name, $fallback, $permission, $description = "", $usage = ""){
-        $commandMap = $this->getServer()->getCommandMap();
         $command = new PluginCommand($name, $this);
         $command->setDescription($description);
         $command->setPermission($permission);
         $command->setUsage($usage);
-        $commandMap->register($fallback, $command);
+
+        $this->getServer()->getCommandMap()->register($fallback, $command);
     }
 
     public function getMessage($var){
@@ -106,36 +110,17 @@ class Chatty extends PluginBase implements Listener {
 
     public function onQuit(PlayerQuitEvent $event){
         unset($this->messageStack[$event->getPlayer()->getName()]);
-        if(isset($this->packetQueue[$event->getPlayer()->getName()]))
-            unset($this->packetQueue[$event->getPlayer()->getName()]);
+        unset($this->packetQueue[$event->getPlayer()->getName()]);
     }
 
     public function putStack($name, $message){
         $messages = [];
-        $enter = 50;
-        $first = 0;
-        $end = $enter;
-        $strLen = mb_strlen($message, "UTF-8");
-        while(1){
-            if($strLen - $first > $enter){
-                $messages[] = mb_substr($message, $first, $end, 'utf8');
-                $first = $first + $enter;
-                $end = $end + $enter;
-            }else{
-                $messages[] = mb_substr($message, $first, $end, 'utf8');
-                break;
-            }
+        for($start = 0; $start < mb_strlen($message, "UTF-8"); $start += self::MESSAGE_LENGTH){
+            $messages[] = mb_substr($message, $start, self::MESSAGE_LENGTH, "UTF-8");
         }
-        foreach($messages as $m)
-            array_push($this->messageStack[$name], $m);
 
-        while(1){
-            if(count($this->messageStack[$name]) > 6){
-                array_shift($this->messageStack[$name]);
-            }else{
-                break;
-            }
-        }
+        $this->messageStack[$name] += $messages;
+        $this->messageStack[$name] = array_slice($this->messageStack[$name], -self::MESSAGE_MAX_LINES);
     }
 
     public function prePlayerCommand(PlayerCommandPreprocessEvent $event){
@@ -181,48 +166,51 @@ class Chatty extends PluginBase implements Listener {
     }
 
     public function tick(){
-        foreach($this->getServer()->getOnlinePlayers() as $OnlinePlayer){
-            if(isset($this->packetQueue[$OnlinePlayer->getName()]["eid"])){
-                $this->packet["RemovePlayerPacket"]->eid = $this->packetQueue[$OnlinePlayer->getName()]["eid"];
-                $this->packet["RemovePlayerPacket"]->clientID = $this->packetQueue[$OnlinePlayer->getName()]["eid"];
-                $OnlinePlayer->directDataPacket($this->packet["RemovePlayerPacket"]); // 네임택 제거패킷 전송
+        foreach($this->getServer()->getOnlinePlayers() as $player){
+            $key = $player->getName();
+
+            if(isset($this->packetQueue[$key]["eid"])){
+                $this->packets["RemovePlayerPacket"]->eid      = $this->packetQueue[$key]["eid"];
+                $this->packets["RemovePlayerPacket"]->clientID = $this->packetQueue[$key]["eid"];
+
+                $player->directDataPacket($this->packets["RemovePlayerPacket"]); // 네임택 제거패킷 전송
             }
 
-            if(!isset($this->db[$OnlinePlayer->getName()]["nametag"]) or $this->db[$OnlinePlayer->getName()]["nametag"] == false){
+            if(!isset($this->db[$key]["nametag"]) or $this->db[$key]["nametag"] == false){
                 continue;
             }
 
-            $px = round($OnlinePlayer->x);
-            $py = round($OnlinePlayer->y);
-            $pz = round($OnlinePlayer->z);
+            $px = round($player->x);
+            $py = round($player->y);
+            $pz = round($player->z);
 
-            $allMessages = "";
-            if(!isset($this->messageStack[$OnlinePlayer->getName()])){
+            $messages = "";
+            if(!isset($this->messageStack[$key])){
                 continue;
             }
 
-            foreach($this->messageStack[$OnlinePlayer->getName()] as $message){
-                $allMessages .= TextFormat::WHITE . $message . "\n"; // 색상표시시 \n이 작동안됨
+            foreach($this->messageStack[$key] as $message){
+                $messages .= TextFormat::WHITE . $message . "\n"; // 색상표시시 \n이 작동안됨
             }
 
-            $this->packetQueue[$OnlinePlayer->getName()]["x"] = round($px);
-            $this->packetQueue[$OnlinePlayer->getName()]["y"] = round($py);
-            $this->packetQueue[$OnlinePlayer->getName()]["z"] = round($pz);
-            $this->packetQueue[$OnlinePlayer->getName()]["eid"] = Entity::$entityCount++;
+            $this->packetQueue[$key]["x"] = round($px);
+            $this->packetQueue[$key]["y"] = round($py);
+            $this->packetQueue[$key]["z"] = round($pz);
+            $this->packetQueue[$key]["eid"] = Entity::$entityCount++;
 
-            $this->packet["AddPlayerPacket"]->eid = $this->packetQueue[$OnlinePlayer->getName()]["eid"];
-            $this->packet["AddPlayerPacket"]->clientID = $this->packetQueue[$OnlinePlayer->getName()]["eid"];
-            $this->packet["AddPlayerPacket"]->username = $allMessages;
-            $this->packet["AddPlayerPacket"]->x = $px + (-\sin(($OnlinePlayer->yaw   / 180 * M_PI) - 0.4)) * 7;
-            $this->packet["AddPlayerPacket"]->y = $py + (-\sin( $OnlinePlayer->pitch / 180 * M_PI)       ) * 7;
-            $this->packet["AddPlayerPacket"]->z = $pz + ( \cos(($OnlinePlayer->yaw   / 180 * M_PI) - 0.4)) * 7;
+            $this->packets["AddPlayerPacket"]->eid      = $this->packetQueue[$key]["eid"];
+            $this->packets["AddPlayerPacket"]->clientID = $this->packetQueue[$key]["eid"];
+            $this->packets["AddPlayerPacket"]->username = $messages;
+            $this->packets["AddPlayerPacket"]->x        = $px + (-\sin(($player->yaw   / 180 * M_PI) - 0.4)) * 7;
+            $this->packets["AddPlayerPacket"]->y        = $py + (-\sin( $player->pitch / 180 * M_PI)       ) * 7;
+            $this->packets["AddPlayerPacket"]->z        = $pz + ( \cos(($player->yaw   / 180 * M_PI) - 0.4)) * 7;
 
-            $OnlinePlayer->dataPacket($this->packet["AddPlayerPacket"]);
+            $player->dataPacket($this->packets["AddPlayerPacket"]);
         }
     }
 
     public function sendMessage(CommandSender $player, $text, $prefix = null){
-        if($prefix == null){
+        if($prefix === null){
             $prefix = $this->getMessage("default-prefix");
         }
 
@@ -230,7 +218,7 @@ class Chatty extends PluginBase implements Listener {
     }
 
     public function sendAlert(CommandSender $player, $text, $prefix = null){
-        if($prefix == null){
+        if($prefix === null){
             $prefix = $this->getMessage("default-prefix");
         }
 
@@ -245,7 +233,7 @@ class Chatty extends PluginBase implements Listener {
     }
 
     public function onCommand(CommandSender $player, Command $command, $label, Array $args){
-        if(strToLower($command->getName()) != $this->getMessage("Chatty")){
+        if(strToLower($command->getName()) !== $this->getMessage("Chatty")){
             return true;
         }
 
