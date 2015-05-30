@@ -3,6 +3,9 @@
 namespace ifteam\Chatty;
 
 use chalk\utils\Messages;
+use ifteam\CustomPacket\CPAPI;
+use ifteam\CustomPacket\DataPacket;
+use ifteam\CustomPacket\event\CustomPacketReceiveEvent;
 use pocketmine\event\player\PlayerCommandPreprocessEvent;
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
@@ -19,16 +22,14 @@ use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
 use pocketmine\Player;
 use pocketmine\event\player\PlayerChatEvent;
-use pocketmine\network\protocol\DataPacket;
 use pocketmine\network\protocol\TextPacket;
 use pocketmine\event\TranslationContainer;
 
 class Chatty extends PluginBase implements Listener {
-    /** @var DataPacket[] */
-    private $packets = [];
-
     /** @var array */
-    private $db = [], $lastNametags = [], $messageStack = [];
+    private $db = [], $packets = [], $lastNametags = [], $messageStack = [];
+
+    private $customPacketAvailable = false;
 
     /** @var Messages */
     private $messages = null;
@@ -40,6 +41,8 @@ class Chatty extends PluginBase implements Listener {
 
     public function onEnable(){
         @mkdir($this->getDataFolder());
+        $this->saveDefaultConfig();
+
         $this->initMessages();
 
         $this->db = (new Config($this->getDataFolder() . "database.yml", Config::YAML, []))->getAll();
@@ -57,6 +60,8 @@ class Chatty extends PluginBase implements Listener {
 
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
         $this->getServer()->getScheduler()->scheduleRepeatingTask(new ChattyTask($this), 1);
+
+        $this->customPacketAvailable = $this->getServer()->getPluginManager()->getPlugin("CustomPacket") !== null;
     }
 
     public function onDisable(){
@@ -152,6 +157,20 @@ class Chatty extends PluginBase implements Listener {
 
         $message = $this->getServer()->getLanguage()->translateString($myEvent->getFormat(), [$myEvent->getPlayer()->getDisplayName(), $myEvent->getMessage()]);
         $this->broadcastMessage($message, $sender);
+
+        if($this->customPacketAvailable and $this->getConfig()->get("echo-enabled", false)){
+            $passcode = $this->getConfig()->get("echo-password", null);
+            if($passcode === null){
+                return;
+            }
+
+            $myName = $this->getConfig()->get("echo-my-name", "MAIN");
+
+            foreach($this->getConfig()->get("echo-recipients", []) as $recipient){
+                $address = explode(":", $recipient);
+                CPAPI::sendPacket(new DataPacket($address[0], $address[1], ["passcode" => $passcode, "name" => $myName, "message" => $message]));
+            }
+        }
     }
 
     /**
@@ -168,6 +187,24 @@ class Chatty extends PluginBase implements Listener {
             }
             $player->sendMessage($message);
         }
+    }
+
+    public function onPacketReceive(CustomPacketReceiveEvent $event){
+        if(!$this->getConfig()->get("echo-enabled", false)){
+            return;
+        }
+
+        $passcode = $this->getConfig()->get("echo-password", null);
+        if($passcode === null){
+            return;
+        }
+
+        $data = json_decode($event->getPacket()->data);
+        if(!is_array($data) or $passcode !== $data["passcode"]){
+            return;
+        }
+
+        $this->broadcastMessage("[" . $data["name"] . "] " . $data["message"]);
     }
 
     public function onDataPacket(DataPacketSendEvent $event){
