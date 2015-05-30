@@ -40,7 +40,7 @@ class Chatty extends PluginBase implements Listener {
 
     public function onEnable(){
         @mkdir($this->getDataFolder());
-        $this->initMessage();
+        $this->initMessages();
 
         $this->db = (new Config($this->getDataFolder() . "database.yml", Config::YAML, []))->getAll();
 
@@ -84,17 +84,15 @@ class Chatty extends PluginBase implements Listener {
         return $this->messages[$lang . "-" . $var];
     }
 
-    public function initMessage(){
+    public function initMessages(){
         $this->saveResource("messages.yml", false);
-        $this->updateMessage("messages.yml");
+        $this->updateMessages("messages.yml");
         $this->messages = (new Config($this->getDataFolder() . "messages.yml", Config::YAML))->getAll();
     }
 
-    public function updateMessage($targetYmlName){
+    public function updateMessages($targetYmlName){
         $targetYml = (new Config($this->getDataFolder() . $targetYmlName, Config::YAML))->getAll();
-        if(!isset($targetYml["message-version"])){
-            $this->saveResource($targetYmlName, true);
-        }else if($targetYml["message-version"] < self::MESSAGE_VERSION){
+        if(!isset($targetYml["message-version"]) or $targetYml["message-version"] < self::MESSAGE_VERSION){
             $this->saveResource($targetYmlName, true);
         }
     }
