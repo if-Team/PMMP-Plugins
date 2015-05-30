@@ -71,14 +71,26 @@ class Chatty extends PluginBase implements Listener {
     public function registerCommand($name){
         $this->getServer()->getCommandMap()->register("Chatty", new PluginCommand(
             $this,
-            $this->getMessages()->getMessage($name . "-command-name"),
-            $this->getMessages()->getMessage($name . "-command-description"),
-            $this->getMessages()->getMessage($name . "-command-usage")
+            $this->getMessage($name . "-command-name"),
+            $this->getMessage($name . "-command-description"),
+            $this->getMessage($name . "-command-usage")
         ));
     }
 
+    /**
+     * @return Messages
+     */
     public function getMessages(){
         return $this->messages;
+    }
+
+    /**
+     * @param string $key
+     * @param array $format
+     * @return null|string
+     */
+    public function getMessage($key, $format = []){
+        return $this->getMessages()->getMessage($key, $format, $this->getServer()->getLanguage()->getLang());
     }
 
     public function initMessages(){
@@ -204,22 +216,22 @@ class Chatty extends PluginBase implements Listener {
 
     public function sendMessage(CommandSender $player, $text, $prefix = null){
         if($prefix === null){
-            $prefix = $this->getMessages()->getMessage("default-prefix");
+            $prefix = $this->getMessage("default-prefix");
         }
 
-        $player->sendMessage(TextFormat::DARK_AQUA . $prefix . " " . $this->getMessages()->getMessage($text));
+        $player->sendMessage(TextFormat::DARK_AQUA . $prefix . " " . $this->getMessage($text));
     }
 
     public function sendAlert(CommandSender $player, $text, $prefix = null){
         if($prefix === null){
-            $prefix = $this->getMessages()->getMessage("default-prefix");
+            $prefix = $this->getMessage("default-prefix");
         }
 
-        $player->sendMessage(TextFormat::RED . $prefix . " " . $this->getMessages()->getMessage($text));
+        $player->sendMessage(TextFormat::RED . $prefix . " " . $this->getMessage($text));
     }
 
     public function onCommand(CommandSender $player, Command $command, $label, Array $args){
-        if(strToLower($command->getName()) !== $this->getMessages()->getMessage("chatty-command-name")){
+        if(strToLower($command->getName()) !== $this->getMessage("chatty-command-name")){
             return true;
         }
 
@@ -236,17 +248,17 @@ class Chatty extends PluginBase implements Listener {
             default:
                 return false;
 
-            case $this->getMessages()->getMessage("chatty-on-command-name"):
+            case $this->getMessage("chatty-on-command-name"):
                 $this->db[$player->getName()]["chat"] = true;
                 $this->sendMessage($player, "chat-enabled");
                 break;
 
-            case $this->getMessages()->getMessage("chatty-off-command-name"):
+            case $this->getMessage("chatty-off-command-name"):
                 $this->db[$player->getName()]["chat"] = false;
                 $this->sendMessage($player, "chat-disabled");
                 break;
 
-            case $this->getMessages()->getMessage("chatty-local-chat-command-name"):
+            case $this->getMessage("chatty-local-chat-command-name"):
                 if(!isset($this->db[$player->getName()]["local-chat"]) or $this->db[$player->getName()]["local-chat"] == false){
                     $this->db[$player->getName()]["local-chat"] = true;
                     $this->sendMessage($player, "local-chat-enabled");
@@ -256,7 +268,7 @@ class Chatty extends PluginBase implements Listener {
                 }
                 break;
 
-            case $this->getMessages()->getMessage("chatty-nametag-command-name"):
+            case $this->getMessage("chatty-nametag-command-name"):
                 if(!isset($this->db[$player->getName()]["nametag"]) or $this->db[$player->getName()]["nametag"] == false){
                     $this->db[$player->getName()]["nametag"] = true;
                     $this->sendMessage($player, "nametag-enabled");
