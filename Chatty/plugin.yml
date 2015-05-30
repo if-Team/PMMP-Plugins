@@ -1,6 +1,6 @@
 name: Chatty
 main: ifteam\Chatty\Chatty
-version: 0.5-Alpha
+version: 0.6-Alpha
 author: ifteam
 api: [1.12.0]
 
