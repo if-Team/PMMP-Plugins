@@ -27,7 +27,10 @@ class Chatty extends PluginBase implements Listener {
     private $packets = [];
 
     /** @var array */
-    private $packetQueue = [], $messageStack = [], $db = [], $messages = [];
+    private $db = [], $lastNametags = [], $messageStack = [];
+
+    /** @var string[] */
+    private $messages = [];
 
     const MESSAGE_LENGTH = 50;
     const MESSAGE_MAX_LINES = 5;
@@ -110,17 +113,21 @@ class Chatty extends PluginBase implements Listener {
 
     public function onQuit(PlayerQuitEvent $event){
         unset($this->messageStack[$event->getPlayer()->getName()]);
-        unset($this->packetQueue[$event->getPlayer()->getName()]);
+        unset($this->lastNametags[$event->getPlayer()->getName()]);
     }
 
-    public function putStack($name, $message){
+    public function putStack($key, $message){
         $messages = [];
         for($start = 0; $start < mb_strlen($message, "UTF-8"); $start += self::MESSAGE_LENGTH){
             $messages[] = mb_substr($message, $start, self::MESSAGE_LENGTH, "UTF-8");
         }
 
-        $this->messageStack[$name] += $messages;
-        $this->messageStack[$name] = array_slice($this->messageStack[$name], -self::MESSAGE_MAX_LINES);
+        $this->messageStack[$key] += $messages;
+        $this->messageStack[$key] = array_slice($this->messageStack[$key], -self::MESSAGE_MAX_LINES);
+
+        foreach($this->messageStack[$key] as $index => $message){
+            $this->messageStack[$key][$index] = TextFormat::WHITE . $message;
+        }
     }
 
     public function prePlayerCommand(PlayerCommandPreprocessEvent $event){
@@ -169,41 +176,25 @@ class Chatty extends PluginBase implements Listener {
         foreach($this->getServer()->getOnlinePlayers() as $player){
             $key = $player->getName();
 
-            if(isset($this->packetQueue[$key]["eid"])){
-                $this->packets["RemovePlayerPacket"]->eid      = $this->packetQueue[$key]["eid"];
-                $this->packets["RemovePlayerPacket"]->clientID = $this->packetQueue[$key]["eid"];
+            if(isset($this->lastNametags[$key])){
+                $this->packets["RemovePlayerPacket"]->eid      = $this->lastNametags[$key]["eid"];
+                $this->packets["RemovePlayerPacket"]->clientID = $this->lastNametags[$key]["eid"];
 
                 $player->directDataPacket($this->packets["RemovePlayerPacket"]); // 네임택 제거패킷 전송
             }
 
-            if(!isset($this->db[$key]["nametag"]) or $this->db[$key]["nametag"] == false){
+            if(!isset($this->db[$key]["nametag"]) or $this->db[$key]["nametag"] == false or !isset($this->messageStack[$key])){
                 continue;
             }
 
-            $px = round($player->x);
-            $py = round($player->y);
-            $pz = round($player->z);
+            $this->lastNametags[$key] = ["eid" => Entity::$entityCount++];
 
-            $messages = "";
-            if(!isset($this->messageStack[$key])){
-                continue;
-            }
-
-            foreach($this->messageStack[$key] as $message){
-                $messages .= TextFormat::WHITE . $message . "\n"; // 색상표시시 \n이 작동안됨
-            }
-
-            $this->packetQueue[$key]["x"] = round($px);
-            $this->packetQueue[$key]["y"] = round($py);
-            $this->packetQueue[$key]["z"] = round($pz);
-            $this->packetQueue[$key]["eid"] = Entity::$entityCount++;
-
-            $this->packets["AddPlayerPacket"]->eid      = $this->packetQueue[$key]["eid"];
-            $this->packets["AddPlayerPacket"]->clientID = $this->packetQueue[$key]["eid"];
-            $this->packets["AddPlayerPacket"]->username = $messages;
-            $this->packets["AddPlayerPacket"]->x        = $px + (-\sin(($player->yaw   / 180 * M_PI) - 0.4)) * 7;
-            $this->packets["AddPlayerPacket"]->y        = $py + (-\sin( $player->pitch / 180 * M_PI)       ) * 7;
-            $this->packets["AddPlayerPacket"]->z        = $pz + ( \cos(($player->yaw   / 180 * M_PI) - 0.4)) * 7;
+            $this->packets["AddPlayerPacket"]->eid      = $this->lastNametags[$key]["eid"];
+            $this->packets["AddPlayerPacket"]->clientID = $this->lastNametags[$key]["eid"];
+            $this->packets["AddPlayerPacket"]->username = implode("\n", $this->messageStack[$key]);
+            $this->packets["AddPlayerPacket"]->x        = round($player->x) + (-\sin(($player->yaw   / 180 * M_PI) - 0.4)) * 7;
+            $this->packets["AddPlayerPacket"]->y        = round($player->y) + (-\sin( $player->pitch / 180 * M_PI)       ) * 7;
+            $this->packets["AddPlayerPacket"]->z        = round($player->z) + ( \cos(($player->yaw   / 180 * M_PI) - 0.4)) * 7;
 
             $player->dataPacket($this->packets["AddPlayerPacket"]);
         }
