@@ -135,20 +135,26 @@ class Chatty extends PluginBase implements Listener {
             return;
         }
         $event->setCancelled(true);
-
         $sender = $event->getPlayer();
-        $this->getServer()->getPluginManager()->callEvent($myEvent = new PlayerChatEvent($sender, $event->getMessage()));
 
+        $this->getServer()->getPluginManager()->callEvent($myEvent = new PlayerChatEvent($sender, $event->getMessage()));
         if($myEvent->isCancelled()){
             return;
         }
 
         $message = $this->getServer()->getLanguage()->translateString($myEvent->getFormat(), [$myEvent->getPlayer()->getDisplayName(), $myEvent->getMessage()]);
+        $this->broadcastMessage($message, $sender);
+    }
 
+    /**
+     * @param string $message
+     * @param Player $sender
+     */
+    public function broadcastMessage($message, $sender = null){
         $this->getLogger()->info($message);
         foreach($this->getServer()->getOnlinePlayers() as $player){
             if(isset($this->db[$player->getName()]["local-chat"]) and $this->db[$player->getName()]["local-chat"] === true){
-                if($sender->distance($player) > self::LOCAL_CHAT_DISTANCE){
+                if($sender === null or $sender->distance($player) > self::LOCAL_CHAT_DISTANCE){
                     continue;
                 }
             }
