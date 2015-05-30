@@ -159,7 +159,7 @@ class Chatty extends PluginBase implements Listener {
         $this->broadcastMessage($message, $sender);
 
         if($this->customPacketAvailable and $this->getConfig()->get("echo-enabled", false)){
-            $passcode = $this->getConfig()->get("echo-password", null);
+            $passcode = $this->getConfig()->get("echo-passcode", null);
             if($passcode === null){
                 return;
             }
@@ -194,7 +194,7 @@ class Chatty extends PluginBase implements Listener {
             return;
         }
 
-        $passcode = $this->getConfig()->get("echo-password", null);
+        $passcode = $this->getConfig()->get("echo-passcode", null);
         if($passcode === null){
             return;
         }
