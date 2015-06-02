@@ -19,84 +19,39 @@ namespace ifteam\OverTheServer;
 
 use pocketmine\network\protocol\DataPacket;
 
-class StrangePacket extends DataPacket {
-    /** @var string */
-    private $address;
+class StrangePacket extends DataPacket{
+	const NETWORK_ID = 0x1b;
 
-	/** @var int */
-    private $port;
+	public $address;
+	public $port;
 
-    /**
-     * @param string $address
-     * @param int $port = 19132
-     */
-    public function __construct($address, $port = 19132){
-        $this->address = $address;
-        $this->port = $port;
-    }
+	public function __construct($address, $port = 19132){
+		$this->address = $address;
+		$this->port = $port;
+	}
 
-    /**
-     * @return string
-     */
-    public function getAddress(){
-        return $this->address;
-    }
+	public function pid(){
+		return 0x1b;
+	}
 
-    /**
-     * @param string $address
-     */
-    public function setAddress($address){
-        $this->address = $address;
-    }
+	protected function putAddress($addr, $port, $version = 4){
+		$this->putByte($version);
+		if($version === 4){
+			foreach(explode(".", $addr) as $b){
+				$this->putByte((~((int) $b)) & 0xff);
+			}
+			$this->putShort($port);
+		}else{
+			//IPv6
+		}
+	}
 
-    /**
-     * @return int
-     */
-    public function getPort(){
-        return $this->port;
-    }
+	public function decode(){
 
-    /**
-     * @param int $port
-     */
-    public function setPort($port){
-        $this->port = $port;
-    }
-
-    /**
-     * @return int
-     */
-    public function pid(){
-        return 0x1b;
-    }
+	}
 
 	public function encode(){
 		$this->reset();
-		$this->putAddress();
+		$this->putAddress($this->address, $this->port);
 	}
-
-    public function decode(){
-
-    }
-
-    /**
-     * @param int $version = 4
-     */
-    protected function putAddress($version = 4){
-        $this->putByte($version);
-
-        switch($version){
-            case 4:
-                //IPv4
-                foreach(explode(".", $this->getAddress()) as $b){
-                    $this->putByte((~((int) $b)) & 0xff);
-                }
-                $this->putShort($this->getPort());
-                break;
-
-            case 6:
-                //IPv6
-                break;
-        }
-    }
 }
