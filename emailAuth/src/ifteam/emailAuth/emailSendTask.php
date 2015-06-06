@@ -25,13 +25,14 @@ class emailSendTask extends AsyncTask {
 		$signForm = str_replace ( "##TIME##", $time, $signForm );
 		$signForm = str_replace ( "##SERVER##", $serverName, $signForm );
 		$signForm = str_replace ( "##CODE##", $code, $signForm );
-		return ($this->PHPMailer ( $sendMail, $signForm )) ? true : false;
+		return ($this->PHPMailer ( $sendMail, $signForm, $code )) ? true : false;
 	}
-	public function PHPMailer($sendMail, $html) {
+	public function PHPMailer($sendMail, $html, $code = "") {
 		$mail = new PHPMailer ();
 		$mail->isSMTP ();
 		$mail->SMTPDebug = 0;
-		if ($istest) $mail->SMTPDebug = 2;
+		if ($istest)
+			$mail->SMTPDebug = 2;
 		
 		$mail->SMTPSecure = 'tls';
 		$mail->CharSet = $this->config ["encoding"];
@@ -47,11 +48,12 @@ class emailSendTask extends AsyncTask {
 		$mail->setFrom ( $this->config ["adminEmail"], $this->config ["serverName"] );
 		$mail->addReplyTo ( $this->config ["adminEmail"], $this->config ["serverName"] );
 		$mail->addAddress ( $sendMail );
-		$mail->Subject = $this->config ["subjectName"];
+		$mail->Subject = $this->config ["subjectName"] . " [" . $code . "]";
 		
 		$mail->msgHTML ( $html );
 		
-		if ($istest) echo $mail->ErrorInfo . "\n";
+		if ($istest)
+			echo $mail->ErrorInfo . "\n";
 		return ($mail->send ()) ? true : false;
 	}
 }

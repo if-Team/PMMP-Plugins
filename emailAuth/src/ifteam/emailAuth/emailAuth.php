@@ -22,19 +22,40 @@ use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\inventory\InventoryOpenEvent;
-use pocketmine\event\inventory\InventoryPickupItemEvent;
 use pocketmine\command\PluginCommand;
+use ifteam\emailAuth\provider\YAMLDataProvider;
+use ifteam\emailAuth\provider\SQLite3DataProvider;
+use ifteam\emailAuth\provider\MySQLDataProvider;
+use ifteam\emailAuth\provider\DummyDataProvider;
+use ifteam\emailAuth\provider\DataProvider;
 
+//TODO 리스트 - 현재남은 작업들
+//이메일 - 가입 OTP 탈퇴 개발완료
+//이메일 - 심플오스 데이터 이식기능 개발완료
+
+//TODO - (연동기능)스위스뱅크 마스터모드 슬레이브모드 선택 코드 이식
+//TODO - (연동기능)마스터모드일경우
+//TODO - (연동기능)슬레이브모드일경우
+
+//TODO - (연동기능)이코노미API돈
+//TODO - (연동기능)유저인벤토리 데이터
+
+//TODO - (연동기능)타서버에 유저가 이미 접속해있으면 접속차단
+//TODO - (연동기능)모든 연동작업은 비동기 스레딩으로 처리
+//TODO - (연동기능)마스터에서 슬레이브로 데이터가 올때까지 대기 유저의 행동을 차단
 class emailAuth extends PluginBase implements Listener {
 	private static $instance = null;
-	public $db, $rand = [ ];
+	public $db = [ ];
 	public $needAuth = [ ];
 	public $authcode = [ ];
+	public $wrongauth = [ ]; // Prevent brute forcing
 	public $m_version = 1;
+	public $checkCustomPacket = false;
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		
-		if (self::$instance == null) self::$instance = $this;
+		if (self::$instance == null)
+			self::$instance = $this;
 		
 		$this->saveDefaultConfig ();
 		$this->reloadConfig ();
@@ -54,7 +75,84 @@ class emailAuth extends PluginBase implements Listener {
 		$this->registerCommand ( $this->get ( "unregister" ), "emailAuth.unregister", $this->get ( "unregister-help" ), "/" . $this->get ( "unregister" ) );
 		$this->registerCommand ( "emailauth", "emailAuth.manage", $this->get ( "manage-help" ), "/emailauth" );
 		
+		if (file_exists ( $this->getDataFolder () . "SimpleAuth/players" )) {
+			$config = (new Config ( $this->getDataFolder () . "SimpleAuth/config.yml", Config::YAML ))->getAll ();
+			$provider = $config ["dataProvider"];
+			switch (strtolower ( $provider )) {
+				case "yaml" :
+					$this->getLogger ()->debug ( "Using YAML data provider" );
+					$provider = new YAMLDataProvider ( $this );
+					break;
+				case "sqlite3" :
+					$this->getLogger ()->debug ( "Using SQLite3 data provider" );
+					$provider = new SQLite3DataProvider ( $this );
+					break;
+				case "mysql" :
+					$this->getLogger ()->debug ( "Using MySQL data provider" );
+					$provider = new MySQLDataProvider ( $this );
+					break;
+				case "none" :
+				default :
+					$provider = new DummyDataProvider ( $this );
+					break;
+			}
+			// SimpleAuth/* 폴더 검색 후 들어가서 모든 yml 읽어서 데이터화
+			$list = $this->getFolderList ( $this->getDataFolder () . "SimpleAuth/players", "folder" );
+			foreach ( $list as $alphabet ) {
+				$ymllist = $this->getFolderList ( $this->getDataFolder () . "SimpleAuth/players/" . $alphabet, "file" );
+				foreach ( $ymllist as $ymlname ) {
+					$yml = (new Config ( $this->getDataFolder () . "SimpleAuth/players/" . $alphabet . "/" . $ymlname, Config::YAML ))->getAll ();
+					$name = explode ( ".", $ymlname )[0];
+					$this->db->addAuthReady ( $name, $yml ["hash"] );
+				}
+			}
+			$this->rmdirAll ( $this->getDataFolder () . "SimpleAuth" );
+		}
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
+	}
+	/**
+	 *
+	 * @param string $rootDir        	
+	 * @param string $filter
+	 *        	= "folder" || "file" || null
+	 *        	
+	 * @return array $rList
+	 */
+	public function getFolderList($rootDir, $filter = "") {
+		$handler = opendir ( $rootDir );
+		$rList = array ();
+		$fCounter = 0;
+		while ( $file = readdir ( $handler ) ) {
+			if ($file != '.' && $file != '..') {
+				if ($filter == "folder") {
+					if (is_dir ( $rootDir . "/" . $file )) {
+						$rList [$fCounter ++] = $file;
+					}
+				} else if ($filter == "file") {
+					if (! is_dir ( $rootDir . "/" . $file )) {
+						$rList [$fCounter ++] = $file;
+					}
+				} else {
+					$rList [$fCounter ++] = $file;
+				}
+			}
+		}
+		closedir ( $handler );
+		return $rList;
+	}
+	public function rmdirAll($dir) {
+		$dirs = dir ( $dir );
+		while ( false !== ($entry = $dirs->read ()) ) {
+			if (($entry != '.') && ($entry != '..')) {
+				if (is_dir ( $dir . '/' . $entry )) {
+					$this->rmdirAll ( $dir . '/' . $entry );
+				} else {
+					@unlink ( $dir . '/' . $entry );
+				}
+			}
+		}
+		$dirs->close ();
+		@rmdir ( $dir );
 	}
 	public function onDisable() {
 		$this->autoSave ();
@@ -64,6 +162,12 @@ class emailAuth extends PluginBase implements Listener {
 	}
 	public function autoSave() {
 		$this->db->save ();
+	}
+	public function setDataProvider(DataProvider $provider) {
+		$this->provider = $provider;
+	}
+	public function getDataProvider() {
+		return $this->provider;
 	}
 	public function onJoin(PlayerJoinEvent $event) {
 		if (isset ( $this->db->getAll ()["ip"][$event->getPlayer ()->getAddress ()] )) {
@@ -93,9 +197,23 @@ class emailAuth extends PluginBase implements Listener {
 			$this->getLogger ()->info ( $this->get ( "setup-help-port" ) );
 			return false;
 		}
+		if ($this->getServer ()->getPluginManager ()->getPlugin ( "CustomPacket" ) != null) {
+			$this->checkCustomPacket = true;
+			if ($this->getConfig ()->get ( "usecustompacket", null ) == null) {
+				$this->getServer ()->getLogger ()->info ( TextFormat::DARK_AQUA . $this->get ( "you-can-activate-custompacket" ) );
+			}
+		}
 		return true;
 	}
 	public function onCommand(CommandSender $player, Command $command, $label, array $args) {
+		// 연속으로 20회 이상틀리면 밴 처리
+		if ($player instanceof Player) {
+			if (isset ( $this->wrongauth [$player->getAddress ()] )) {
+				if ($this->wrongauth [$player->getAddress ()] >= 20) {
+					$this->getServer ()->blockAddress ( $player->getAddress () );
+				}
+			}
+		}
 		switch (strtolower ( $command->getName () )) {
 			case $this->get ( "login" ) :
 				if (! isset ( $this->needAuth [$player->getName ()] )) {
@@ -117,6 +235,13 @@ class emailAuth extends PluginBase implements Listener {
 						if ($data ["password"] != $args [0]) {
 							echo $data ["password"] . " : " . $args [0] . "\n";
 							$this->alert ( $player, $this->get ( "login-is-failed" ) );
+							if ($player instanceof Player) {
+								if (isset ( $this->wrongauth [$player->getAddress ()] )) {
+									$this->wrongauth [$player->getAddress ()] ++;
+								} else {
+									$this->wrongauth [$player->getAddress ()] = 1;
+								}
+							}
 							$this->deauthenticatePlayer ( $player );
 						} else {
 							$this->authenticatePlayer ( $player );
@@ -137,22 +262,55 @@ class emailAuth extends PluginBase implements Listener {
 					$this->message ( $player, $this->get ( "already-logined" ) );
 					return true;
 				}
-				if (! isset ( $args [1] ) or $args [1] > 50) {
+				if (! isset ( $args [1] )) {
 					$this->message ( $player, $this->get ( "you-need-a-register" ) );
 					return true;
 				}
-				if (strlen ( $args [1] ) < $this->getConfig ()->get ( "minPasswordLength", 5 )) {
-					$this->message ( $player, $this->get ( "too-short-password" ) );
+				$temp = $args;
+				array_shift ( $temp );
+				$password = implode ( $temp );
+				unset ( $temp );
+				
+				if ($password > 50) {
+					$this->message ( $player, $this->get ( "you-need-a-register" ) );
 					return true;
+				}
+				if (! $this->db->checkAuthReady ( $player->getName () )) {
+					if (strlen ( $password ) < $this->getConfig ()->get ( "minPasswordLength", 5 )) {
+						$this->message ( $player, $this->get ( "too-short-password" ) );
+						return true;
+					}
+				} else {
+					if (! $this->db->checkAuthReadyKey ( $player->getName (), $password )) {
+						$this->message ( $player, $this->get ( "wrong-password" ) );
+						if ($player instanceof Player) {
+							if (isset ( $this->wrongauth [strtolower ( $player->getAddress () )] )) {
+								$this->wrongauth [$player->getAddress ()] ++;
+							} else {
+								$this->wrongauth [$player->getAddress ()] = 1;
+							}
+						}
+						return true;
+					}
 				}
 				if (is_numeric ( $args [0] )) {
 					if (isset ( $this->authcode [$player->getName ()] )) {
 						if ($this->authcode [$player->getName ()] ["authcode"] == $args [0]) {
-							$this->db->addUser ( $this->authcode [$player->getName ()] ["email"], $args [1], $player->getAddress (), false, $player->getName () );
+							$this->db->addUser ( $this->authcode [$player->getName ()] ["email"], $password, $player->getAddress (), false, $player->getName () );
 							$this->message ( $player, $this->get ( "register-complete" ) );
 							$this->authenticatePlayer ( $player );
+							if ($this->db->checkAuthReady ( $player->getName () )) {
+								$this->db->completeAuthReady ( $player->getName () );
+							}
 						} else {
 							$this->message ( $player, $this->get ( "wrong-authcode" ) );
+							if ($player instanceof Player) {
+								if (isset ( $this->wrongauth [strtolower ( $player->getAddress () )] )) {
+									$this->wrongauth [$player->getAddress ()] ++;
+								} else {
+									$this->wrongauth [$player->getAddress ()] = 1;
+								}
+							}
 							$this->deauthenticatePlayer ( $player );
 						}
 						unset ( $this->authcode [$player->getName ()] );
@@ -178,7 +336,10 @@ class emailAuth extends PluginBase implements Listener {
 					$serverName = $this->getConfig ()->get ( "serverName", "" );
 					$task = new emailSendTask ( $args [0], $playerName, $nowTime, $serverName, $authCode, $this->getConfig ()->getAll (), $this->getDataFolder () . "signform.html" );
 					$this->getServer ()->getScheduler ()->scheduleAsyncTask ( $task );
-					$this->authcode [$playerName] = [ "authcode" => $authCode,"email" => $args [0] ];
+					$this->authcode [$playerName] = [ 
+							"authcode" => $authCode,
+							"email" => $args [0] 
+					];
 					$this->message ( $player, $this->get ( "mail-has-been-sent" ) );
 				}
 				break;
@@ -265,8 +426,10 @@ class emailAuth extends PluginBase implements Listener {
 						$nowTime = date ( "Y-m-d H:i:s" );
 						$serverName = $this->getConfig ()->get ( "serverName", "" );
 						$result = $this->sendRegisterMail ( $this->getConfig ()->get ( "adminEmail", null ), $playerName, $nowTime, $serverName, $authCode, true );
-						if ($result) $this->message ( $player, $this->get ( "setup-complete" ) );
-						if (! $result) $this->message ( $player, $this->get ( "setup-failed" ) );
+						if ($result)
+							$this->message ( $player, $this->get ( "setup-complete" ) );
+						if (! $result)
+							$this->message ( $player, $this->get ( "setup-failed" ) );
 						break;
 					case "domain" :
 						if (! isset ( $args [2] )) {
@@ -295,6 +458,22 @@ class emailAuth extends PluginBase implements Listener {
 						$this->message ( $player, $this->get ( "auth-help-length" ) );
 						$this->message ( $player, $this->get ( "auth-help-whitelist" ) );
 						break;
+					// 서버연동 /emailauth custompacket 으로 활성화처리
+					case "custompacket" :
+						$usecustompacket = $this->getConfig ()->get ( "usecustompacket", null );
+						if ($usecustompacket == null) {
+							$this->getConfig ()->set ( "usecustompacket", true );
+							$this->message ( $player, $this->get ( "custompacket-enabled" ) );
+							return true;
+						}
+						if ($usecustompacket) {
+							$this->getConfig ()->set ( "usecustompacket", false );
+							$this->message ( $player, $this->get ( "custompacket-disabled" ) );
+						} else {
+							$this->getConfig ()->set ( "usecustompacket", true );
+							$this->message ( $player, $this->get ( "custompacket-enabled" ) );
+						}
+						break;
 				}
 				break;
 		}
@@ -302,6 +481,10 @@ class emailAuth extends PluginBase implements Listener {
 	}
 	public function deauthenticatePlayer(Player $player) {
 		$this->needAuth [$player->getName ()] = true;
+		if ($this->db->checkAuthReady ( $player->getName () )) {
+			$this->needReAuthMessage ( $player );
+			return;
+		}
 		if ($this->db->getEmail ( $player ) != false) {
 			$this->loginMessage ( $player );
 		} else {
@@ -344,10 +527,16 @@ class emailAuth extends PluginBase implements Listener {
 	public function registerMessage(CommandSender $player) {
 		$this->message ( $player, $this->get ( "emailauth-notification" ) );
 		$this->message ( $player, $this->get ( "you-need-a-register" ) );
+		// TODO 도메인락이 있을경우 해당안내 처리하기
+		// TODO 현재 *@naver.com 이메일로만 가입가능합니다!
 	}
 	public function loginMessage(CommandSender $player) {
 		$this->message ( $player, $this->get ( "emailauth-notification" ) );
 		$this->message ( $player, $this->get ( "you-need-a-login" ) );
+	}
+	public function needReAuthMessage(CommandSender $player) {
+		$this->message ( $player, $this->get ( "emailauth-notification" ) );
+		$this->message ( $player, $this->get ( "you-needReAuthMessage" ) );
 	}
 	public function sendRegisterMail($sendMail, $id, $time, $serverName, $code, $istest = false) {
 		$signForm = file_get_contents ( $this->getDataFolder () . "signform.html" );
@@ -361,7 +550,8 @@ class emailAuth extends PluginBase implements Listener {
 		$mail = new PHPMailer ();
 		$mail->isSMTP ();
 		$mail->SMTPDebug = 0;
-		if ($istest) $mail->SMTPDebug = 2;
+		if ($istest)
+			$mail->SMTPDebug = 2;
 		
 		$mail->SMTPSecure = 'tls';
 		$mail->CharSet = $this->getConfig ()->get ( "encoding" );
@@ -381,7 +571,8 @@ class emailAuth extends PluginBase implements Listener {
 		
 		$mail->msgHTML ( $html );
 		
-		if ($istest) echo $mail->ErrorInfo . "\n";
+		if ($istest)
+			echo $mail->ErrorInfo . "\n";
 		return ($mail->send ()) ? true : false;
 	}
 	private function hash($salt, $password) {
@@ -409,11 +600,13 @@ class emailAuth extends PluginBase implements Listener {
 		return $this->messages [$lang . "-" . $var];
 	}
 	public function message(CommandSender $player, $text = "", $mark = null) {
-		if ($mark == null) $mark = $this->getConfig ()->get ( "default-prefix", "" );
+		if ($mark == null)
+			$mark = $this->getConfig ()->get ( "default-prefix", "" );
 		$player->sendMessage ( TextFormat::DARK_AQUA . $mark . $text );
 	}
 	public function alert(CommandSender $player, $text = "", $mark = null) {
-		if ($mark == null) $mark = $this->getConfig ()->get ( "default-prefix", "" );
+		if ($mark == null)
+			$mark = $this->getConfig ()->get ( "default-prefix", "" );
 		$player->sendMessage ( TextFormat::RED . $mark . $text );
 	}
 	public function registerCommand($name, $permission, $description = "", $usage = "") {
@@ -424,6 +617,7 @@ class emailAuth extends PluginBase implements Listener {
 		$command->setUsage ( $usage );
 		$commandMap->register ( $name, $command );
 	}
+	// ↓ Events interception of not joined users
 	// -------------------------------------------------------------------------
 	public function onMove(PlayerMoveEvent $event) {
 		if (isset ( $this->needAuth [$event->getPlayer ()->getName ()] )) {
@@ -457,9 +651,11 @@ class emailAuth extends PluginBase implements Listener {
 		}
 	}
 	public function onEntityDamage(EntityDamageEvent $event) {
-		if (isset ( $this->needAuth [$event->getPlayer ()->getName ()] )) {
+		if (! $event->getEntity () instanceof Player)
+			return;
+		if (isset ( $this->needAuth [$event->getEntity ()->getName ()] )) {
 			$event->setCancelled ();
-			$this->deauthenticatePlayer ( $event->getPlayer () );
+			$this->deauthenticatePlayer ( $event->getEntity () );
 		}
 	}
 	public function onBlockBreak(BlockBreakEvent $event) {
@@ -475,12 +671,6 @@ class emailAuth extends PluginBase implements Listener {
 		}
 	}
 	public function onInventoryOpen(InventoryOpenEvent $event) {
-		if (isset ( $this->needAuth [$event->getPlayer ()->getName ()] )) {
-			$event->setCancelled ();
-			$this->deauthenticatePlayer ( $event->getPlayer () );
-		}
-	}
-	public function onPickupItem(InventoryPickupItemEvent $event) {
 		if (isset ( $this->needAuth [$event->getPlayer ()->getName ()] )) {
 			$event->setCancelled ();
 			$this->deauthenticatePlayer ( $event->getPlayer () );

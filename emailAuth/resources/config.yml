@@ -1,11 +1,62 @@
-minPasswordLength: 5
+#EMAIL SETTINGS
+#-----------------------------------------------------
+#The server name is displayed in the e-mail
 serverName: "PocketMine"
+
+#Title to be displayed in the email
 subjectName: "[PocketMine] 회원가입 확인메일"
+
+#Email Encoding
 encoding: euc-kr
+#-----------------------------------------------------
+
+#EMAIL-LOGIN SETTINGS
+#-----------------------------------------------------
+#E-mail address of the administrator
 adminEmail: ""
+
+#E-mail hostDomain of the administrator
 adminEmailHost: ""
+
+#E-mail Port of the administrator
 adminEmailPort: ""
+
+#E-mail password of the administrator
 adminEmailPassword: ""
+#-----------------------------------------------------
+
+#AUTH SETTINGS
+#-----------------------------------------------------
+#Minimum password length
+minPasswordLength: 5
+
+#Sign up disabled
 disableRegister: false
+
+#Default Server Prefix
 default-prefix: "[ 서버 ]"
+
+#Time to wait for authentication
 authenticateTimeout: 60
+#-----------------------------------------------------
+
+#CUSTOMPACKET SETTINGS
+#-----------------------------------------------------
+#Whether using a custom packet
+#type : null || true || false
+usecustompacket=false
+
+#Set servermode
+#type : null || master || slave
+servermode=null
+
+passcode=null
+masterip=null
+masterport=null
+#-----------------------------------------------------
+
+
+
+
+
+
