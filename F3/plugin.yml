@@ -1,0 +1,9 @@
+name: F3
+main: ifteam\F3\F3
+version: 0.1-Alpha
+author: ifteam
+api: [1.12.0]
+
+permissions:
+ F3.commands:
+  default: true

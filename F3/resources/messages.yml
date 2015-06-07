@@ -1,0 +1,20 @@
+# IF YOU NEED A SOME OTHER LANGUAGE SETTINGS #
+# YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
+
+#PLEASE SET HERE TO YOUR LANGUAGE PREFIX
+m_version: 2
+
+#(EN) ENGLISH
+
+
+#(KO) KOREAN
+kor: true
+kor-default-prefix: "[ 서버 ]"
+kor-F3: "f3"
+kor-F3-command-help: "서버정보와 유저위치를 출력합니다"
+kor-onlyinGame: "게임내에서만 사용가능합니다"
+kor-NameTAG-ENABLED: "F3 표시가 활성화되었습니다"
+kor-NameTAG-DISABLED: "F3 표시가 비활성화되었습니다"
+
+# AND YOU CAN PROVIDE YOUR TRANSLATION       #
+# https://github.com/if-Team/PMMP-Plugins/blob/master/F3/resources/messages.yml
