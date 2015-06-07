@@ -224,10 +224,12 @@ class Chatty extends PluginBase implements Listener {
 			return;
 		}
 		$data = json_decode ( $event->getPacket ()->data );
-		if (! is_array ( $data ) or isset ( $data [0] ))
+		if (! is_array ( $data ) or ! isset ( $data [0] )) {
 			return;
-		if ($passcode !== $data [0])
+		}
+		if ($passcode !== $data [0]) {
 			return;
+		}
 		$this->broadcastMessage ( "[" . $data [1] . "] " . $data [2] );
 	}
 	public function onDataPacket(DataPacketSendEvent $event) {
@@ -267,8 +269,8 @@ class Chatty extends PluginBase implements Listener {
 			$this->packets ["AddPlayerPacket"]->eid = $this->lastNametags [$key] ["eid"];
 			$this->packets ["AddPlayerPacket"]->clientID = $this->lastNametags [$key] ["eid"];
 			$this->packets ["AddPlayerPacket"]->username = implode ( "\n", $this->messageStack [$key] );
-			$this->packets ["AddPlayerPacket"]->x = round ( $player->x ) + (-\sin ( ($player->yaw / 180 * M_PI) - 0.4 )) * 7;
-			$this->packets ["AddPlayerPacket"]->y = round ( $player->y ) + (-\sin ( $player->pitch / 180 * M_PI )) * 7;
+			$this->packets ["AddPlayerPacket"]->x = round ( $player->x ) + (- \sin ( ($player->yaw / 180 * M_PI) - 0.4 )) * 7;
+			$this->packets ["AddPlayerPacket"]->y = round ( $player->y ) + (- \sin ( $player->pitch / 180 * M_PI )) * 7;
 			$this->packets ["AddPlayerPacket"]->z = round ( $player->z ) + (cos ( ($player->yaw / 180 * M_PI) - 0.4 )) * 7;
 			
 			$player->dataPacket ( $this->packets ["AddPlayerPacket"] );
