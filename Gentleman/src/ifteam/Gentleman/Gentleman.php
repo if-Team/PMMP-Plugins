@@ -5,7 +5,6 @@ namespace ifteam\Gentleman;
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\utils\Config;
-use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\utils\TextFormat;
 use pocketmine\event\player\PlayerCommandPreprocessEvent;
 use pocketmine\Player;
@@ -17,6 +16,7 @@ use pocketmine\block\Block;
 use pocketmine\tile\Sign;
 use pocketmine\level\Position;
 use pocketmine\event\player\PlayerKickEvent;
+use pocketmine\event\player\PlayerChatEvent;
 
 class Gentleman extends PluginBase implements Listener {
 	private static $instance = null;
@@ -30,7 +30,8 @@ class Gentleman extends PluginBase implements Listener {
 		$this->initMessage ();
 		$this->messagesUpdate ();
 		
-		if (self::$instance == null) self::$instance = $this;
+		if (self::$instance == null)
+			self::$instance = $this;
 		
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 		// $this->parseXEDatabaseToJSON (); //*CONVERT ONLY*
@@ -38,27 +39,29 @@ class Gentleman extends PluginBase implements Listener {
 	public static function getInstance() {
 		return static::$instance;
 	}
-	public function onChat(PlayerChatEvent $event) {
-		if ($event->getPlayer ()->isOp ()) return;
-		if (! isset ( $this->chatCheck [$event->getPlayer ()->getName () . ">" . $event->getMessage ()] )) {
-			$this->chatCheck [$event->getPlayer ()->getName () . ">" . $event->getMessage ()] = false;
-			$this->getServer ()->getScheduler ()->scheduleAsyncTask ( new GentlemanAsyncTask ( $event->getPlayer ()->getName (), $event->getFormat (), $event->getMessage (), $this->badQueue, $this->dictionary, "chat", true ) );
-			$event->setCancelled ();
+	public function userCommand(PlayerCommandPreprocessEvent $event) {
+		$command = $event->getMessage ();
+		if ($event->getPlayer ()->isOp ())
 			return;
-		} else {
-			if (! $this->chatCheck [$event->getPlayer ()->getName () . ">" . $event->getMessage ()]) {
+		if (\substr ( $command, 0, 1 ) != "/") { // chat
+			if (! isset ( $this->chatCheck [$event->getPlayer ()->getName () . ">" . $command] )) {
+				$this->chatCheck [$event->getPlayer ()->getName () . ">" . $command] = false;
+				$this->getServer ()->getScheduler ()->scheduleAsyncTask ( new GentlemanAsyncTask ( $event->getPlayer ()->getName (), "chat.type.text", $event->getMessage (), $this->badQueue, $this->dictionary, "chat", true ) );
 				$event->setCancelled ();
 				return;
 			} else {
-				unset ( $this->chatCheck [$event->getPlayer ()->getName () . ">" . $event->getMessage ()] );
+				if (! $this->chatCheck [$event->getPlayer ()->getName () . ">" . $event->getMessage ()]) {
+					$event->setCancelled ();
+					return;
+				} else {
+					unset ( $this->chatCheck [$event->getPlayer ()->getName () . ">" . $event->getMessage ()] );
+				}
 			}
+			return;
 		}
-	}
-	public function userCommand(PlayerCommandPreprocessEvent $event) {
-		$command = $event->getMessage ();
-		if ($event->getPlayer ()->isOp ()) return;
 		$command = explode ( ' ', $command );
-		if ($command [0] != "/me" and $command [0] != "/tell" and $command [0] != "/w" and $command [0] != "/환영말") return;
+		if ($command [0] != "/me" and $command [0] != "/tell" and $command [0] != "/w" and $command [0] != "/환영말")
+			return;
 		
 		if (! isset ( $this->commandCheck [$event->getPlayer ()->getName () . ">" . $event->getMessage ()] )) {
 			$this->commandCheck [$event->getPlayer ()->getName () . ">" . $event->getMessage ()] = false;
@@ -74,7 +77,8 @@ class Gentleman extends PluginBase implements Listener {
 		}
 	}
 	public function signPlace(SignChangeEvent $event) {
-		if ($event->getPlayer ()->isOp ()) return;
+		if ($event->getPlayer ()->isOp ())
+			return;
 		$message = "";
 		foreach ( $event->getLines () as $line )
 			$message .= $line . "\n";
@@ -82,7 +86,11 @@ class Gentleman extends PluginBase implements Listener {
 		if (! isset ( $this->signCheck [$event->getPlayer ()->getName () . ">" . $message] )) {
 			$this->signCheck [$event->getPlayer ()->getName () . ">" . $message] = false;
 			$blockPos = "{$event->getBlock ()->x}:{$event->getBlock ()->y}:{$event->getBlock ()->z}";
-			$this->getServer ()->getScheduler ()->scheduleAsyncTask ( new GentlemanAsyncTask ( $event->getPlayer ()->getName (), [ $event->getBlock ()->getId (),$event->getBlock ()->getDamage (),$blockPos ], $message, $this->badQueue, $this->dictionary, "sign", true ) );
+			$this->getServer ()->getScheduler ()->scheduleAsyncTask ( new GentlemanAsyncTask ( $event->getPlayer ()->getName (), [ 
+					$event->getBlock ()->getId (),
+					$event->getBlock ()->getDamage (),
+					$blockPos 
+			], $message, $this->badQueue, $this->dictionary, "sign", true ) );
 			$event->setCancelled ();
 			return;
 		} else {
@@ -95,7 +103,8 @@ class Gentleman extends PluginBase implements Listener {
 		}
 	}
 	public function onJoin(PlayerJoinEvent $event) {
-		if ($event->getPlayer ()->isOp ()) return;
+		if ($event->getPlayer ()->isOp ())
+			return;
 		if (! isset ( $this->nameCheck [$event->getPlayer ()->getName ()] )) {
 			$this->nameCheck [$event->getPlayer ()->getName ()] = true;
 			$this->getServer ()->getScheduler ()->scheduleAsyncTask ( new GentlemanAsyncTask ( $event->getPlayer ()->getName (), $event->getJoinMessage (), $event->getPlayer ()->getName (), $this->badQueue, $this->dictionary, "name", true ) );
@@ -109,7 +118,8 @@ class Gentleman extends PluginBase implements Listener {
 	}
 	public function asyncProcess($name, $format, $message, $find, $eventType) {
 		$player = $this->getServer ()->getPlayer ( $name );
-		if (! $player instanceof Player) return;
+		if (! $player instanceof Player)
+			return;
 		switch ($eventType) {
 			case "chat" :
 				if ($find == null) {
@@ -117,7 +127,10 @@ class Gentleman extends PluginBase implements Listener {
 						$this->chatCheck [$name . ">" . $message] = true;
 						$this->getServer ()->getPluginManager ()->callEvent ( $event = new PlayerChatEvent ( $player, $message, $format ) );
 						if (! $event->isCancelled ()) {
-							$this->getServer ()->broadcastMessage ( $this->getServer ()->getLanguage ()->translateString ( $event->getFormat (), [ $event->getPlayer ()->getDisplayName (),$event->getMessage () ] ), $event->getRecipients () );
+							$this->getServer ()->broadcastMessage ( $this->getServer ()->getLanguage ()->translateString ( $event->getFormat (), [ 
+									$event->getPlayer ()->getDisplayName (),
+									$event->getMessage () 
+							] ), $event->getRecipients () );
 						}
 					}
 				} else {
@@ -150,10 +163,16 @@ class Gentleman extends PluginBase implements Listener {
 						$blockPos = explode ( ":", $format [2] );
 						$block = Block::get ( $format [0], $format [1], new Position ( $blockPos [0], $blockPos [1], $blockPos [2], $player->getLevel () ) );
 						$lines = explode ( "\n", $message );
-						$event = new SignChangeEvent ( $block, $player, [ TextFormat::clean ( $lines [0], $player->getRemoveFormat () ),TextFormat::clean ( $lines [1], $player->getRemoveFormat () ),TextFormat::clean ( $lines [2], $player->getRemoveFormat () ),TextFormat::clean ( $lines [3], $player->getRemoveFormat () ) ] );
+						$event = new SignChangeEvent ( $block, $player, [ 
+								TextFormat::clean ( $lines [0], $player->getRemoveFormat () ),
+								TextFormat::clean ( $lines [1], $player->getRemoveFormat () ),
+								TextFormat::clean ( $lines [2], $player->getRemoveFormat () ),
+								TextFormat::clean ( $lines [3], $player->getRemoveFormat () ) 
+						] );
 						$this->getServer ()->getPluginManager ()->callEvent ( $event );
 						$tile = $player->getLevel ()->getTile ( $block );
-						if (! $tile instanceof Sign) return;
+						if (! $tile instanceof Sign)
+							return;
 						if (! $event->isCancelled ()) {
 							$tile->setText ( $lines [0], $lines [1], $lines [2], $lines [3] );
 						}
@@ -170,7 +189,8 @@ class Gentleman extends PluginBase implements Listener {
 			case "name" :
 				if (isset ( $this->nameCheck [$player->getName ()] )) {
 					$this->nameCheck [$player->getName ()] = true;
-					if (strlen ( trim ( $format ) ) > 0) $this->getServer ()->broadcastMessage ( $format );
+					if (strlen ( trim ( $format ) ) > 0)
+						$this->getServer ()->broadcastMessage ( $format );
 				} else {
 					$player->kick ( $this->get ( "badwords-nickname" ) );
 					return;
@@ -187,7 +207,8 @@ class Gentleman extends PluginBase implements Listener {
 		$this->getLogger ()->alert ( $this->get ( "some-badwords-found" ) );
 		$this->getLogger ()->alert ( $player->getName () . "> " . $word );
 		foreach ( $this->getServer ()->getOnlinePlayers () as $online ) {
-			if (! $online->isOp ()) continue;
+			if (! $online->isOp ())
+				continue;
 			$player->sendMessage ( TextFormat::RED . $this->get ( "some-badwords-found" ) );
 			$player->sendMessage ( TextFormat::RED . $player->getName () . "> " . $word );
 		}
