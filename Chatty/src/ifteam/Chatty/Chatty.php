@@ -30,7 +30,10 @@ class Chatty extends PluginBase implements Listener {
     private $db = [], $packets = [], $lastNametags = [], $messageStack = [];
 
     /** @var bool */
-    private $customPacketAvailable = false;
+    private $echoEnabled = false;
+
+    /** @var string|null */
+    private $echoPasscode = null;
 
     /** @var Messages */
     private $messages = null;
@@ -67,8 +70,9 @@ class Chatty extends PluginBase implements Listener {
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
         $this->getServer()->getScheduler()->scheduleRepeatingTask(new ChattyTask($this), 1);
 
-        $this->customPacketAvailable = $this->getServer()->getPluginManager()->getPlugin("CustomPacket") !== null;
+        $this->echoEnabled = $this->getServer()->getPluginManager()->getPlugin("CustomPacket") !== null and $this->getConfig()->get("echo-enabled", false) and ($this->echoPasscode = $this->getConfig()->get("echo-passcode", null)) !== null;
     }
+
     public function onDisable(){
         $save = new Config($this->getDataFolder() . "database.yml", Config::YAML);
         $save->setAll($this->db);
@@ -81,6 +85,7 @@ class Chatty extends PluginBase implements Listener {
      * @param string $description
      * @param string $usage
      */
+
     public function registerCommand($name, $permission, $description = "", $usage = ""){
         $commandMap = $this->getServer()->getCommandMap();
         $command = new PluginCommand($name, $this);
@@ -89,6 +94,7 @@ class Chatty extends PluginBase implements Listener {
         $command->setUsage($usage);
         $commandMap->register($name, $command);
     }
+
     /**
      * @return Messages
      */
@@ -104,18 +110,21 @@ class Chatty extends PluginBase implements Listener {
     public function getMessage($key, $format = []){
         return $this->getMessages()->getMessage($key, $format, $this->getServer()->getLanguage()->getLang());
     }
+
     public function initMessages(){
         $this->saveResource("messages.yml", false);
         $this->updateMessages("messages.yml");
 
         $this->messages = new Messages((new Config($this->getDataFolder() . "messages.yml", Config::YAML))->getAll());
     }
+
     public function updateMessages($filename){
         $messages = (new Config($this->getDataFolder() . $filename, Config::YAML))->getAll();
         if(!isset($messages["version"]) or $messages["version"] < self::MESSAGE_VERSION){
             $this->saveResource($filename, true);
         }
     }
+
     public function onLogin(PlayerLoginEvent $event){
         $name = $event->getPlayer()->getName();
 
@@ -127,10 +136,12 @@ class Chatty extends PluginBase implements Listener {
             $this->db[$name]["local-chat"] = true;
         }
     }
+
     public function onQuit(PlayerQuitEvent $event){
         unset($this->messageStack[$event->getPlayer()->getName()]);
         unset($this->lastNametags[$event->getPlayer()->getName()]);
     }
+
     public function putStack($key, $message){
         $messages = [];
         for($start = 0; $start < mb_strlen($message, "UTF-8"); $start += self::MESSAGE_LENGTH){
@@ -144,6 +155,7 @@ class Chatty extends PluginBase implements Listener {
             $this->messageStack[$key][$index] = TextFormat::WHITE . $message;
         }
     }
+
     public function prePlayerCommand(PlayerCommandPreprocessEvent $event){
         if(strpos($event->getMessage(), "/") === 0){
             return;
@@ -162,14 +174,9 @@ class Chatty extends PluginBase implements Listener {
         ]);
         $this->broadcastMessage($message, $sender);
 
-        if($this->customPacketAvailable and $this->getConfig()->get("echo-enabled", false)){
-            $passcode = $this->getConfig()->get("echo-passcode", null);
-            if($passcode === null){
-                return;
-            }
-
+        if($this->echoEnabled){
             $myName = $this->getConfig()->get("echo-my-name", "MAIN");
-            $data = json_encode([$passcode, $myName, $message]);
+            $data = json_encode([$this->echoPasscode, $myName, $message]);
             
             foreach($this->getConfig()->get("echo-recipients", []) as $recipient){
                 $address = explode(":", $recipient);
@@ -194,13 +201,9 @@ class Chatty extends PluginBase implements Listener {
             $player->sendMessage($message);
         }
     }
-    public function onPacketReceive(CustomPacketReceiveEvent $event){
-        if(!$this->getConfig()->get("echo-enabled", false)){
-            return;
-        }
 
-        $passcode = $this->getConfig()->get("echo-passcode", null);
-        if($passcode === null){
+    public function onPacketReceive(CustomPacketReceiveEvent $event){
+        if(!$this->echoEnabled){
             return;
         }
 
@@ -209,16 +212,13 @@ class Chatty extends PluginBase implements Listener {
         // $data[2] "message" => $message
 
         $data = json_decode($event->getPacket()->data);
-        if(!is_array($data) or !isset($data[0])){
-            return;
-        }
-
-        if($passcode !== $data[0]){
+        if(!is_array($data) or !isset($data[0]) or $data[0] !== $this->echoPasscode){
             return;
         }
 
         $this->broadcastMessage("[" . $data[1] . "] " . $data[2]);
     }
+
     public function onDataPacket(DataPacketSendEvent $event){
         if(!$event->getPacket() instanceof TextPacket or $event->getPacket()->pid() != 0x85 or $event->isCancelled()){
             return;
@@ -234,6 +234,7 @@ class Chatty extends PluginBase implements Listener {
             $this->putStack($event->getPlayer()->getName(), $message);
         }
     }
+
     public function tick(){
         foreach($this->getServer()->getOnlinePlayers() as $player){
             $key = $player->getName();
@@ -261,6 +262,7 @@ class Chatty extends PluginBase implements Listener {
             $player->dataPacket($this->packets["AddPlayerPacket"]);
         }
     }
+
     public function sendMessage(CommandSender $player, $text, $prefix = null){
         if($prefix === null){
             $prefix = $this->getMessage("default-prefix");
@@ -268,6 +270,7 @@ class Chatty extends PluginBase implements Listener {
 
         $player->sendMessage(TextFormat::DARK_AQUA . $prefix . " " . $this->getMessage($text));
     }
+
     public function sendAlert(CommandSender $player, $text, $prefix = null){
         if($prefix === null){
             $prefix = $this->getMessage("default-prefix");
@@ -275,6 +278,7 @@ class Chatty extends PluginBase implements Listener {
 
         $player->sendMessage(TextFormat::RED . $prefix . " " . $this->getMessage($text));
     }
+
     public function onCommand(CommandSender $player, Command $command, $label, Array $args){
         if(strToLower($command->getName()) !== $this->getMessage("chatty-command-name")){
             return true;
