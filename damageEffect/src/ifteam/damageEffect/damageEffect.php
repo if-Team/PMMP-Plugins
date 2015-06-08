@@ -10,11 +10,12 @@ use pocketmine\level\particle\FloatingTextParticle;
 use pocketmine\utils\TextFormat;
 use pocketmine\level\Level;
 
-class damageEffect extends PluginBase implements Listener {
+class DamageEffect extends PluginBase implements Listener {
 	public function onEnable() {
 		// 서버이벤트를 받아오게끔 플러그인 리스너를 서버에 등록
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
+
 	public function onDamage(EntityDamageEvent $event) {
 		if (! $event->getEntity () instanceof Entity) return;
 		
@@ -40,14 +41,16 @@ class damageEffect extends PluginBase implements Listener {
 		$pos = $event->getEntity ()->add ( 0, 2.5, 0 );
 		$healthParticle = new FloatingTextParticle ( $pos, "", $color . ($event->getEntity ()->getHealth () - $event->getDamage ()) . " / " . $event->getEntity ()->getMaxHealth () );
 		
-		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new eventCheckTask ( $this, $damageParticle, $event->getEntity ()->getLevel (), $event ), 1 );
-		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new eventCheckTask ( $this, $healthParticle, $event->getEntity ()->getLevel (), $event ), 1 );
+		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new EventCheckTask ( $this, $damageParticle, $event->getEntity ()->getLevel (), $event ), 1 );
+		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new EventCheckTask ( $this, $healthParticle, $event->getEntity ()->getLevel (), $event ), 1 );
 	}
+
 	public function eventCheck(FloatingTextParticle $particle, Level $level, $event) {
 		if ($event instanceof EntityDamageEvent) if ($event->isCancelled ()) return;
 		$level->addParticle ( $particle );
-		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new deleteParticlesTask ( $this, $particle, $event->getEntity ()->getLevel () ), 20 );
+		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new DeleteParticlesTask ( $this, $particle, $event->getEntity ()->getLevel () ), 20 );
 	}
+
 	public function deleteParticles(FloatingTextParticle $particle, Level $level) {
 		$particle->setInvisible ();
 		$level->addParticle ( $particle );

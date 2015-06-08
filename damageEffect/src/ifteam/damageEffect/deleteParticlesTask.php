@@ -5,15 +5,20 @@ namespace ifteam\damageEffect;
 use pocketmine\scheduler\PluginTask;
 use pocketmine\level\Level;
 
-class deleteParticlesTask extends PluginTask {
-	public $owner, $particle, $level;
+class DeleteParticlesTask extends PluginTask {
+	public $particle, $level;
+
 	public function __construct(damageEffect $owner, $particle, Level $level) {
-		$this->owner = $owner;
+		parent::__construct($owner);
+
 		$this->particle = $particle;
 		$this->level = $level;
 	}
+
 	public function onRun($currentTick) {
-		$this->owner->deleteParticles ( $this->particle, $this->level );
+        /** @var $owner DamageEffect */
+        $owner = $this->getOwner();
+        $owner->deleteParticles ( $this->particle, $this->level );
 	}
 }
 
