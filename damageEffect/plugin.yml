@@ -1,5 +1,0 @@
-name: DamageEffect
-main: ifteam\damageEffect\DamageEffect
-version: 0.1-Alpha
-author: ifteam
-api: [1.12.0]
