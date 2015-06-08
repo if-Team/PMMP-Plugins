@@ -87,12 +87,12 @@ class Chatty extends PluginBase implements Listener {
      */
 
     public function registerCommand($name, $permission, $description = "", $usage = ""){
-        $commandMap = $this->getServer()->getCommandMap();
         $command = new PluginCommand($name, $this);
         $command->setDescription($description);
         $command->setPermission($permission);
         $command->setUsage($usage);
-        $commandMap->register($name, $command);
+
+        $this->getServer()->getCommandMap()->register($name, $command);
     }
 
     /**
