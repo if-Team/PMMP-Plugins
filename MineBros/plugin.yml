@@ -1,0 +1,6 @@
+name: MineBros
+main: MineBros\Main
+version: 1.0.0
+api: 1.12.0
+load: POSTWORLD
+author: lem0ntea_
