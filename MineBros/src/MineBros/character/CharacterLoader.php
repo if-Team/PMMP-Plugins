@@ -9,9 +9,10 @@ use pocketmine\math\Vector3;
 use pocketmine\Player;
 use MineBros\Main;
 
-class CharacterLoader implements Listener{
+class CharacterLoader implements Listener {
 
     public $nameDict;
+    public $passiveTickSubscribers = array();
 
     private $characters = array();
     private $owner;
@@ -20,8 +21,14 @@ class CharacterLoader implements Listener{
         $this->owner = $owner;
     }
 
-    public function chooseRandomCharacter(){
+    public function chooseRandomCharacter(Player $forWhom){
+        $character = $this->characters[mt_rand(0, count($this->characters)-1)];
+        $this->nameDict[$forWhom->getName()] = $character->getName();
+        return $character;
+    }
 
+    public function reset(){
+        $this->nameDict = array();
     }
 
     public function registerCharacter(BaseCharacter $character){
@@ -30,6 +37,7 @@ class CharacterLoader implements Listener{
             return false;
         }
         $this->characters[] = $character;
+        if($character->getOptions() & BaseCharacter::TRIGR_PASIV) $this->passiveTickSubscribers[] = $character->getName();
     }
 
     public function onBlockTouch(PlayerInteractEvent $ev){
@@ -53,6 +61,15 @@ class CharacterLoader implements Listener{
         if($ch->getOptions() & BaseCharacter::TRIGR_PONLY){
             $ev->setCancelled();
             $ch->onHarmPlayer($ev->getEntity(), $ev->getDamager());
+        }
+    }
+
+    public function onPassiveTick($currentTick){
+        foreach($this->passiveTickSubscribers as $s){
+            foreach(array_keys($this->nameDict, $s) as $a){
+                $player = $this->owner->getServer()->getPlayerExact($a);
+                $player === NULL ? (return) : $this->characters[$s]->onPassiveTick($player, $currentTick);
+            }
         }
     }
 

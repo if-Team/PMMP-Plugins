@@ -23,11 +23,19 @@ class Main extends PluginBase {
     }
 
     public function onJoin(PlayerJoinEvent $ev){
-        $this->characterLoader->nameDict[$ev->getPlayer()->getName] = -1;
+        $this->characterLoader->nameDict[$ev->getPlayer()->getName] = NULL;
     }
 
     public function onQuit(PlayerQuitEvent $ev){
-        unset($this->characterLoader->nameDict[$ev->getPlayer()->getName]);
+        unset($name = $this->characterLoader->nameDict[$ev->getPlayer()->getName]);
+    }
+
+    public function startGame(){
+
+    }
+
+    public function endGame(){
+        
     }
 
 }

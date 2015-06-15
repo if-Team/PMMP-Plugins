@@ -5,7 +5,7 @@ namespace MineBros\character;
 use pocketmine\Player;
 use pocketmine\math\Vector3;
 
-abstract class BaseCharacter{
+abstract class BaseCharacter {
 
     const CLASS_B     = 0b1;
     const CLASS_A     = 0b10;
@@ -16,12 +16,10 @@ abstract class BaseCharacter{
     const TRIGR_PASIV = 0b1000000;
     const TRIGR_CUSTM = 0b10000000; //Not now, should be implemented in future
 
-    private $bitmask, $name, $description;\
+    private $bitmask, $name, $description;
 
-    public function __construct($bitmask, $name, $description){
-        $this->bitmask = $bitmask;
-        $this->name = $name;
-        $this->description = $description;
+    public function __construct(){
+
     }
 
     public function getOptions(){
@@ -44,7 +42,7 @@ abstract class BaseCharacter{
 
     }
 
-    public function onPassiveTick(Player $who){
+    public function onPassiveTick(Player $who, $currentTick){
 
     }
 
