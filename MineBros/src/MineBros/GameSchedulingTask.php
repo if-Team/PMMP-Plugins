@@ -11,7 +11,7 @@ class GameSchedulingTask extends PluginTask {
     }
 
     public function onRun($currentTick){
-        
+        $this->owner->minuteSchedule();
     }
 
 }

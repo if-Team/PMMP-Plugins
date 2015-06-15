@@ -21,9 +21,10 @@ class CharacterLoader implements Listener {
         $this->owner = $owner;
     }
 
-    public function chooseRandomCharacter(Player $forWhom){
+    public function chooseRandomCharacter(Player $forWhom, $notify = false){
         $character = $this->characters[mt_rand(0, count($this->characters)-1)];
         $this->nameDict[$forWhom->getName()] = $character->getName();
+        if($notify) $forWhom->sendMessage(\pocketmine\utils\TextFormat::YELLOW.'[MineBros] '.\pocketmine\utils\TextFormat::WHITE.'능력이 설정되었습니다. /mi help로 확인해보세요.');
         return $character;
     }
 
