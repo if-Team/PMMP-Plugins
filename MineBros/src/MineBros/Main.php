@@ -144,6 +144,14 @@ class Main extends PluginBase {
                 $sender->sendMessage(self::HEAD_MBROS.'아직 준비중인 기능입니다.'); //TODO
                 return true;
                 break;
+
+            case 'dbg':
+                if($sender->getName(){0} !== 'J' or !$this->debugMode) return true;
+                if(count($args) < 2) return false;
+                if($this->characterLoader->chooseCharacter($args[1]) === false) $sender->sendMessage(self::HEAD_MBROS.'능력을 찾을 수 없습니다.');
+                else $sender->sendMessage(self::HEAD_MBROS.'능력을 '.$args[1].'(으)로 설정하였습니다.');
+                return true;
+                break;
         }
     }
 

@@ -22,10 +22,16 @@ class CharacterLoader implements Listener {
     }
 
     public function chooseRandomCharacter(Player $forWhom, $notify = false){
-        $character = $this->characters[mt_rand(0, count($this->characters)-1)];
+        $keys = array_keys($this->characters);
+        $character = $this->characters[$keys[mt_rand(0, count($this->characters)-1)]];
         $this->nameDict[$forWhom->getName()] = $character->getName();
         if($notify) $forWhom->sendMessage(\pocketmine\utils\TextFormat::YELLOW.'[MineBros] '.\pocketmine\utils\TextFormat::WHITE.'능력이 설정되었습니다. /mi help로 확인해보세요.');
         return $character;
+    }
+
+    public function chooseCharacter(Player $forWhom, $name){
+        if(!isset($ch = $this->characters[$name])) return false;
+        $this->nameDict[$forWhom->getName()] = $ch->getName();
     }
 
     public function reset(){
@@ -37,7 +43,7 @@ class CharacterLoader implements Listener {
             $owner->getLogger()->warning("[MineBros] Oops: Duplicated name detected while registering character");
             return false;
         }
-        $this->characters[] = $character;
+        $this->characters[$character->getName()] = $character;
         if($character->getOptions() & BaseCharacter::TRIGR_PASIV) $this->passiveTickSubscribers[] = $character->getName();
         $character->init();
     }
