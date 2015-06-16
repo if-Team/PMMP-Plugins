@@ -15,10 +15,15 @@ abstract class BaseCharacter {
     const TRIGR_PONLY = 0b100000;
     const TRIGR_PASIV = 0b1000000;
     const TRIGR_CUSTM = 0b10000000; //Not now, should be implemented in future
+    const EV_CAUSE_TASK = 15;
 
     private $bitmask, $name, $description;
 
     public function __construct(){
+
+    }
+
+    public function init(){
 
     }
 

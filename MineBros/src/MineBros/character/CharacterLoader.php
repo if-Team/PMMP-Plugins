@@ -39,6 +39,7 @@ class CharacterLoader implements Listener {
         }
         $this->characters[] = $character;
         if($character->getOptions() & BaseCharacter::TRIGR_PASIV) $this->passiveTickSubscribers[] = $character->getName();
+        $character->init();
     }
 
     public function onBlockTouch(PlayerInteractEvent $ev){
@@ -61,7 +62,7 @@ class CharacterLoader implements Listener {
         }
         if($ch->getOptions() & BaseCharacter::TRIGR_PONLY){
             $ev->setCancelled();
-            $ch->onHarmPlayer($ev->getEntity(), $ev->getDamager());
+            $ch->onHarmPlayer($ev->getEntity(), $ev->getDamager(), $ev->getCause());
         }
     }
 

@@ -4,8 +4,10 @@ namespace MineBros;
 
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerQuitEvent;
+use pocketmine\event\player\PlayerRespawnEvent;
 use pocketmine\plugin\PluginBase;
 use pocketmine\math\Vector3;
 use pocketmine\utils\Config;
@@ -22,7 +24,7 @@ class Main extends PluginBase {
     private $status = false;
     private $minutes = 0;
     private $cfg;
-    protected $lastTID = NULL;
+    protected $lastTID = array();
 
     public function onEnable(){
         @mkdir($this->getDataFolder());
@@ -30,7 +32,7 @@ class Main extends PluginBase {
         $this->characterLoader = new CharacterLoader($this);
         $this->getServer()->getPluginManager()->registerEvents($this->characterLoader, $this);
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
-        $this->getServer()->getScheduler()->scheduleRepeatingTask(new GameSchedulingTask, 20*60);
+        $this->getServer()->getScheduler()->scheduleRepeatingTask(new GameSchedulingTask($this), 20*60);
     }
 
     public function isStarted(){
@@ -38,12 +40,22 @@ class Main extends PluginBase {
     }
 
     public function onJoin(PlayerJoinEvent $ev){
-        if($this->status === true and !isset($this->characterLoader->nameDict[$ev->getPlayer()->getName()])) $this->characterLoader->chooseRandomCharacter($ev->getPlayer(), true);
-        if($this->status === true and $this->deathMatch === true) $ev->getPlayer()->teleport(new Vector3((int) $this->cfg->get('deathmatch_pos')['x'], (int) $this->cfg->get('deathmatch_pos')['y'], (int) $this->cfg->get('deathmatch_pos')['z']));
+        if($this->status and !isset($this->characterLoader->nameDict[$ev->getPlayer()->getName()])) $this->characterLoader->chooseRandomCharacter($ev->getPlayer(), true);
     }
 
     public function onQuit(PlayerQuitEvent $ev){
-        if($this->status === false) unset($name = $this->characterLoader->nameDict[$ev->getPlayer()->getName]);
+        if($this->status) unset($name = $this->characterLoader->nameDict[$ev->getPlayer()->getName]);
+    }
+
+    public function onSpawn(PlayerRespawnEvent $ev){
+        if($this->status and $this->deathMatch){
+            $ev->getPlayer()->teleport(new Vector3((int) $this->cfg->get('deathmatch_pos')['x'], (int) $this->cfg->get('deathmatch_pos')['y'], (int) $this->cfg->get('deathmatch_pos')['z']));
+            $ev->getPlayer()->sendMessage(self::HEAD_MBROS.'데스매치 장소로 이동합니다. 모두 받는 데미지가 0.5배 증가합니다.');
+        }
+    }
+
+    public function amplifyDamage(EntityDamageEvent $ev){
+        if($this->status and $this->deathMatch) $ev->setDamage($ev->getDamage() * 0.5);
     }
 
     public function minuteSchedule(){
@@ -122,11 +134,15 @@ class Main extends PluginBase {
                 break;
 
             case 'setdp':
-                //
+                if($sender->getName() === "CONSOLE") return true;
+                $this->cfg->set('deathmatch_pos', array('x' => $sender->x, 'y' => $sender->y, 'z' => $sender->z));
+                $sender->sendMessage(self::HEAD_MBROS.'데스메치 장소가 '.$sender->x.', '.$sender->y.', '.$sender->z.'로 설정되었습니다.');
+                return true;
                 break;
 
             case 'rank':
-                //
+                $sender->sendMessage(self::HEAD_MBROS.'아직 준비중인 기능입니다.'); //TODO
+                return true;
                 break;
         }
     }
@@ -136,16 +152,18 @@ class Main extends PluginBase {
             $this->getLogger()->emergency("FATAL ERROR: MineBros: Game started while game is running");
             $this->getServer()->shutdown();
         }
-        $this->status = true;
-        $this->lastTID = $this->getServer()->getScheduler()->scheduleRepeatingTask(new PassiveSkillTask, 10)->getTaskId();
+        $this->lastTID[0] = $this->getServer()->getScheduler()->scheduleRepeatingTask(new PassiveSkillTask($this), 10)->getTaskId();
+        $this->lastTID[1] = $this->getServer()->getScheduler()->scheduleRepeatingTask(new ProgressiveExecutionTask($this), 10)->getTaskId();
         foreach($this->getServer()->getOnlinePlayers() as $p) $this->characterLoader->chooseRandomCharacter($p);
+        $this->status = true;
     }
 
     public function endGame(){
-        $this->getServer()->getScheduler()->cancelTask($this->lastTID);
-        $this->lastTID = NULL;
-        $this->deathMatch = $this->status = false;
+        $this->getServer()->getScheduler()->cancelTask($this->lastTID[0]);
+        $this->getServer()->getScheduler()->cancelTask($this->lastTID[1]);
+        $this->lastTID = array();
         $this->characterLoader->reset();
+        $this->deathMatch = $this->status = false;
     }
 
 }
