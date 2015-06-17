@@ -32,7 +32,8 @@ abstract class BaseCharacter {
     }
 
     public function getName(){
-        return $this->name;
+        if(isset($this->name)) return $this->name;
+            else return get_called_class();
     }
 
     public function getDescription(){
@@ -49,6 +50,10 @@ abstract class BaseCharacter {
 
     public function onPassiveTick(Player $who, $currentTick){
 
+    }
+
+    final private function getProgressiveExecutionTask(){
+        return \MineBros\Main::$pet;
     }
 
 }

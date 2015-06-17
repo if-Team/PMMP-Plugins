@@ -16,6 +16,7 @@ class CharacterLoader implements Listener {
 
     private $characters = array();
     private $owner;
+    private $cooldown = array();
 
     public function __construct(Main $owner){
         $this->owner = $owner;
@@ -40,7 +41,7 @@ class CharacterLoader implements Listener {
 
     public function registerCharacter(BaseCharacter $character){
         if(isset($this->characters[$character->getName()])){
-            $owner->getLogger()->warning("[MineBros] Oops: Duplicated name detected while registering character");
+            $this->owner->getLogger()->warning("[MineBros] Oops: Duplicated name detected while registering character");
             return false;
         }
         $this->characters[$character->getName()] = $character;
@@ -51,13 +52,20 @@ class CharacterLoader implements Listener {
     public function loadFromDirectory($path){
         foreach(scandir($path) as $p){
             if(substr($p, -4, 4) === '.php'){
-                include($p);
-                if(class_exists($classname = substr($p, 0, -4))) $this->registerCharacter(new $classname());
+                include($path.$p);
+                if(class_exists($classname = substr($p, 0, -4))){
+                    $this->owner->getLogger()->notice("[MineBros] Loading character: ".$classname);
+                    $this->registerCharacter(new $classname());
+                }
             }
         }
     }
 
     public function onBlockTouch(PlayerInteractEvent $ev){
+        if(isset($this->cooldown[$ev->getPlayer()->getName()])) {
+            $ev->getPlayer()->sendMessage(Main::HEAD_MBROS.'아직 스킬을 사용할 수 없습니다. 남은 재사용 대기시간: '.$this->cooldown[$ev->getPlayer()->getName()].'초');
+            return;
+        }
         if($ev->getPlayer()->getInventory()->getItemInHand()->getId() !== 265) return; //Iron ingot
         if(!isset($this->nameDict[$ev->getPlayer()->getName()])) return;
         if($this->nameDict[$ev->getPlayer()->getName()]->getOptions() & BaseCharacter::TRIGR_TOUCH){
@@ -67,6 +75,10 @@ class CharacterLoader implements Listener {
     }
 
     public function onPlayerTouch(EntityDamageByEntityEvent $ev){
+        if(isset($this->cooldown[$ev->getPlayer()->getName()])) {
+            $ev->getPlayer()->sendMessage(Main::HEAD_MBROS.'아직 스킬을 사용할 수 없습니다. 남은 재사용 대기시간: '.$this->cooldown[$ev->getPlayer()->getName()].'초');
+            return;
+        }
         if(!($ev->getEntity() instanceof Player and $ev->getDamager() instanceof Player)
           or $ev->getPlayer()->getInventory()->getItemInHand()->getId() !== 265
           or !isset($this->nameDict[$ev->getEntity()->getName()])) return;
@@ -85,7 +97,7 @@ class CharacterLoader implements Listener {
         foreach($this->passiveTickSubscribers as $s){
             foreach(array_keys($this->nameDict, $s) as $a){
                 $player = $this->owner->getServer()->getPlayerExact($a);
-                if($player === NULL) return;
+                if($player === NULL) continue;
                     else $this->characters[$s]->onPassiveTick($player, $currentTick);
             }
         }

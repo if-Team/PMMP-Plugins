@@ -11,7 +11,7 @@ class PassiveSkillTask extends PluginTask {
     }
 
     public function onRun($currentTick){
-        if(!$this->owner->status) return;
+        //if(!$this->owner->status) return;
         $this->owner->characterLoader->onPassiveTick($currentTick);
     }
 }

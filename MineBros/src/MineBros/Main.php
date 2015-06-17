@@ -21,6 +21,7 @@ class Main extends PluginBase implements Listener{
     const HEAD_MBROS = TextFormat::YELLOW.'[MineBros] '.TextFormat::WHITE;
 
     public $characterLoader;
+    public static $pet;
     private $deathMatch = false;
     private $status = false;
     private $minutes = 0;
@@ -61,6 +62,9 @@ class Main extends PluginBase implements Listener{
         }
     }
 
+    /**
+     * @priority high
+     */
     public function amplifyDamage(EntityDamageEvent $ev){
         if($this->status and $this->deathMatch) $ev->setDamage($ev->getDamage() * 0.5);
     }
@@ -168,7 +172,8 @@ class Main extends PluginBase implements Listener{
             $this->getServer()->shutdown();
         }
         $this->lastTID[0] = $this->getServer()->getScheduler()->scheduleRepeatingTask(new PassiveSkillTask($this), 10)->getTaskId();
-        $this->lastTID[1] = $this->getServer()->getScheduler()->scheduleRepeatingTask(new ProgressiveExecutionTask($this), 10)->getTaskId();
+        self::$pet = new ProgressiveExecutionTask($this);
+        $this->lastTID[1] = $this->getServer()->getScheduler()->scheduleRepeatingTask(self::$pet, 10)->getTaskId();
         foreach($this->getServer()->getOnlinePlayers() as $p) $this->characterLoader->chooseRandomCharacter($p);
         $this->status = true;
     }
