@@ -37,6 +37,7 @@ class Main extends PluginBase implements Listener{
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
         $this->getServer()->getScheduler()->scheduleRepeatingTask(new GameSchedulingTask($this), 20*60);
         $this->characterLoader->loadFromDirectory($this->getDataFolder().'characters'.DIRECTORY_SEPARATOR);
+        $this->characterLoader->loadFromDirectory(substr(__FILE__, 0, -strlen(basename(__FILE__))).DIRECTORY_SEPARATOR.'character'.DIRECTORY_SEPARATOR);
     }
 
     public function onDisable(){

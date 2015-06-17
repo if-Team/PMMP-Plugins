@@ -1,9 +1,0 @@
----
-min_players: 3
-normal_game_minutes: 9
-deathmatch_minutes: 1
-deathmatch_pos:
-  x: unset
-  "y": unset
-  z: unset
-...
