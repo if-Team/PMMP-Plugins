@@ -30,8 +30,8 @@ class CharacterLoader implements Listener {
     }
 
     public function chooseCharacter(Player $forWhom, $name){
-        if(!isset($ch = $this->characters[$name])) return false;
-        $this->nameDict[$forWhom->getName()] = $ch->getName();
+        if(!isset($this->characters[$name])) return false;
+        $this->nameDict[$forWhom->getName()] = $this->characters[$name]->getName();
     }
 
     public function reset(){
@@ -48,27 +48,36 @@ class CharacterLoader implements Listener {
         $character->init();
     }
 
+    public function loadFromDirectory($path){
+        foreach(scandir($path) as $p){
+            if(substr($p, -4, 4) === '.php'){
+                include($p);
+                if(class_exists($classname = substr($p, 0, -4))) $this->registerCharacter(new $classname());
+            }
+        }
+    }
+
     public function onBlockTouch(PlayerInteractEvent $ev){
         if($ev->getPlayer()->getInventory()->getItemInHand()->getId() !== 265) return; //Iron ingot
-        if(!isset($ch = $this->nameDict[$ev->getPlayer())->getName()])) return;
-        if($ch->getOptions() & BaseCharacter::TRIGR_TOUCH){
+        if(!isset($this->nameDict[$ev->getPlayer()->getName()])) return;
+        if($this->nameDict[$ev->getPlayer()->getName()]->getOptions() & BaseCharacter::TRIGR_TOUCH){
             $ev->setCancelled();
-            $ch->onTouchAnything($ev->getPlayer(), false, $ev->getTouchVector());
+            $this->nameDict[$ev->getEntity()->getName()]->onTouchAnything($ev->getPlayer(), false, $ev->getTouchVector());
         }
     }
 
     public function onPlayerTouch(EntityDamageByEntityEvent $ev){
         if(!($ev->getEntity() instanceof Player and $ev->getDamager() instanceof Player)
           or $ev->getPlayer()->getInventory()->getItemInHand()->getId() !== 265
-          or !isset($ch = $this->nameDict[$ev->getEntity()->getName()])) return;
-        if($ch->getOptions() & BaseCharacter::TRIGR_TOUCH){
+          or !isset($this->nameDict[$ev->getEntity()->getName()])) return;
+        if($this->nameDict[$ev->getEntity()->getName()]->getOptions() & BaseCharacter::TRIGR_TOUCH){
             $ev->setCancelled();
             $entity = $ev->getEntity();
-            $ch->onTouchAnything($ev->getEntity(), true, new Vector3($entity->x, $entity->y, $entity->z), $ev->getEntity());
+            $this->nameDict[$ev->getEntity()->getName()]->onTouchAnything($ev->getEntity(), true, new Vector3($entity->x, $entity->y, $entity->z), $ev->getEntity());
         }
-        if($ch->getOptions() & BaseCharacter::TRIGR_PONLY){
+        if($this->nameDict[$ev->getEntity()->getName()]->getOptions() & BaseCharacter::TRIGR_PONLY){
             $ev->setCancelled();
-            $ch->onHarmPlayer($ev->getEntity(), $ev->getDamager(), $ev->getCause());
+            $this->nameDict[$ev->getEntity()->getName()]->onHarmPlayer($ev->getEntity(), $ev->getDamager(), $ev->getCause());
         }
     }
 
@@ -76,7 +85,8 @@ class CharacterLoader implements Listener {
         foreach($this->passiveTickSubscribers as $s){
             foreach(array_keys($this->nameDict, $s) as $a){
                 $player = $this->owner->getServer()->getPlayerExact($a);
-                $player === NULL ? (return) : $this->characters[$s]->onPassiveTick($player, $currentTick);
+                if($player === NULL) return;
+                    else $this->characters[$s]->onPassiveTick($player, $currentTick);
             }
         }
     }

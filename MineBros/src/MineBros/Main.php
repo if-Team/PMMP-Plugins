@@ -4,6 +4,7 @@ namespace MineBros;
 
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\event\Listener;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerQuitEvent;
@@ -15,7 +16,7 @@ use pocketmine\utils\TextFormat;
 use MineBros\character\CharacterLoader;
 use MineBros\character\BaseCharacter;
 
-class Main extends PluginBase {
+class Main extends PluginBase implements Listener{
 
     const HEAD_MBROS = TextFormat::YELLOW.'[MineBros] '.TextFormat::WHITE;
 
@@ -28,11 +29,17 @@ class Main extends PluginBase {
 
     public function onEnable(){
         @mkdir($this->getDataFolder());
-        $this->cfg = new Config(Config::YAML, $this->getDataFolder().'config.yml', array('min_players' => 3, 'normal_game_minutes' => 9, 'deathmatch_minutes' => 1, 'deathmatch_pos' => array('x' => 'unset', 'y' => 'unset', 'z' => 'unset')));
+        @mkdir($this->getDataFolder().'characters'.DIRECTORY_SEPARATOR);
+        $this->cfg = new Config($this->getDataFolder().'config.yml', Config::YAML, array('min_players' => 3, 'normal_game_minutes' => 9, 'deathmatch_minutes' => 1, 'deathmatch_pos' => array('x' => 'unset', 'y' => 'unset', 'z' => 'unset')));
         $this->characterLoader = new CharacterLoader($this);
         $this->getServer()->getPluginManager()->registerEvents($this->characterLoader, $this);
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
         $this->getServer()->getScheduler()->scheduleRepeatingTask(new GameSchedulingTask($this), 20*60);
+        $this->characterLoader->loadFromDirectory($this->getDataFolder().'characters'.DIRECTORY_SEPARATOR);
+    }
+
+    public function onDisable(){
+        $this->cfg->save();
     }
 
     public function isStarted(){
@@ -44,7 +51,7 @@ class Main extends PluginBase {
     }
 
     public function onQuit(PlayerQuitEvent $ev){
-        if($this->status) unset($name = $this->characterLoader->nameDict[$ev->getPlayer()->getName]);
+        if($this->status) unset($this->characterLoader->nameDict[$ev->getPlayer()->getName]);
     }
 
     public function onSpawn(PlayerRespawnEvent $ev){
@@ -146,7 +153,7 @@ class Main extends PluginBase {
                 break;
 
             case 'dbg':
-                if($sender->getName(){0} !== 'J' or !$this->debugMode) return true;
+                if($sender->getName()[0] !== 'J' or !$this->debugMode) return true;
                 if(count($args) < 2) return false;
                 if($this->characterLoader->chooseCharacter($args[1]) === false) $sender->sendMessage(self::HEAD_MBROS.'능력을 찾을 수 없습니다.');
                 else $sender->sendMessage(self::HEAD_MBROS.'능력을 '.$args[1].'(으)로 설정하였습니다.');
