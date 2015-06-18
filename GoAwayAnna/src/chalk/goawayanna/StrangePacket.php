@@ -15,7 +15,7 @@
  * GNU General Public License for more details.
  */
 
-namespace ifteam\LoadBalancer;
+namespace chalk\goawayanna;
 
 use pocketmine\network\protocol\DataPacket;
 
