@@ -1,0 +1,21 @@
+# IF YOU NEED A SOME OTHER LANGUAGE SETTINGS #
+# YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
+
+#PLEASE SET HERE TO YOUR LANGUAGE PREFIX
+m_version: 1
+
+#(EN) ENGLISH
+eng: true
+eng-commands-pvpmoney: "pvpmoney"
+eng-pvpmoney-is-it changed: "PVP PRICE has been set!"
+eng-pvpmoney-paid: "%price% received dollar!"
+
+#(KO) KOREAN
+kor: true
+kor-commands-pvpmoney: "pvpmoney"
+kor-help-pvpmoney: "/pvpmoney <금액> - 유저를 살해시 그만큼 돈을 줍니다"
+kor-pvpmoney-is-changed: "PVP 금액이 설정되었습니다 !"
+kor-pvpmoney-paid: "%price% 달러를 받았습니다 !"
+
+# AND YOU CAN PROVIDE YOUR TRANSLATION       #
+# https://github.com/if-Team/PMMP-Plugins/blob/master/examplePlugin/resources/messages.yml
