@@ -12,10 +12,13 @@ use pocketmine\Player;
 use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
 use pocketmine\command\PluginCommand;
+use pocketmine\event\entity\EntityDamageByChildEntityEvent;
+use pocketmine\event\player\PlayerDeathEvent;
 
 class PVPMoney extends PluginBase implements Listener {
 	public $economyAPI = null;
 	public $messages, $db; // 메시지 변수, DB변수
+	public $attackQueue = [ ];
 	public $m_version = 2; // 현재 메시지 버전
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () ); // 플러그인 폴더생성
@@ -41,20 +44,27 @@ class PVPMoney extends PluginBase implements Listener {
 		// 서버이벤트를 받아오게끔 플러그인 리스너를 서버에 등록
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
-	public function onDamage(EntityDamageEvent $event) {
-		if (! $event instanceof EntityDamageByEntityEvent)
-			return;
-		
-		if (! $event->getDamager () instanceof Player)
-			return;
-		if (! $event->getEntity () instanceof Player)
-			return;
-		
-		$amount = $this->db ["payback"];
-		$this->economyAPI->addMoney ( $event->getDamager (), $amount );
-		
-		$message = str_replace ( "%money%", $amount, $this->get ( "pvpmoney-paid" ) );
-		$this->message($event->getDamager(), $message);
+	public function onAttack(EntityDamageEvent $event) {
+		if ($event instanceof EntityDamageByEntityEvent or $event instanceof EntityDamageByChildEntityEvent) {
+			if ($event->getDamager () instanceof Player and $event->getEntity () instanceof Player) {
+				$this->attackQueue [$event->getEntity ()->getName ()] = $event->getDamager ()->getName ();
+			}
+		}
+	}
+	public function onDeath(PlayerDeathEvent $event) {
+		$event->setDrops ( [ ] );
+		if (isset ( $this->attackQueue [$event->getEntity ()->getName ()] )) {
+			$damager = $this->getServer ()->getPlayerExact ( $this->attackQueue [$event->getEntity ()->getName ()] );
+			if (! $damager instanceof Player) return;
+			
+			$amount = $this->db ["payback"];
+			$this->economyAPI->addMoney ( $damager, $amount );
+			
+			$message = str_replace ( "%money%", $amount, $this->get ( "pvpmoney-paid" ) );
+			$this->message($damager, $message);
+			
+			unset ( $this->attackQueue [$event->getEntity ()->getName ()] );
+		}
 	}
 	public function onCommand(CommandSender $player, Command $command, $label, Array $args) {
 		switch (strtolower ( $command->getName () )) {
