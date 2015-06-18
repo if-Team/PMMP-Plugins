@@ -1,0 +1,5 @@
+name: Company
+main: ifteam\Companys\Company
+version: 0.1-Alpha
+author: hm
+api: [1.12.0]

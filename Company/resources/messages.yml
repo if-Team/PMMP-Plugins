@@ -1,0 +1,50 @@
+# IF YOU NEED A SOME OTHER LANGUAGE SETTINGS #
+# YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
+
+#PLEASE SET HERE TO YOUR LANGUAGE PREFIX
+m_version: 1
+
+#(EN) ENGLISH
+eng: true
+eng-command-help-create: "/company create - Create a company"
+eng-command-help-list: "/company list - View the full company lists"
+eng-command-help-request: "/company request - apply to the companies"
+eng-command-help-about: "/company about - View company information. When the blank check my company information"
+eng-command-help-help: "/company help <1~5> - View the company commands Help"
+eng-command-help-visit: "/company visit - Warp to the company office"
+eng-command-help-employ: "/company employ - The employment applicants"
+eng-command-help-eliminated: "/company eliminated - Applicants fire Careers"
+eng-command-help-employclear: "/company employclear - Initialize the list of applicants."
+eng-command-help-setabout: "/company setabout - Writes About Us posts"
+eng-command-help-setdaywages: "/company setdaywages <$> - Set the Day Wages"
+eng-command-help-paybonus: "/company paybonus <$> - Bonus to Employees"
+eng-command-help-fired: "/company fired - Firing an employee"
+eng-command-help-bankruptcy: "/company bankruptcy - The bankrupt companies"
+eng-command-help-resign: "/company resign - Leave the company."
+eng-command-help-setoffice: "/company setoffice - Set the office location of the company."
+eng-command-help-startupcost: "/company startupcost <$> - Set the company generated costs"
+eng-command-help-enable: /company enable (toggle) - Toggle the company commands
+
+#(KO) KOREAN
+kor: true
+kor-command-help-create: "/회사 생성 <회사명> - 회사를 생성합니다."
+kor-command-help-list: "/회사 목록 <목차> - 전체회사 목록을 봅니다."
+kor-command-help-request: "/회사 지원 <회사명> - 해당회사에 지원합니다."
+kor-command-help-about: "/회사 확인 <회사명|빈칸> - 회사정보를 봅니다. 빈칸시 내회사 정보확인"
+kor-command-help-help: "/회사 도움말 <1~5> - 회사 명령어 도움말을 봅니다."
+kor-command-help-visit: "/회사 찾아가기 <회사명> - 회사사무실로 워프합니다."
+kor-command-help-employ: "/회사 채용 <닉네임> - 지원자를 채용합니다."
+kor-command-help-eliminated: "/회사 불채용 <닉네임> - 지원자를 불채용합니다."
+kor-command-help-employclear: "/회사 채용초기화 - 지원명단을 날립니다."
+kor-command-help-setabout: "/회사 소개설정 <한줄내용> - 회사소개글을 씁니다."
+kor-command-help-setdaywages: "/회사 일급설정 <$> - 일급을 설정합니다."
+kor-command-help-paybonus: "/회사 보너스주기 <$> - 사원들에게 보너스를 지급합니다."
+kor-command-help-fired: "/회사 해고 <닉네임> <사유> <퇴직금> - 사원을 해고시킵니다."
+kor-command-help-bankruptcy: "/회사 파산 <사유> - 회사를 파산처리합니다."
+kor-command-help-resign: "/회사 사직 <회사명> - 회사를 관둡니다."
+kor-command-help-setoffice: "/회사 사무실설정 - 회사의 사무실 위치를 설정합니다."
+kor-command-help-startupcost: "/회사 창업비용 <설정할비용> - 회사 생성비용을 설정합니다."
+kor-command-help-enable: "/회사 활성화 (*토글) - 회사 명령어를 키고 끕니다."
+
+# AND YOU CAN PROVIDE YOUR TRANSLATION       #
+# https://github.com/if-Team/PMMP-Plugins/blob/master/Company/resources/messages.yml
