@@ -9,6 +9,7 @@ use pocketmine\event\entity\ExplosionPrimeEvent;
 use pocketmine\Server;
 use pocketmine\entity\Arrow;
 use pocketmine\level\particle\MobSpawnParticle;
+use pocketmine\Player;
 
 class removeArrowTask extends Task {
 	public $event, $server;
@@ -23,6 +24,7 @@ class removeArrowTask extends Task {
 		$murder = $this->event->getEntity ()->shootingEntity;
 		
 		if (! $arrow instanceof Arrow) return;
+		if(! $murder instanceof Player) return;
 		$this->server->getPluginManager ()->callEvent ( $ev = new ExplosionPrimeEvent ( $arrow, 3.2 ) );
 		if (! $ev->isCancelled ()) {
 			$arrow->getLevel ()->addParticle ( new MobSpawnParticle ( $arrow, 2, 2 ) );
