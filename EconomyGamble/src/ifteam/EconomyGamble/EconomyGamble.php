@@ -33,7 +33,7 @@ class EconomyGamble extends PluginBase implements Listener {
 	public $messages, $db; // 메시지, DB
 	public $lotto, $probability; // 로또 확률
 	public $economyAPI = null; // 이코노미 API
-	public $m_version = 1; // 메시지 버전 변수
+	public $m_version = 2; // 메시지 버전 변수
 	public $packetQueue = [ ]; // 아이템 패킷 큐
 	public $createQueue = [ ]; // 생성 큐
 	public $placeQueue = [ ]; // 블럭배치방지 큐
@@ -195,6 +195,10 @@ class EconomyGamble extends PluginBase implements Listener {
 					if (isset ( $this->lotto [$player->getName ()] )) {
 						$get = $this->lotto [$player->getName ()];
 						$lotto_c = $get ["count"];
+					}
+					if($lotto_c >= 25){
+						$this->message ( $player, $this->get ( "Toomuch-Lottery" ) );
+						return;
 					}
 					$this->lotto [$player->getName ()] = array ("count" => ++ $lotto_c,"day" => date ( "d" ) );
 					

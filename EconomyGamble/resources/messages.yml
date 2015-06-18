@@ -3,7 +3,7 @@
 
 #PLEASE SET HERE TO YOUR LANGUAGE PREFIX
 default-language: ko
-m_version: 1
+m_version: 2
 
 #(EN) ENGLISH
 
@@ -73,6 +73,7 @@ ko-SuccessLottery-a: 총
 ko-SuccessLottery-b: 개의 로또가 당첨되서
 ko-SuccessLottery-c: 달러를 받으셨습니다 !
 ko-noitem: 원하는 아이템을 들고 터치해주세요 !
+ko-Toomuch-Lottery: "로또는 25장보다 많이 구매하실 수 없습니다 !"
 
 
 ko-mustnumberic: 2번째줄(원하는금액)은 무조건 숫자여야합니다
