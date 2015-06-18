@@ -108,7 +108,7 @@ class Farms extends PluginBase implements Listener {
 
             if($this->updateCrops($key, $level, $position)){
                 unset($this->farmData[$key]);
-                continue;
+                break;
             }
 		}
 	}
