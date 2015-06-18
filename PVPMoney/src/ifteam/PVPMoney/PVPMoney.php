@@ -16,7 +16,7 @@ use pocketmine\command\PluginCommand;
 class PVPMoney extends PluginBase implements Listener {
 	public $economyAPI = null;
 	public $messages, $db; // 메시지 변수, DB변수
-	public $m_version = 1; // 현재 메시지 버전
+	public $m_version = 2; // 현재 메시지 버전
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () ); // 플러그인 폴더생성
 		
@@ -24,7 +24,7 @@ class PVPMoney extends PluginBase implements Listener {
 		                       
 		// YAML 형식의 DB생성 후 불러오기
 		$this->db = (new Config ( $this->getDataFolder () . "pluginDB.yml", Config::YAML, [ 
-				"payback" => 0 
+				"payback" => 10
 		] ))->getAll ();
 		
 		// 이코노미 API 이용
