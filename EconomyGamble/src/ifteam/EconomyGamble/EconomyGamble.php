@@ -33,17 +33,20 @@ class EconomyGamble extends PluginBase implements Listener {
 	public $messages, $db; // 메시지, DB
 	public $lotto, $probability; // 로또 확률
 	public $economyAPI = null; // 이코노미 API
-	public $m_version = 2; // 메시지 버전 변수
+	public $m_version = 3; // 메시지 버전 변수
 	public $packetQueue = [ ]; // 아이템 패킷 큐
 	public $createQueue = [ ]; // 생성 큐
 	public $placeQueue = [ ]; // 블럭배치방지 큐
+	public $askAgainQueue = [ ]; // 터치 확인 큐
 	public $packet = [ ]; // 전역 패킷 변수
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		
 		$this->initMessage ();
 		
-		$this->db = (new Config ( $this->getDataFolder () . "GambleDB.yml", Config::YAML, [ "allow-gamble" => true ] ))->getAll ();
+		$this->db = (new Config ( $this->getDataFolder () . "GambleDB.yml", Config::YAML, [ 
+				"allow-gamble" => true 
+		] ))->getAll ();
 		
 		if ($this->getServer ()->getPluginManager ()->getPlugin ( "EconomyAPI" ) != null) {
 			$this->economyAPI = \onebone\economyapi\EconomyAPI::getInstance ();
@@ -65,7 +68,24 @@ class EconomyGamble extends PluginBase implements Listener {
 		$this->packet ["AddPlayerPacket"]->yaw = 0;
 		$this->packet ["AddPlayerPacket"]->pitch = 0;
 		$this->packet ["AddPlayerPacket"]->meta = 0;
-		$this->packet ["AddPlayerPacket"]->metadata = [ Entity::DATA_FLAGS => [ Entity::DATA_TYPE_BYTE,1 << Entity::DATA_FLAG_INVISIBLE ],Entity::DATA_AIR => [ Entity::DATA_TYPE_SHORT,300 ],Entity::DATA_SHOW_NAMETAG => [ Entity::DATA_TYPE_BYTE,1 ],Entity::DATA_NO_AI => [ Entity::DATA_TYPE_BYTE,1 ] ];
+		$this->packet ["AddPlayerPacket"]->metadata = [ 
+				Entity::DATA_FLAGS => [ 
+						Entity::DATA_TYPE_BYTE,
+						1 << Entity::DATA_FLAG_INVISIBLE 
+				],
+				Entity::DATA_AIR => [ 
+						Entity::DATA_TYPE_SHORT,
+						300 
+				],
+				Entity::DATA_SHOW_NAMETAG => [ 
+						Entity::DATA_TYPE_BYTE,
+						1 
+				],
+				Entity::DATA_NO_AI => [ 
+						Entity::DATA_TYPE_BYTE,
+						1 
+				] 
+		];
 		
 		$this->packet ["RemovePlayerPacket"] = new RemovePlayerPacket ();
 		$this->packet ["RemovePlayerPacket"]->clientID = 0;
@@ -113,11 +133,13 @@ class EconomyGamble extends PluginBase implements Listener {
 		$commandMap->register ( $fallback, $command );
 	}
 	public function message($player, $text = "", $mark = null) {
-		if ($mark == null) $mark = $this->get ( "default-prefix" );
+		if ($mark == null)
+			$mark = $this->get ( "default-prefix" );
 		$player->sendMessage ( TextFormat::DARK_AQUA . $mark . " " . $text );
 	}
 	public function alert($player, $text = "", $mark = null) {
-		if ($mark == null) $mark = $this->get ( "default-prefix" );
+		if ($mark == null)
+			$mark = $this->get ( "default-prefix" );
 		$player->sendMessage ( TextFormat::RED . $mark . " " . $text );
 	}
 	// ----------------------------------------------------------------------------------
@@ -147,13 +169,26 @@ class EconomyGamble extends PluginBase implements Listener {
 		$block = $event->getBlock ();
 		$player = $event->getPlayer ();
 		if (isset ( $this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"] )) {
+			if (! isset ( $this->askAgainQueue [spl_object_hash ( $event->getPlayer () )] )) {
+				$this->askAgainQueue [spl_object_hash ( $event->getPlayer () )] = "{$block->x}.{$block->y}.{$block->z}";
+				$this->message ( $event->getPlayer (), $this->get ( "AskAgain" ) . $this->economyAPI->myMoney ( $player ) . " $ ]" );
+				return;
+			} else {
+				if ($this->askAgainQueue [spl_object_hash ( $event->getPlayer () )] != "{$block->x}.{$block->y}.{$block->z}") {
+					$this->askAgainQueue [spl_object_hash ( $event->getPlayer () )] = "{$block->x}.{$block->y}.{$block->z}";
+					$this->message ( $event->getPlayer (), $this->get ( "AskAgain" ) . $this->economyAPI->myMoney ( $player ) . " $ ]" );
+					return;
+				} else {
+					unset ( $this->askAgainQueue [spl_object_hash ( $event->getPlayer () )] );
+				}
+			}
 			$gamble = $this->db ["showCase"] ["{$block->x}.{$block->y}.{$block->z}"];
-			// TODO 해당하는 겜블진행
 			switch ($gamble) {
 				case $this->get ( "itemgamble" ) : // 아이템겜블
 					if ($event->getItem ()->getID () == 0) {
 						$this->alert ( $player, $this->get ( "noitem" ) );
-						if ($event->getItem ()->isPlaceable ()) $this->placeQueue [$player->getName ()] = true;
+						if ($event->getItem ()->isPlaceable ())
+							$this->placeQueue [$player->getName ()] = true;
 						return;
 					}
 					$rand = mt_rand ( 0, $this->getProbability ( "ItemGambleProbability", 1 ) );
@@ -164,13 +199,15 @@ class EconomyGamble extends PluginBase implements Listener {
 						$player->getInventory ()->removeItem ( Item::get ( $event->getItem ()->getID (), $event->getItem ()->getDamage (), 1 ) );
 						$this->message ( $player, $this->get ( "FailitemGamble" ) );
 					}
-					if ($event->getItem ()->isPlaceable ()) $this->placeQueue [$player->getName ()] = true;
+					if ($event->getItem ()->isPlaceable ())
+						$this->placeQueue [$player->getName ()] = true;
 					break;
 				case $this->get ( "randomgamble" ) : // 랜덤겜블
 					$mymoney = $this->economyAPI->myMoney ( $player );
 					if ($mymoney == 0) {
 						$this->message ( $player, $this->get ( "LackOfhMoney" ) );
-						if ($event->getItem ()->isPlaceable ()) $this->placeQueue [$player->getName ()] = true;
+						if ($event->getItem ()->isPlaceable ())
+							$this->placeQueue [$player->getName ()] = true;
 						return 0;
 					}
 					$pay = mt_rand ( 0, $mymoney );
@@ -182,13 +219,15 @@ class EconomyGamble extends PluginBase implements Listener {
 						$this->economyAPI->reduceMoney ( $player, $pay );
 						$this->message ( $player, $this->get ( "FailGamble" ) . " $" . $pay . $this->get ( "FailGamble-a" ) );
 					}
-					if ($event->getItem ()->isPlaceable ()) $this->placeQueue [$player->getName ()] = true;
+					if ($event->getItem ()->isPlaceable ())
+						$this->placeQueue [$player->getName ()] = true;
 					break;
 				case $this->get ( "lottery" ) :
 					$mymoney = $this->economyAPI->myMoney ( $player );
 					if ($mymoney < $this->probability ["LotteryPrice"]) {
 						$this->message ( $player, $this->get ( "LackOfhMoney" ) );
-						if ($event->getItem ()->isPlaceable ()) $this->placeQueue [$player->getName ()] = true;
+						if ($event->getItem ()->isPlaceable ())
+							$this->placeQueue [$player->getName ()] = true;
 						return;
 					}
 					$lotto_c = 0;
@@ -196,16 +235,20 @@ class EconomyGamble extends PluginBase implements Listener {
 						$get = $this->lotto [$player->getName ()];
 						$lotto_c = $get ["count"];
 					}
-					if($lotto_c >= 25){
+					if ($lotto_c >= 25) {
 						$this->message ( $player, $this->get ( "Toomuch-Lottery" ) );
 						return;
 					}
-					$this->lotto [$player->getName ()] = array ("count" => ++ $lotto_c,"day" => date ( "d" ) );
+					$this->lotto [$player->getName ()] = array (
+							"count" => ++ $lotto_c,
+							"day" => date ( "d" ) 
+					);
 					
 					$this->economyAPI->reduceMoney ( $player, $this->getProbability ( "LotteryPrice", 0 ) );
 					$this->message ( $player, $this->get ( "LotteryPayment" ) . $this->lotto [$player->getName ()] ["count"] );
 					$this->message ( $player, $this->get ( "LotteryPayment-a" ) );
-					if ($event->getItem ()->isPlaceable ()) $this->placeQueue [$player->getName ()] = true;
+					if ($event->getItem ()->isPlaceable ())
+						$this->placeQueue [$player->getName ()] = true;
 					break;
 				default :
 					if (is_numeric ( $gamble )) { // 겜블
@@ -213,7 +256,8 @@ class EconomyGamble extends PluginBase implements Listener {
 						$mymoney = $this->economyAPI->myMoney ( $player );
 						if ($mymoney < $money) {
 							$this->message ( $player, $this->get ( "LackOfhMoney" ) );
-							if ($event->getItem ()->isPlaceable ()) $this->placeQueue [$player->getName ()] = true;
+							if ($event->getItem ()->isPlaceable ())
+								$this->placeQueue [$player->getName ()] = true;
 							return;
 						}
 						$rand = mt_rand ( 0, $this->getProbability ( "GambleProbability", 1 ) );
@@ -224,7 +268,8 @@ class EconomyGamble extends PluginBase implements Listener {
 							$this->economyAPI->reduceMoney ( $player, $money );
 							$this->message ( $player, $this->get ( "FailGamble" ) );
 						}
-						if ($event->getItem ()->isPlaceable ()) $this->placeQueue [$player->getName ()] = true;
+						if ($event->getItem ()->isPlaceable ())
+							$this->placeQueue [$player->getName ()] = true;
 					}
 					break;
 			}
@@ -264,7 +309,8 @@ class EconomyGamble extends PluginBase implements Listener {
 						break;
 					case $this->get ( "sub-commands-cancel" ) :
 						// ( 모든 큐를 초기화 )
-						if (isset ( $this->createQueue [$player->getName ()] )) unset ( $this->createQueue [$player->getName ()] );
+						if (isset ( $this->createQueue [$player->getName ()] ))
+							unset ( $this->createQueue [$player->getName ()] );
 						$this->message ( $player, $this->get ( "all-processing-is-stopped" ) );
 						break;
 					case $this->get ( "sub-commands-seegamble" ) :
@@ -304,18 +350,21 @@ class EconomyGamble extends PluginBase implements Listener {
 	}
 	public function EconomyGamble() {
 		// 스케쥴로 매번 위치확인하면서 생성작업시작
-		if (! isset ( $this->db ["showCase"] )) return;
+		if (! isset ( $this->db ["showCase"] ))
+			return;
 		foreach ( $this->getServer ()->getOnlinePlayers () as $player ) {
 			foreach ( $this->db ["showCase"] as $gamblePos => $type ) {
 				$explode = explode ( ".", $gamblePos );
-				if (! isset ( $explode [2] )) continue; // 좌표가 아닐경우 컨티뉴
+				if (! isset ( $explode [2] ))
+					continue; // 좌표가 아닐경우 컨티뉴
 				$dx = abs ( $explode [0] - $player->x );
 				$dy = abs ( $explode [1] - $player->y );
 				$dz = abs ( $explode [2] - $player->z ); // XYZ 좌표차이 계산
 				                                         
 				// 반경 25블럭을 넘어갔을경우 생성해제 패킷 전송후 생성패킷큐를 제거
 				if (! ($dx <= 25 and $dy <= 25 and $dz <= 25)) {
-					if (! isset ( $this->packetQueue [$player->getName ()] [$gamblePos] )) continue;
+					if (! isset ( $this->packetQueue [$player->getName ()] [$gamblePos] ))
+						continue;
 					
 					if (isset ( $this->packetQueue [$player->getName ()] [$gamblePos] )) {
 						$this->packet ["RemoveEntityPacket"]->eid = $this->packetQueue [$player->getName ()] [$gamblePos];
@@ -339,12 +388,15 @@ class EconomyGamble extends PluginBase implements Listener {
 						$player->dataPacket ( $this->packet ["AddItemEntityPacket"] );
 					}
 					// 네임택 비활성화 상태이면 네임택비출력
-					if (isset ( $this->db ["settings"] ["nametagEnable"] )) if (! $this->db ["settings"] ["nametagEnable"]) continue;
-					
-					// 반경 5블럭 내일경우 유저 패킷을 상점밑에 보내서 네임택 출력
+					if (isset ( $this->db ["settings"] ["nametagEnable"] ))
+						if (! $this->db ["settings"] ["nametagEnable"])
+							continue;
+						
+						// 반경 5블럭 내일경우 유저 패킷을 상점밑에 보내서 네임택 출력
 					if ($dx <= 4 and $dy <= 4 and $dz <= 4) {
-						if (isset ( $this->packetQueue [$player->getName ()] ["nametag"] [$gamblePos] )) continue;
-						// 도박 네임택띄우기
+						if (isset ( $this->packetQueue [$player->getName ()] ["nametag"] [$gamblePos] ))
+							continue;
+							// 도박 네임택띄우기
 						switch ($type) {
 							case $this->get ( "itemgamble" ) :
 								$nameTag = $this->get ( "itemgamble-desc1" );
@@ -409,7 +461,8 @@ class EconomyGamble extends PluginBase implements Listener {
 				$resultCount = $count;
 				for($i = 1; $i <= $count; $i ++) {
 					$rand = mt_rand ( 0, $this->getProbability ( "LotteryProbability", 1 ) );
-					if (! ($rand <= $this->getProbability ( "LotteryProbability", 0 ))) -- $resultCount;
+					if (! ($rand <= $this->getProbability ( "LotteryProbability", 0 )))
+						-- $resultCount;
 				}
 				if ($resultCount == 0) {
 					$this->message ( $player, $this->get ( "LotteryCheck-a" ) . " " . $count . $this->get ( "LotteryCheck-b" ) );
@@ -426,8 +479,10 @@ class EconomyGamble extends PluginBase implements Listener {
 		}
 	}
 	public function onQuit(PlayerQuitEvent $event) {
-		if (isset ( $this->createQueue [$event->getPlayer ()->getName ()] )) unset ( $this->createQueue [$event->getPlayer ()->getName ()] );
-		if (isset ( $this->packetQueue [$event->getPlayer ()->getName ()] )) unset ( $this->packetQueue [$event->getPlayer ()->getName ()] );
+		if (isset ( $this->createQueue [$event->getPlayer ()->getName ()] ))
+			unset ( $this->createQueue [$event->getPlayer ()->getName ()] );
+		if (isset ( $this->packetQueue [$event->getPlayer ()->getName ()] ))
+			unset ( $this->packetQueue [$event->getPlayer ()->getName ()] );
 	}
 }
 
