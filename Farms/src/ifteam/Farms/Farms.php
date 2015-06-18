@@ -38,7 +38,7 @@ class Farms extends PluginBase implements Listener {
 		$this->farmConfig = new Config ( $this->getDataFolder () . "farmlist.yml", Config::YAML );
 		$this->farmData = $this->farmConfig->getAll ();
 		
-		$this->speedConfig = new Config ( $this->getDataFolder () . "speed.yml", Config::YAML, [ "normal-growth-period" => 1200,"vip-growth-period" => 600 ] );
+		$this->speedConfig = new Config ( $this->getDataFolder () . "speed.yml", Config::YAML, [ "growing-time" => 1200,"vip-growing-time" => 600 ] );
 		$this->speedData = $this->speedConfig->getAll ();
 		
 		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new FarmsTask ( $this ), 20 );
@@ -70,11 +70,11 @@ class Farms extends PluginBase implements Listener {
 				if ($event->getItem ()->getId () == $crop ["item"]) {
 					$key = $block->x . "." . $block->y . "." . $block->z;
 					
-					$this->farmData[$key]['id'] = $crop ["block"];
-					$this->farmData[$key]['damage'] = 0;
-					$this->farmData[$key]['level'] = $block->getLevel()->getFolderName();
-					$this->farmData[$key]['creation-time'] = time();
-					$this->farmData[$key]['growth-period'] = $this->speedData[$event->getPlayer()->hasPermission("Farms.VIP") ? "vip-growth-period" : "normal-growth-period"];
+					$this->farmData [$key] ['id'] = $crop ["block"];
+					$this->farmData [$key] ['damage'] = 0;
+					$this->farmData [$key] ['level'] = $block->getLevel ()->getFolderName ();
+					$this->farmData [$key] ['time'] = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) );
+					$this->farmData [$key] ['growtime'] = $this->speedData [$event->getPlayer ()->hasPermission ( "Farms.VIP" ) ? "vip-growing-time" : "growing-time"];
 					break;
 				}
 			}
@@ -91,17 +91,20 @@ class Farms extends PluginBase implements Listener {
 
 	public function tick(){
 		foreach(array_keys($this->farmData) as $key){
-            if(!isset($this->farmData[$key]["id"])){
+            if(!isset($this->farmData[$key]['id'])){
                 unset($this->farmData[$key]);
                 continue;
             }
-
-			$progress = time() - $this->farmData[$key]["creation-time"];
-			if($progress < $this->farmData[$key]["growth-period"]){
+			if(! isset($this->farmData[$key]['time'])){
+				unset($this->farmData[$key]);
+				break;
+			}
+			$progress = $this->makeTimestamp(date("Y-m-d H:i:s")) - $this->farmData[$key]['time'];
+			if($progress < $this->farmData[$key]['growtime']){
                 continue;
             }
 
-            $level = isset($this->farmData[$key]["level"]) ? $this->getServer()->getLevelByName($this->farmData[$key]["level"]) : $this->getServer()->getDefaultLevel();
+            $level = isset($this->farmData[$key]['level']) ? $this->getServer()->getLevelByName($this->farmData[$key]['level']) : $this->getServer()->getDefaultLevel();
 
             $coordinates = explode(".", $key);
 			$position = new Vector3($coordinates[0], $coordinates[1], $coordinates[2]);
@@ -110,7 +113,17 @@ class Farms extends PluginBase implements Listener {
                 unset($this->farmData[$key]);
                 break;
             }
+            $this->farmData[$key]['time'] = $this->speedData["growing-time"];
 		}
+	}
+	public function makeTimestamp($date) {
+		$yy = substr ( $date, 0, 4 );
+		$mm = substr ( $date, 5, 2 );
+		$dd = substr ( $date, 8, 2 );
+		$hh = substr ( $date, 11, 2 );
+		$ii = substr ( $date, 14, 2 );
+		$ss = substr ( $date, 17, 2 );
+		return mktime ( $hh, $ii, $ss, $mm, $dd, $yy );
 	}
 
     /**
@@ -166,11 +179,10 @@ class Farms extends PluginBase implements Listener {
 			return true;
 		}
 		
-		$cropPosition = $position->setComponents($position->x, $position->y + $this->farmData[$key]["damage"], $position->z);
+		$cropPosition = $position->setComponents($position->x, $position->y+$this->farmData[$key]["damage"], $position->z);
 		if($level->getBlockIdAt($cropPosition->x, $cropPosition->y, $cropPosition->z) !== Item::AIR){ //SOMETHING EXISTS
 			return true;
 		}
-
 		$level->setBlock($cropPosition, Block::get($this->farmData[$key]["id"], 0));
         return false;
 	}
@@ -193,19 +205,22 @@ class Farms extends PluginBase implements Listener {
 				$cropBlock = Block::get(Block::MELON_BLOCK);
 				break;
 
-            default: //NOT A HORIZONTAL GROWING CROP
+            default:
                 return true;
 		}
+		
+		if(++$this->farmData[$key]["damage"] >= 8){ // FULL GROWN!
+			for($xOffset = - 1; $xOffset <= 1; $xOffset ++){
+                for($zOffset = - 1; $zOffset <= 1; $zOffset ++){
+                    if($xOffset === 0 and $zOffset === 0){ //STEM
+                        continue;
+                    }
 
-		if(++$this->farmData[$key]["damage"] >= 8){ //FULL GROWN!
-            static $offsets = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
-            shuffle($offsets);
-
-            foreach($offsets as $offset){
-                $cropPosition = $position->setComponents($position->x + $offset[0], $position->y, $position->z + $offset[1]);
-                if($level->getBlockIdAt($cropPosition->x, $cropPosition->y, $cropPosition->z) === Item::AIR){
-                    $level->setBlock($cropPosition, $cropBlock);
-                    break;
+                    $cropPosition = $position->setComponents($position->x+$xOffset, $position->y, $position->z+$zOffset);
+                    if($level->getBlockIdAt($cropPosition->x, $cropPosition->y, $cropPosition->z) !== Item::AIR){ //SOMETHING EXISTS
+                        $level->setBlock($cropPosition, $cropBlock);
+                        return true;
+                    }
                 }
             }
             return true;
