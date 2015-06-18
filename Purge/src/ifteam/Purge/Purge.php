@@ -19,7 +19,7 @@ use pocketmine\entity\Arrow;
 
 class Purge extends PluginBase implements Listener {
 	public $purgeStarted = false;
-	public $m_version = 1; // 메시지 버전 변수
+	public $m_version = 3; // 메시지 버전 변수
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		

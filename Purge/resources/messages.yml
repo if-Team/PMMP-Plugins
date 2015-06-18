@@ -2,15 +2,17 @@
 # YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
 
 #PLEASE SET HERE TO YOUR LANGUAGE PREFIX
-m_version: 2
+m_version: 3
 
 #(EN) ENGLISH
+eng: true
 eng-default-prefix: "[purge]"
 eng-purge-is-started: "CAUTION! now is the night all PVP is allowed"
 eng-purge-is-stopped: "CAUTION! now is the day all PVP is NOT allowed"
 eng-cant-pvp-in-night: "PVP is not allow! (only at night)"
 
 #(KO) KOREAN
+kor: true
 kor-default-prefix: "[ 퍼지 ]"
 kor-purge-is-started: "주의 ! 밤이 되었습니다. 모든 PVP가 허용됩니다"
 kor-purge-is-stopped: "주의 ! 낮이 되었습니다. 모든 PVP가 비허용됩니다"
