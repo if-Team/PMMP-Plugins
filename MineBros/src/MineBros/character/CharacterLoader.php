@@ -50,15 +50,20 @@ class CharacterLoader implements Listener {
     }
 
     public function loadFromDirectory($path){
+        $this->owner->getLogger()->info('Loading characters from '.$path);
+        $count = 0;
         $this->owner->getServer()->getLoader()->addPath($path);
         foreach(scandir($path) as $p){
             if(substr($p, -4, 4) === '.php' and $p !== 'BaseCharacter.php' and $p !== 'CharacterLoader.php'){
                 if(class_exists($classname = substr($p, 0, -4))){
-                    $this->owner->getLogger()->notice("[MineBros] Loading character: ".$classname);
-                    $this->registerCharacter(new $classname());
+                    $obj = new $classname();
+                    $this->owner->getLogger()->notice("Loading character: ".$classname);
+                    $this->registerCharacter($obj);
+                    $count++;
                 }
             }
         }
+        if($count === 0) $this->owner->getLogger()->notice('Nothing to load from '.$path.', directry is empty.');
     }
 
     public function onBlockTouch(PlayerInteractEvent $ev){

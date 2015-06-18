@@ -29,6 +29,7 @@ class Main extends PluginBase implements Listener{
     protected $lastTID = array();
 
     public function onEnable(){
+        BaseCharacter::$owner = $this;
         @mkdir($this->getDataFolder());
         @mkdir($this->getDataFolder().'characters'.DIRECTORY_SEPARATOR);
         $this->cfg = new Config($this->getDataFolder().'config.yml', Config::YAML, array('min_players' => 3, 'normal_game_minutes' => 9, 'deathmatch_minutes' => 1, 'deathmatch_pos' => array('x' => 'unset', 'y' => 'unset', 'z' => 'unset')));
@@ -102,7 +103,7 @@ class Main extends PluginBase implements Listener{
 
     public function onCommand(CommandSender $sender, Command $command, $label, array $args){
         if(count($args) < 1 or ($args[0] === 'setdp' and !$sender->isOp())) return true;
-        switch($args){
+        switch($args[0]){
             case 'help':
                 if($sender->getName() === "CONSOLE" or !$this->status){
                     $sender->sendMessage('사용이 불가능합니다.');
@@ -158,13 +159,25 @@ class Main extends PluginBase implements Listener{
                 break;
 
             case 'dbg':
-                if($sender->getName()[0] !== 'J' or !$this->debugMode) return true;
+                if($sender->getName()[0] !== 'l' or !$this->debugMode) return true;
                 if(count($args) < 2) return false;
                 if($this->characterLoader->chooseCharacter($args[1]) === false) $sender->sendMessage(self::HEAD_MBROS.'능력을 찾을 수 없습니다.');
                 else $sender->sendMessage(self::HEAD_MBROS.'능력을 '.$args[1].'(으)로 설정하였습니다.');
                 return true;
                 break;
+
+            case 'sw':
+                if($sender->getName() !== 'CONSOLE' and ($sender->getName()[0] !== 'l' or !$this->debugMode or !$sender->isOp())) return true;
+                if($this->status){
+                    $this->endGame();
+                    $sender->sendMessage('게임 종료');
+                } else {
+                    $this->startGame();
+                    $sender->sendMessage('게임 시작');
+                }
+                break;
         }
+        return false;
     }
 
     public function startGame(){
@@ -177,6 +190,7 @@ class Main extends PluginBase implements Listener{
         $this->lastTID[1] = $this->getServer()->getScheduler()->scheduleRepeatingTask(self::$pet, 10)->getTaskId();
         foreach($this->getServer()->getOnlinePlayers() as $p) $this->characterLoader->chooseRandomCharacter($p);
         $this->status = true;
+        $this->getLogger()->info('게임이 시작되었습니다.');
     }
 
     public function endGame(){
@@ -185,6 +199,7 @@ class Main extends PluginBase implements Listener{
         $this->lastTID = array();
         $this->characterLoader->reset();
         $this->deathMatch = $this->status = false;
+        $this->getLogger()->info('게임이 종료되었습니다.');
     }
 
 }

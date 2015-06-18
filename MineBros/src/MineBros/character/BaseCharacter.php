@@ -17,27 +17,24 @@ abstract class BaseCharacter {
     const TRIGR_CUSTM = 0b10000000; //Not now, should be implemented in future
     const EV_CAUSE_TASK = 15;
 
-    private $bitmask, $name, $description;
+    public static $owner;
 
-    public function __construct(){
-
-    }
+    private $description;
 
     public function init(){
 
     }
 
     public function getOptions(){
-        return $this->bitmask;
+        return 0;
     }
 
     public function getName(){
-        if(isset($this->name)) return $this->name;
-            else return get_called_class();
+        return get_called_class();
     }
 
     public function getDescription(){
-        return $this->description;
+        return '';
     }
 
     public function onTouchAnything(Player $who, $targetIsPlayer = false, Vector3 $pos, $targetPlayer = NULL){

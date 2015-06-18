@@ -28,11 +28,11 @@ class ProgressiveExecutionTask extends PluginTask {
         foreach($this->timer as &$t){
             if(--$t[0] <= 0) $t[1]->$t[2]($t[3]);
         }
-        if($odd){
+        if($this->odd){
             foreach($owner->characterLoader->cooldown as $key => &$c){
                 if(--$c <= 0) unset($owner->characterLoader->cooldown[$c]);
             }
-            $odd = !$odd;
+            $this->odd = !$this->odd;
         }
     }
 
