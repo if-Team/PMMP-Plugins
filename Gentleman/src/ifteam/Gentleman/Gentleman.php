@@ -41,9 +41,7 @@ class Gentleman extends PluginBase implements Listener {
 	}
 	public function userCommand(PlayerCommandPreprocessEvent $event) {
 		$command = $event->getMessage ();
-		if ($event->getPlayer ()->isOp ())
-			return;
-		if (\substr ( $command, 0, 1 ) != "/") { // chat
+		if (\substr ( $command, 0, 1 ) != "/") { // only chat
 			if (! isset ( $this->chatCheck [$event->getPlayer ()->getName () . ">" . $command] )) {
 				$this->chatCheck [$event->getPlayer ()->getName () . ">" . $command] = false;
 				$this->getServer ()->getScheduler ()->scheduleAsyncTask ( new GentlemanAsyncTask ( $event->getPlayer ()->getName (), "chat.type.text", $event->getMessage (), $this->badQueue, $this->dictionary, "chat", true ) );
