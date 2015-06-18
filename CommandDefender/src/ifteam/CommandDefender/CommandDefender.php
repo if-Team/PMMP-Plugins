@@ -6,6 +6,9 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerCommandPreprocessEvent;
 use pocketmine\event\player\PlayerChatEvent;
+use ifteam\CommandDefender\task\RemoveQueueTask;
+use ifteam\CommandDefender\task\PlayerChatEventTask;
+use ifteam\CommandDefender\task\PlayerCommandPreprocessEventTask;
 
 class CommandDefender extends PluginBase implements Listener {
 	public $queue = [ ];
@@ -22,9 +25,17 @@ class CommandDefender extends PluginBase implements Listener {
 	public function onChat(PlayerChatEvent $event) {
 		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new PlayerChatEventTask ( $this, $event ), 2 );
 	}
+	public function onPreCommand(PlayerCommandPreprocessEvent $event) {
+		if (\substr ( $event->getMessage(), 0, 1 ) != "/") return;
+		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new PlayerCommandPreprocessEventTask ( $this, $event ), 2 );
+	}
 	public function chatCheck($event) {
-		if (! $event instanceof PlayerChatEvent) return;
-		if (! isset ( $this->queue [$event->getPlayer ()->getAddress ()] )) $this->queue [$event->getPlayer ()->getAddress ()] = 1;
+		if (! $event instanceof PlayerChatEvent)
+			return;
+		if ($event->isCancelled ())
+			return;
+		if (! isset ( $this->queue [$event->getPlayer ()->getAddress ()] ))
+			$this->queue [$event->getPlayer ()->getAddress ()] = 1;
 		$this->queue [$event->getPlayer ()->getAddress ()] ++;
 		
 		if ($this->queue [$event->getPlayer ()->getAddress ()] >= 4) {
@@ -32,8 +43,13 @@ class CommandDefender extends PluginBase implements Listener {
 			$this->getServer ()->blockAddress ( $event->getPlayer ()->getAddress (), 20 );
 		}
 	}
-	public function onPreCommand(PlayerCommandPreprocessEvent $event) {
-		if (! isset ( $this->queue [$event->getPlayer ()->getAddress ()] )) $this->queue [$event->getPlayer ()->getAddress ()] = 1;
+	public function commandCheck($event) {
+		if (! $event instanceof PlayerCommandPreprocessEvent)
+			return;
+		if ($event->isCancelled ())
+			return;
+		if (! isset ( $this->queue [$event->getPlayer ()->getAddress ()] ))
+			$this->queue [$event->getPlayer ()->getAddress ()] = 1;
 		$this->queue [$event->getPlayer ()->getAddress ()] ++;
 		
 		if ($this->queue [$event->getPlayer ()->getAddress ()] >= 5) { // 2초에 5번명령어 사용시 20초간 킥

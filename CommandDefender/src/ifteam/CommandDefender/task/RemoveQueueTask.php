@@ -4,9 +4,10 @@
  * @author ChalkPE <amato0617@gmail.com>
  * @since 2015-04-26 18:51
  */
-namespace ifteam\CommandDefender;
+namespace ifteam\CommandDefender\task;
 
 use pocketmine\scheduler\PluginTask;
+use ifteam\CommandDefender\CommandDefender;
 
 class RemoveQueueTask extends PluginTask {
 	function __construct(CommandDefender $owner) {
