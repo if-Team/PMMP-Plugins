@@ -16,6 +16,7 @@ use pocketmine\level\Position;
 class GoodMorning extends PluginBase implements Listener {
 	public $placeQueeue = [ ];
 	public function onEnable() {
+		@mkdir ( $this->getDataFolder () );
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
 	public function PlaceQueeue(BlockPlaceEvent $event) {

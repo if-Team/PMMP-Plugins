@@ -13,6 +13,7 @@ use pocketmine\command\Command;
 class OpenVPNLock extends PluginBase implements Listener {
 	public $vpn_file, $vpn_data = [ ];
 	public function onEnable() {
+		@mkdir ( $this->getDataFolder () );
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 		
 		if (file_exists ( $this->getDataFolder () . "vpnlist.yml" )) {
