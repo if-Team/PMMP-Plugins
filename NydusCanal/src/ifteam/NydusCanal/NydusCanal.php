@@ -31,7 +31,8 @@ class NydusCanal extends PluginBase implements Listener {
 		$this->NydusCanal = new Config ( $this->getDataFolder () . "warpList.yml", Config::YAML );
 		$this->NydusCanal_List = $this->NydusCanal->getAll ();
 		
-		if ($this->checkEconomyAPI ()) $this->economyAPI = \onebone\economyapi\EconomyAPI::getInstance ();
+		if ($this->checkEconomyAPI ())
+			$this->economyAPI = \onebone\economyapi\EconomyAPI::getInstance ();
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
 	public function onDisable() {
@@ -53,17 +54,19 @@ class NydusCanal extends PluginBase implements Listener {
 				$event->setCancelled ();
 				return false;
 			}
-			if (! isset ( explode ( "[", $event->getLine ( 1 ) )[1] )) if (! isset ( $this->NydusCanal_List ["warp"] [$event->getLine ( 1 )] )) {
-				$player->sendMessage ( TextFormat::DARK_AQUA . "해당하는 워프포인트가 없습니다." );
-				$event->setCancelled ();
-				return false;
-			}
+			if (! isset ( explode ( "[", $event->getLine ( 1 ) )[1] ))
+				if (! isset ( $this->NydusCanal_List ["warp"] [$event->getLine ( 1 )] )) {
+					$player->sendMessage ( TextFormat::DARK_AQUA . "해당하는 워프포인트가 없습니다." );
+					$event->setCancelled ();
+					return false;
+				}
 			$event->setLine ( 0, "[워프]" );
-			if (isset ( $this->NydusCanal_List ["warp"] [$event->getLine ( 1 )] ["price"] )) if (isset ( explode ( "+", $this->NydusCanal_List ["warp"] [$event->getLine ( 1 )] ["price"] )[1] )) {
-				$event->setLine ( 2, "보상:" . explode ( "+", $this->NydusCanal_List ["warp"] [$event->getLine ( 1 )] ["price"] )[1] . "$" );
-			} else {
-				$event->setLine ( 2, "비용:" . $this->NydusCanal_List ["warp"] [$event->getLine ( 1 )] ["price"] . "$" );
-			}
+			if (isset ( $this->NydusCanal_List ["warp"] [$event->getLine ( 1 )] ["price"] ))
+				if (isset ( explode ( "+", $this->NydusCanal_List ["warp"] [$event->getLine ( 1 )] ["price"] )[1] )) {
+					$event->setLine ( 2, "보상:" . explode ( "+", $this->NydusCanal_List ["warp"] [$event->getLine ( 1 )] ["price"] )[1] . "$" );
+				} else {
+					$event->setLine ( 2, "비용:" . $this->NydusCanal_List ["warp"] [$event->getLine ( 1 )] ["price"] . "$" );
+				}
 			$player->sendMessage ( "포탈생성이 완료되었습니다." );
 			
 			$block = $event->getBlock ();
@@ -97,13 +100,17 @@ class NydusCanal extends PluginBase implements Listener {
 			if ($event->getPlayer ()->hasPermission ( "simplearea.commands.delwarp" )) {
 				if (isset ( $this->NydusCanal_List ["signs"] [$event->getPlayer ()->getLevel ()->getFolderName ()] [$block->x . ":" . $block->y . ":" . $block->z] )) {
 					unset ( $this->NydusCanal_List ["signs"] [$event->getPlayer ()->getLevel ()->getFolderName ()] [$block->x . ":" . $block->y . ":" . $block->z] );
-					if (isset ( $this->NydusCanal_List ["touch-signs"] [$event->getPlayer ()->getLevel ()->getFolderName ()] [$block->x . ":" . $block->y . ":" . $block->z] )) unset ( $this->NydusCanal_List ["touch-signs"] [$event->getPlayer ()->getLevel ()->getFolderName ()] [$block->x . ":" . $block->y . ":" . $block->z] );
+					if (isset ( $this->NydusCanal_List ["touch-signs"] [$event->getPlayer ()->getLevel ()->getFolderName ()] [$block->x . ":" . $block->y . ":" . $block->z] ))
+						unset ( $this->NydusCanal_List ["touch-signs"] [$event->getPlayer ()->getLevel ()->getFolderName ()] [$block->x . ":" . $block->y . ":" . $block->z] );
 					$event->setCancelled ();
 				}
 			}
 		}
 	}
 	public function onChat(PlayerChatEvent $event) {
+		if (! isset ( $this->NydusCanal_List ["warp"] ))
+			return;
+		
 		$nearPoint = null;
 		$nearRange = null;
 		$player = $event->getPlayer ();
@@ -126,11 +133,13 @@ class NydusCanal extends PluginBase implements Listener {
 				$nearRange = $diff;
 			}
 		}
-		if ($nearPoint == null) return;
-		$event->setFormat ( TextFormat::GOLD . "[ " . $nearPoint . " ] " . $event->getFormat () );
+		if ($nearPoint == null)
+			return;
+		$event->setMessage ( TextFormat::GOLD . "[ " . $nearPoint . " ] " . $event->getMessage () );
 	}
 	public function onMove(PlayerMoveEvent $event) {
-		if (! $event->getPlayer ()->hasPermission ( "nyduscanal.portal" )) return;
+		if (! $event->getPlayer ()->hasPermission ( "nyduscanal.portal" ))
+			return;
 		
 		$to = $event->getTo ();
 		$x = ( int ) round ( $to->x );
@@ -139,21 +148,28 @@ class NydusCanal extends PluginBase implements Listener {
 		
 		if (isset ( $this->warpCooltime [$event->getPlayer ()->getName ()] )) {
 			$this->warpCooltime [$event->getPlayer ()->getName ()] --;
-			if ($this->warpCooltime [$event->getPlayer ()->getName ()] <= 0) unset ( $this->warpCooltime [$event->getPlayer ()->getName ()] );
+			if ($this->warpCooltime [$event->getPlayer ()->getName ()] <= 0)
+				unset ( $this->warpCooltime [$event->getPlayer ()->getName ()] );
 			return;
 		}
 		
 		$player = $event->getPlayer ();
 		
-		if ($this->checkMove ( $player, $x . ":" . $y . ":" . $z )) return;
-		if ($this->checkMove ( $player, $x + 1 . ":" . $y . ":" . $z )) return;
-		if ($this->checkMove ( $player, $x . ":" . $y . ":" . $z + 1 )) return;
-		if ($this->checkMove ( $player, $x - 1 . ":" . $y . ":" . $z )) return;
-		if ($this->checkMove ( $player, $x . ":" . $y . ":" . $z - 1 )) return;
+		if ($this->checkMove ( $player, $x . ":" . $y . ":" . $z ))
+			return;
+		if ($this->checkMove ( $player, $x + 1 . ":" . $y . ":" . $z ))
+			return;
+		if ($this->checkMove ( $player, $x . ":" . $y . ":" . $z + 1 ))
+			return;
+		if ($this->checkMove ( $player, $x - 1 . ":" . $y . ":" . $z ))
+			return;
+		if ($this->checkMove ( $player, $x . ":" . $y . ":" . $z - 1 ))
+			return;
 	}
 	public function checkMove(Player &$player, $pos) {
 		if (isset ( $this->NydusCanal_List ["signs"] [$player->getLevel ()->getFolderName ()] [$pos] )) {
-			if (isset ( $this->NydusCanal_List ["touch-signs"] [$player->getLevel ()->getFolderName ()] [$pos] )) return;
+			if (isset ( $this->NydusCanal_List ["touch-signs"] [$player->getLevel ()->getFolderName ()] [$pos] ))
+				return;
 			$this->NydusCanal ( $player, $this->NydusCanal_List ["signs"] [$player->getLevel ()->getFolderName ()] [$pos] );
 			$this->warpCooltime [$player->getName ()] = 10;
 			return true;
@@ -173,10 +189,11 @@ class NydusCanal extends PluginBase implements Listener {
 					return true;
 				}
 				
-				if (! $player->hasPermission ( "nyduscanal.commands.addwarp" )) if (isset ( $this->NydusCanal_List ["reward-warp"] [$args [0]] )) {
-					$player->sendMessage ( TextFormat::DARK_AQUA . "보상지역은 명령어로 워프할 수 없습니다 !" );
-					return true;
-				}
+				if (! $player->hasPermission ( "nyduscanal.commands.addwarp" ))
+					if (isset ( $this->NydusCanal_List ["reward-warp"] [$args [0]] )) {
+						$player->sendMessage ( TextFormat::DARK_AQUA . "보상지역은 명령어로 워프할 수 없습니다 !" );
+						return true;
+					}
 				$this->NydusCanal ( $player, $args [0] );
 				break;
 			case "warplist" :
@@ -208,7 +225,8 @@ class NydusCanal extends PluginBase implements Listener {
 						$givemode = 1;
 						$args [1] = explode ( '+', $args [1] )[1];
 					}
-					if (isset ( explode ( '-', $args [1] )[1] )) $args [1] = explode ( '-', $args [1] )[1];
+					if (isset ( explode ( '-', $args [1] )[1] ))
+						$args [1] = explode ( '-', $args [1] )[1];
 				}
 				
 				if (isset ( $args [0] )) {
@@ -285,7 +303,8 @@ class NydusCanal extends PluginBase implements Listener {
 		return true;
 	}
 	public function NydusCanal(Player $player, $warp = null) {
-		if ($warp == null) return false;
+		if ($warp == null)
+			return false;
 		if (isset ( explode ( "[", $warp )[1] )) {
 			$level = explode ( "[", $warp )[1];
 			$level = explode ( "]", $level )[0];
@@ -317,10 +336,11 @@ class NydusCanal extends PluginBase implements Listener {
 			$player->sendMessage ( TextFormat::DARK_AQUA . $this->NydusCanal_List ["warp"] [$warp] ['level'] . "맵 폴더를 찾을 수 없습니다 !, 워프불가" );
 			return false;
 		}
-		if (! $player->hasPermission ( "nyduscanal.lockwarp" )) if (isset ( $this->NydusCanal_List ["locked"] [$warp] )) {
-			$player->sendMessage ( TextFormat::DARK_AQUA . "해당 워프가 잠겨있습니다, 워프불가" );
-			return false;
-		}
+		if (! $player->hasPermission ( "nyduscanal.lockwarp" ))
+			if (isset ( $this->NydusCanal_List ["locked"] [$warp] )) {
+				$player->sendMessage ( TextFormat::DARK_AQUA . "해당 워프가 잠겨있습니다, 워프불가" );
+				return false;
+			}
 		if (isset ( $this->NydusCanal_List ["warp"] [$warp] ["cooltime"] )) {
 			if (! isset ( $this->customCooltime [$warp] [$player->getName ()] )) {
 				$this->customCooltime [$warp] [$player->getName ()] = date ( "Y-m-d H:i:s" );
@@ -345,7 +365,13 @@ class NydusCanal extends PluginBase implements Listener {
 			if (! isset ( $this->timeout [$warp] [$player->getName ()] )) {
 				$this->timeout [$warp] [$player->getName ()] = $player->add ( 2 );
 				$player->sendMessage ( TextFormat::RED . "[ 주의 ] [ 시간제한 ] " . $this->NydusCanal_List ["warp"] [$warp] ["timeout"] . "초 뒤에 이전 위치로 복귀됩니다!" );
-				$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ $this,"warpTimeout" ], [ $player,$warp ] ), 20 * $this->NydusCanal_List ["warp"] [$warp] ["timeout"] );
+				$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
+						$this,
+						"warpTimeout" 
+				], [ 
+						$player,
+						$warp 
+				] ), 20 * $this->NydusCanal_List ["warp"] [$warp] ["timeout"] );
 			}
 		}
 		if (isset ( $this->NydusCanal_List ["warp"] [$warp] ["price"] ) and $this->checkEconomyAPI ()) {
@@ -399,7 +425,8 @@ class NydusCanal extends PluginBase implements Listener {
 	public function printWarpList($player) {
 		$player->sendMessage ( TextFormat::DARK_AQUA . "*워프가능한 리스트를 출력합니다." );
 		$result = TextFormat::WHITE;
-		if (! isset ( $this->NydusCanal_List ["warp"] )) return false;
+		if (! isset ( $this->NydusCanal_List ["warp"] ))
+			return false;
 		foreach ( array_keys ( $this->NydusCanal_List ["warp"] ) as $list )
 			$result .= $list . " ";
 		$player->sendMessage ( $result );
