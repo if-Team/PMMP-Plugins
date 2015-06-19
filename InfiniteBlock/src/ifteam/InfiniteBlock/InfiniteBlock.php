@@ -15,8 +15,6 @@ use pocketmine\utils\Config;
 use pocketmine\level\Position;
 use pocketmine\item\Item;
 use pocketmine\block\Block;
-use pocketmine\item\Tool;
-use pocketmine\entity\Entity;
 use pocketmine\event\block\BlockUpdateEvent;
 use pocketmine\event\entity\ItemSpawnEvent;
 use pocketmine\event\player\PlayerJoinEvent;

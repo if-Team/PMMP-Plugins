@@ -5,13 +5,9 @@ namespace ifteam\GreenBelt;
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\event\block\BlockUpdateEvent;
-use pocketmine\block\Block;
 use pocketmine\utils\Random;
 use pocketmine\network\protocol\UpdateBlockPacket;
-use pocketmine\level\ChunkManager;
 use pocketmine\block\Sapling;
-use pocketmine\math\Vector3;
-use pocketmine\scheduler\CallbackTask;
 use pocketmine\level\generator\object\Tree;
 
 class GreenBelt extends PluginBase implements Listener {

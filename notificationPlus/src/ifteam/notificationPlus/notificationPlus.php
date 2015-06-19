@@ -8,7 +8,6 @@ use pocketmine\event\player\PlayerCommandPreprocessEvent;
 use pocketmine\event\block\SignChangeEvent;
 use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\utils\Config;
-use pocketmine\Player;
 use pocketmine\utils\TextFormat;
 
 class notificationPlus extends PluginBase implements Listener {

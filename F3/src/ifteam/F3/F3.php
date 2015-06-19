@@ -2,25 +2,17 @@
 
 namespace ifteam\F3;
 
-use pocketmine\event\player\PlayerCommandPreprocessEvent;
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\utils\Config;
 use pocketmine\command\PluginCommand;
 use pocketmine\utils\TextFormat;
-use pocketmine\event\server\DataPacketSendEvent;
-use pocketmine\event\player\PlayerQuitEvent;
-use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\network\protocol\AddPlayerPacket;
 use pocketmine\network\protocol\RemovePlayerPacket;
 use pocketmine\entity\Entity;
-use pocketmine\utils\TextWrapper;
 use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
 use pocketmine\Player;
-use pocketmine\event\player\PlayerChatEvent;
-use pocketmine\network\protocol\TextPacket;
-use pocketmine\event\TranslationContainer;
 use pocketmine\utils\Utils;
 
 class F3 extends PluginBase implements Listener {

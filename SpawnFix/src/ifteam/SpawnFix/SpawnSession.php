@@ -4,7 +4,6 @@ namespace ifteam\SpawnFix;
 
 use pocketmine\Player;
 use pocketmine\level\Position;
-use pocketmine\level\Level;
 
 class SpawnSession {
 	private $x, $y, $z;

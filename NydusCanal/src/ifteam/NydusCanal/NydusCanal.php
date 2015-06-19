@@ -16,7 +16,6 @@ use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\block\Block;
 use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\player\PlayerMoveEvent;
-use pocketmine\math\Vector3;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\scheduler\CallbackTask;
 use pocketmine\event\player\PlayerChatEvent;

@@ -4,7 +4,6 @@ namespace exceptop;
 
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
-use pocketmine\utils\Config;
 use pocketmine\event\player\PlayerKickEvent;
 
 class exceptop extends PluginBase implements Listener {

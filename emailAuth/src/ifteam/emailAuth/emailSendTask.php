@@ -3,7 +3,6 @@
 namespace ifteam\emailAuth;
 
 use pocketmine\scheduler\AsyncTask;
-use pocketmine\Server;
 
 class emailSendTask extends AsyncTask {
 	public $sendMail, $id, $time, $serverName, $code, $istest, $config, $signform;

@@ -3,7 +3,6 @@
 use MineBros\Main;
 use MineBros\character\BaseCharacter;
 use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\Server;
 use pocketmine\Player;
 use pocketmine\math\Vector3;
 

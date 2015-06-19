@@ -4,7 +4,6 @@ namespace ifteam\Sparklers;
 
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
-use pocketmine\command\PluginCommand;
 use pocketmine\utils\TextFormat;
 use pocketmine\utils\Config;
 use pocketmine\event\block\SignChangeEvent;

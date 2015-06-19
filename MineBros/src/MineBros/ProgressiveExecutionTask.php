@@ -6,7 +6,6 @@ use \pocketmine\Player;
 use \pocketmine\event\entity\EntityRegainHealthEvent;
 use \pocketmine\event\entity\EntityDamageByEntityEvent;
 use \pocketmine\scheduler\PluginTask;
-use MineBros\Main;
 use MineBros\character\BaseCharacter;
 
 class ProgressiveExecutionTask extends PluginTask {
