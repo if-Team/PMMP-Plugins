@@ -10,6 +10,7 @@ use pocketmine\event\player\PlayerCommandPreprocessEvent;
 use pocketmine\Player;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\block\SignChangeEvent;
+use pocketmine\event\Event;
 use ifteam\Gentleman\task\GentlemanAsyncTask;
 use pocketmine\block\Block;
 use pocketmine\tile\Sign;
@@ -24,6 +25,7 @@ class Gentleman extends PluginBase implements Listener {
 	public $badQueue = [ ], $oldChat = [ ];
 	public $chatCheck = [ ], $signCheck = [ ];
 	public $commandCheck = [ ], $nameCheck = [ ];
+	public $playerTemp = [ ];
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		$this->initMessage ();
@@ -40,6 +42,9 @@ class Gentleman extends PluginBase implements Listener {
 	}
 	public function userCommand(PlayerCommandPreprocessEvent $event) {
 		$command = $event->getMessage ();
+		if (! isset ( $this->playerTemp [$event->getPlayer ()->getName ()] )) {
+			$this->playerTemp [$event->getPlayer ()->getName ()] = $event->getPlayer ();
+		}
 		if (\substr ( $command, 0, 1 ) != "/") { // only chat
 			if (! isset ( $this->chatCheck [$event->getPlayer ()->getName () . ">" . $command] )) {
 				$this->chatCheck [$event->getPlayer ()->getName () . ">" . $command] = false;
@@ -102,6 +107,9 @@ class Gentleman extends PluginBase implements Listener {
 	public function onJoin(PlayerJoinEvent $event) {
 		if ($event->getPlayer ()->isOp ())
 			return;
+		if (! isset ( $this->playerTemp [$event->getPlayer ()->getName ()] )) {
+			$this->playerTemp [$event->getPlayer ()->getName ()] = $event->getPlayer ();
+		}
 		if (! isset ( $this->nameCheck [$event->getPlayer ()->getName ()] )) {
 			$this->nameCheck [$event->getPlayer ()->getName ()] = true;
 			$this->getServer ()->getScheduler ()->scheduleAsyncTask ( new GentlemanAsyncTask ( $event->getPlayer ()->getName (), $event->getJoinMessage (), $event->getPlayer ()->getName (), $this->badQueue, $this->dictionary, "name", true ) );
@@ -114,9 +122,7 @@ class Gentleman extends PluginBase implements Listener {
 		}
 	}
 	public function asyncProcess($name, $format, $message, $find, $eventType) {
-		$player = $this->getServer ()->getPlayer ( $name );
-		if (! $player instanceof Player)
-			return;
+		$player = $this->playerTemp [$name];
 		switch ($eventType) {
 			case "chat" :
 				if ($find == null) {
