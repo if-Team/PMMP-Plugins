@@ -9,13 +9,11 @@ use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\Player;
 use pocketmine\utils\Config;
 use pocketmine\utils\TextFormat;
-use pocketmine\level\Level;
 use pocketmine\event\entity\EntityCombustByBlockEvent;
 use pocketmine\block\Fire;
 use pocketmine\event\entity\EntityCombustEvent;
 use pocketmine\event\entity\ExplosionPrimeEvent;
 use pocketmine\entity\Entity;
-use pocketmine\entity\Arrow;
 
 class Purge extends PluginBase implements Listener {
 	public $purgeStarted = false;

@@ -11,7 +11,6 @@ use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
-use pocketmine\utils\Utils;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\entity\Effect;
 use pocketmine\event\entity\EntityDamageByEntityEvent;

@@ -8,7 +8,6 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\item\Item;
 use pocketmine\utils\TextFormat;
-use pocketmine\Player;
 use pocketmine\utils\Config;
 
 class FastFurnace extends PluginBase implements Listener {

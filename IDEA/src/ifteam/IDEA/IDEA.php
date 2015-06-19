@@ -5,7 +5,6 @@ namespace ifteam\IDEA;
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerInteractEvent;
-use pocketmine\item\Item;
 use pocketmine\level\Level;
 use pocketmine\level\format\FullChunk;
 use pocketmine\utils\TextFormat;

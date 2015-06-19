@@ -8,7 +8,6 @@ use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\Player;
-use pocketmine\scheduler\CallbackTask;
 use pocketmine\event\entity\EntityDamageEvent;
 
 class StartDASH extends PluginBase implements Listener {

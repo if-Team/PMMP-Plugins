@@ -4,16 +4,9 @@ namespace ifteam\deadMarker;
 
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
-use pocketmine\command\PluginCommand;
-use pocketmine\utils\TextFormat;
-use pocketmine\utils\Config;
-use pocketmine\level\Level;
 use pocketmine\level\Position;
-use pocketmine\block\Block;
 use pocketmine\level\particle\RedstoneParticle;
 use pocketmine\level\particle\ExplodeParticle;
-use pocketmine\event\entity\EntityDespawnEvent;
-use pocketmine\Player;
 use pocketmine\event\player\PlayerRespawnEvent;
 
 class deadMarker extends PluginBase implements Listener {

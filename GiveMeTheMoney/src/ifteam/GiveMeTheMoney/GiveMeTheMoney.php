@@ -13,8 +13,6 @@ use pocketmine\event\Listener;
 use pocketmine\utils\Config;
 use pocketmine\tile\Sign;
 use pocketmine\event\player\PlayerInteractEvent;
-use pocketmine\event\block\BlockPlaceEvent;
-use pocketmine\Player;
 use pocketmine\utils\TextFormat;
 use onebone\economyapi\EconomyAPI;
 use pocketmine\event\block\SignChangeEvent;

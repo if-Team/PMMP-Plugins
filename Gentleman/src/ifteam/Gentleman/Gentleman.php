@@ -10,7 +10,6 @@ use pocketmine\event\player\PlayerCommandPreprocessEvent;
 use pocketmine\Player;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\block\SignChangeEvent;
-use pocketmine\event\Event;
 use ifteam\Gentleman\task\GentlemanAsyncTask;
 use pocketmine\block\Block;
 use pocketmine\tile\Sign;

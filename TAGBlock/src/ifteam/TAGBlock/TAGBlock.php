@@ -10,7 +10,6 @@ use pocketmine\network\protocol\RemovePlayerPacket;
 use pocketmine\utils\TextFormat;
 use pocketmine\event\block\SignChangeEvent;
 use pocketmine\level\Level;
-use pocketmine\block\Block;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\entity\Entity;
 use pocketmine\event\player\PlayerQuitEvent;

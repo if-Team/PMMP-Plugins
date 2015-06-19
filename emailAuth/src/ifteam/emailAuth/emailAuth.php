@@ -9,7 +9,6 @@ use pocketmine\command\Command;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\Player;
 use pocketmine\utils\TextFormat;
-use pocketmine\permission\PermissionAttachment;
 use pocketmine\utils\Config;
 use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\player\PlayerChatEvent;

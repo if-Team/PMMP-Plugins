@@ -9,7 +9,6 @@ use pocketmine\command\PluginCommand;
 use pocketmine\utils\TextFormat;
 use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
-use pocketmine\Player;
 use pocketmine\scheduler\CallbackTask;
 
 class poolTax extends PluginBase implements Listener {

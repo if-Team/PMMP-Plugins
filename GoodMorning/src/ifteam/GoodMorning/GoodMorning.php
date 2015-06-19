@@ -10,8 +10,6 @@ use pocketmine\Player;
 use pocketmine\event\Listener;
 use pocketmine\level\Level;
 use pocketmine\event\block\BlockPlaceEvent;
-use pocketmine\math\Vector3;
-use pocketmine\level\Position;
 
 class GoodMorning extends PluginBase implements Listener {
 	public $placeQueeue = [ ];
