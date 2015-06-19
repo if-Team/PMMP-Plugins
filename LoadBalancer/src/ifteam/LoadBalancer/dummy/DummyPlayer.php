@@ -26,6 +26,9 @@ class DummyPlayer extends Player {
 	public function getDisplayName() {
 		return $this->name;
 	}
+	public function sendChunk($x, $z, $payload){
+		return;
+	}
 	public function getName() {
 		return $this->name;
 	}
