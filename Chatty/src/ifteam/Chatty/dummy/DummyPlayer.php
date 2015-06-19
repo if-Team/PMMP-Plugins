@@ -16,7 +16,7 @@ class DummyPlayer extends Player {
 		return parent::dataPacket ( $packet, $needACK );
 	}
 	public function handleDataPacket(DataPacket $packet) {
-		parent::handleDataPacket ( $packet );
+		//parent::handleDataPacket ( $packet );
 	}
 	public function isOnline() {
 		return false;
@@ -32,6 +32,9 @@ class DummyPlayer extends Player {
 	}
 	public function getName() {
 		return $this->name;
+	}
+	public function hasPermission($name){
+		return false;
 	}
 }
 ?>
