@@ -30,6 +30,7 @@ class FastFurnace extends PluginBase implements Listener {
 			365 => 366 
 	);
 	public function onEnable() {
+		@mkdir ( $this->getDataFolder () ); // 플러그인 폴더생성
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 		$this->ymlfile = new Config ( $this->getDataFolder () . "cache.yml", Config::YAML, [ ] );
 		$this->coal_cache = $this->ymlfile->getAll ();
