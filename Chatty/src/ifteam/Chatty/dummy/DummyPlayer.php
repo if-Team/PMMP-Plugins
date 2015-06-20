@@ -1,6 +1,6 @@
 <?php
 
-namespace ifteam\LoadBalancer\dummy;
+namespace ifteam\Chatty\dummy;
 
 use pocketmine\network\protocol\DataPacket;
 use pocketmine\network\SourceInterface;
@@ -8,6 +8,7 @@ use pocketmine\Player;
 
 class DummyPlayer extends Player {
 	public $name = "";
+	public $loggedIn = true;
 	public function __construct(SourceInterface $interface, $clientID, $ip, $port) {
 		parent::__construct ( $interface, $clientID, $ip, $port );
 	}
@@ -15,10 +16,10 @@ class DummyPlayer extends Player {
 		return parent::dataPacket ( $packet, $needACK );
 	}
 	public function handleDataPacket(DataPacket $packet) {
-		parent::handleDataPacket ( $packet );
+		//parent::handleDataPacket ( $packet );
 	}
 	public function isOnline() {
-		return true;
+		return false;
 	}
 	public function setName($name) {
 		$this->name = $name;
@@ -31,6 +32,9 @@ class DummyPlayer extends Player {
 	}
 	public function getName() {
 		return $this->name;
+	}
+	public function hasPermission($name){
+		return false;
 	}
 }
 ?>

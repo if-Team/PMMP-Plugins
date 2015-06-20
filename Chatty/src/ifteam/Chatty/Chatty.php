@@ -24,20 +24,24 @@ use pocketmine\Player;
 use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\network\protocol\TextPacket;
 use pocketmine\event\TranslationContainer;
+use pocketmine\event\Event;
+use ifteam\Chatty\dummy\DummyInterface;
+use ifteam\Chatty\dummy\DummyPlayer;
 
 class Chatty extends PluginBase implements Listener {
 	/**
 	 *
 	 * @var array
 	 */
-	private $db = [ ], $packets = [ ], $lastNametags = [ ], $messageStack = [ ];
-	private $customPacketAvailable = false;
+	public $db = [ ], $packets = [ ], $lastNametags = [ ], $messageStack = [ ];
+	public $custompacketAPI;
+	public $dummyInterface;
 	
 	/**
 	 *
 	 * @var Messages
 	 */
-	private $messages = null;
+	public $messages = null;
 	const MESSAGE_VERSION = 1;
 	const MESSAGE_LENGTH = 50;
 	const MESSAGE_MAX_LINES = 5;
@@ -69,6 +73,9 @@ class Chatty extends PluginBase implements Listener {
 				] 
 		];
 		
+		$this->dummyInterface = new DummyInterface ( $this->getServer () );
+		$this->custompacketAPI = new API_CustomPacketListner ( $this );
+		
 		$this->registerCommand ( $this->getMessage ( "chatty-command-name" ), "Chatty.commands", $this->getMessage ( "chatty-command-description" ), "/" . $this->getMessage ( "chatty-command-name" ) );
 		
 		$this->packets ["RemovePlayerPacket"] = new RemovePlayerPacket ();
@@ -76,13 +83,15 @@ class Chatty extends PluginBase implements Listener {
 		
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new ChattyTask ( $this ), 1 );
-		
-		$this->customPacketAvailable = $this->getServer ()->getPluginManager ()->getPlugin ( "CustomPacket" ) !== null;
 	}
 	public function onDisable() {
 		$save = new Config ( $this->getDataFolder () . "database.yml", Config::YAML );
 		$save->setAll ( $this->db );
 		$save->save ();
+		if ($this->custompacketAPI->dummyPlayer instanceof DummyPlayer) {
+			$this->custompacketAPI->dummyPlayer->loggedIn = false;
+			$this->custompacketAPI->dummyPlayer->close ();
+		}
 	}
 	
 	/**
@@ -162,6 +171,10 @@ class Chatty extends PluginBase implements Listener {
 		if (strpos ( $event->getMessage (), "/" ) === 0) {
 			return;
 		}
+		if ($event->getPlayer () instanceof DummyPlayer) {
+			return;
+		}
+		
 		$event->setCancelled ( true );
 		$sender = $event->getPlayer ();
 		
@@ -175,25 +188,10 @@ class Chatty extends PluginBase implements Listener {
 				$myEvent->getMessage () 
 		] );
 		
-		if ($this->customPacketAvailable and $this->getConfig ()->get ( "echo-enabled", false )) {
-			$passcode = $this->getConfig ()->get ( "echo-passcode", null );
-			if ($passcode === null) {
-				return;
-			}
-			
-			$myName = $this->getConfig ()->get ( "echo-my-name", "MAIN" );
-			$data = json_encode ( [ 
-					$passcode,
-					$myName,
-					$message 
-			] );
-			foreach ( $this->getConfig ()->get ( "echo-recipients", [ ] ) as $recipient ) {
-				$address = explode ( ":", $recipient );
-				CPAPI::sendPacket ( new DataPacket ( $address [0], $address [1], $data ) );
-			}
-		}
+		// $event
+		// $message
+		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CommandPreprocessEventTask ( $this, $event, $message ), 1 );
 	}
-	
 	/**
 	 *
 	 * @param string $message        	
@@ -204,32 +202,12 @@ class Chatty extends PluginBase implements Listener {
 		foreach ( $this->getServer ()->getOnlinePlayers () as $player ) {
 			if (isset ( $this->db [$player->getName ()] ["local-chat"] ) and $this->db [$player->getName ()] ["local-chat"] == true) {
 				if ($sender === null or $sender->distance ( $player ) > self::LOCAL_CHAT_DISTANCE) {
-					continue;
+					if (! isset ( explode ( $player->getName (), $message )[1] ))
+						continue;
 				}
 			}
 			$player->sendMessage ( $message );
 		}
-	}
-	public function onPacketReceive(CustomPacketReceiveEvent $event) {
-		if (! $this->getConfig ()->get ( "echo-enabled", false )) {
-			return;
-		}
-		
-		// $data[0] "passcode" => $passcode,
-		// $data[1] "name" => $myName,
-		// $data[2] "message" => $message
-		$passcode = $this->getConfig ()->get ( "echo-passcode", null );
-		if ($passcode === null) {
-			return;
-		}
-		$data = json_decode ( $event->getPacket ()->data );
-		if (! is_array ( $data ) or ! isset ( $data [0] )) {
-			return;
-		}
-		if ($passcode !== $data [0]) {
-			return;
-		}
-		$this->broadcastMessage ( "[" . $data [1] . "] " . $data [2] );
 	}
 	public function onDataPacket(DataPacketSendEvent $event) {
 		if (! $event->getPacket () instanceof TextPacket or $event->getPacket ()->pid () != 0x85 or $event->isCancelled ()) {
