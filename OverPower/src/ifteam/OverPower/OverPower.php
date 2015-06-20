@@ -19,6 +19,7 @@ use pocketmine\event\player\PlayerQuitEvent;
 class OverPower extends PluginBase implements Listener {
 	public $logstxt, $logs;
 	public function onEnable() {
+		@mkdir ( $this->getDataFolder () );
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 		$this->logstxt = new Config ( $this->getDataFolder () . "op_command_log.txt", Config::YAML, array ("logs" => array () ) );
 		$this->logs = $this->logstxt->getAll ();
