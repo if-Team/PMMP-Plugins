@@ -23,6 +23,7 @@ use pocketmine\level\particle\MobSpawnParticle;
 class SoldierGame extends PluginBase implements Listener {
 	public $config, $config_Data;
 	public function onEnable() {
+		@mkdir ( $this->getDataFolder () );
 		$this->config = new Config ( $this->getDataFolder () . "gameData.yml", Config::YAML, [ "enable-soldiergame" => 1,"enable-explode" => 1,"enable-broadcast" => 1 ] );
 		$this->config_Data = $this->config->getAll ();
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );

@@ -24,39 +24,39 @@ class TICTOCK extends PluginBase implements Listener {
 		
 		$time = round ( microtime ( true ) * 1000 );
 		
-		if (! isset ( $this->tictock [spl_object_hash ( $player->getName () )] )) {
-			$this->tictock [spl_object_hash ( $player->getName () )] = $time;
+		if (! isset ( $this->tictock [spl_object_hash ( $player )] )) {
+			$this->tictock [spl_object_hash ( $player )] = $time;
 			return;
 		}
 		
-		if (($time - $this->tictock [spl_object_hash ( $player->getName () )]) <= 60) {
-			if (! isset ( $this->kick [spl_object_hash ( $player->getName () )] )) {
-				$this->kick [spl_object_hash ( $player->getName () )] = 1;
+		if (($time - $this->tictock [spl_object_hash ( $player )]) <= 60) {
+			if (! isset ( $this->kick [spl_object_hash ( $player)] )) {
+				$this->kick [spl_object_hash ( $player )] = 1;
 			} else {
-				$this->kick [spl_object_hash ( $player->getName () )] ++;
-				if ($this->kick [spl_object_hash ( $player->getName () )] > 2) {
+				$this->kick [spl_object_hash ( $player )] ++;
+				if ($this->kick [spl_object_hash ( $player )] > 2) {
 					$player->kick ( "파괴자모드 감지" );
-					unset ( $this->kick [spl_object_hash ( $player->getName () )] );
+					unset ( $this->kick [spl_object_hash ( $player )] );
 				}
 			}
 			$event->setCancelled ();
 		} else {
-			if (isset ( $this->kick [spl_object_hash ( $player->getName () )] ))
-				unset ( $this->kick [spl_object_hash ( $player->getName () )] );
+			if (isset ( $this->kick [spl_object_hash ( $player )] ))
+				unset ( $this->kick [spl_object_hash ( $player )] );
 		}
-		$this->tictock [spl_object_hash ( $player->getName () )] = $time;
+		$this->tictock [spl_object_hash ( $player )] = $time;
 	}
 	public function onJoin(PlayerJoinEvent $event) {
-		$this->tictock [spl_object_hash ( $player->getName () )] = round ( microtime ( true ) * 1000 );
+		$this->tictock [spl_object_hash ( $event->getPlayer() )] = round ( microtime ( true ) * 1000 );
 	}
 	public function onQuit(PlayerQuitEvent $event) {
 		$player = $event->getPlayer ();
 		
-		if (isset ( $this->tictock [spl_object_hash ( $player->getName () )] ))
-			unset ( $this->tictock [spl_object_hash ( $player->getName () )] );
+		if (isset ( $this->tictock [spl_object_hash ( $player )] ))
+			unset ( $this->tictock [spl_object_hash ( $player )] );
 		
-		if (isset ( $this->kick [spl_object_hash ( $player->getName () )] ))
-			unset ( $this->kick [spl_object_hash ( $player->getName () )] );
+		if (isset ( $this->kick [spl_object_hash ( $player )] ))
+			unset ( $this->kick [spl_object_hash ( $player )] );
 	}
 }
 
