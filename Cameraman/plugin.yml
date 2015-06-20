@@ -1,0 +1,17 @@
+name: Cameraman
+main: chalk\cameraman\Cameraman
+version: 0.1
+author: ChalkPE
+api: [1.12.0]
+
+permissions:
+  cameraman.use:
+    description: Allows player to use all features of Cameraman
+    default: op
+
+commands:
+  camera:
+    description: Manage your movement by Cameraman
+    permission: cameraman.use
+    usage: /camera or /cam
+    aliases: [cam]
