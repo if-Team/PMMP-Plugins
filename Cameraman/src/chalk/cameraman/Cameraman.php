@@ -54,7 +54,9 @@ class Cameraman extends PluginBase implements Listener {
      * @param string $command
      * @return boolean
      */
-    public function sendHelpMessages(CommandSender $sender, $command = null){
+    public function sendHelpMessages(CommandSender $sender, $command = ""){
+        $command = strToLower($command);
+
         if(!$command or $command === "p"){
             $sender->sendMessage("/cam p - Adds a waypoint at the current position");
         }
@@ -112,7 +114,7 @@ class Cameraman extends PluginBase implements Listener {
 
             case "start":
                 if(count($args) < 2 or !is_numeric($args[1])){
-                    return $this->sendHelpMessages($sender, "start");
+                    return $this->sendHelpMessages($sender, $args[0]);
                 }
 
                 if(isset($this->cameras[$key]) and $this->cameras[$key]->isRunning()){
@@ -139,7 +141,7 @@ class Cameraman extends PluginBase implements Listener {
 
             case "goto":
                 if(count($args) < 2 or !is_numeric($args[1])){
-                    return $this->sendHelpMessages($sender, "goto");
+                    return $this->sendHelpMessages($sender, $args[0]);
                 }
 
                 if(!isset($this->waypoints[$key])){
