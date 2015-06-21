@@ -13,11 +13,16 @@ abstract class Movement {
     /** @var Vector3 */
     private $origin;
 
+    /** @var Vector3 */
+    private $destination;
+
     /**
      * @param Vector3 $origin
+     * @param Vector3 $destination
      */
-    public function __construct(Vector3 $origin){
+    public function __construct(Vector3 $origin, Vector3 $destination){
         $this->origin = $origin;
+        $this->destination = $destination;
     }
 
     /**
@@ -25,6 +30,13 @@ abstract class Movement {
      */
     public function getOrigin(){
         return $this->$origin;
+    }
+
+    /**
+     * @return Vector3
+     */
+    public function getDestination(){
+        return $this->destination;
     }
 
     /**

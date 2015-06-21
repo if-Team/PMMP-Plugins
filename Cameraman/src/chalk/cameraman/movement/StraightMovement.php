@@ -11,28 +11,21 @@ use chalk\cameraman\Cameraman;
 use pocketmine\math\Vector3;
 
 class StraightMovement extends Movement {
-    /** @var Vector3 */
-    private $destination;
-
     private $dx, $dy, $dz;
     private $distance, $d = 0;
 
+    /**
+     * @param Vector3 $origin
+     * @param Vector3 $destination
+     */
     function __construct(Vector3 $origin, Vector3 $destination){
-        parent::__construct($origin);
-        $this->destination = $destination;
+        parent::__construct($origin, $destination);
 
         $this->dx = $this->getDestination()->getX() - $this->getOrigin()->getX();
         $this->dy = $this->getDestination()->getY() - $this->getOrigin()->getY();
         $this->dz = $this->getDestination()->getZ() - $this->getOrigin()->getZ();
 
         $this->distance = Cameraman::TICKS_PER_SECOND * max($this->dx, $this->dy, $this->dz);
-    }
-
-    /**
-     * @return Vector3
-     */
-    public function getDestination(){
-        return $this->destination;
     }
 
     /**
