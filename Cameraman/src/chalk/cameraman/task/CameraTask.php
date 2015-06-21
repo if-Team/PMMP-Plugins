@@ -41,7 +41,8 @@ class CameraTask extends PluginTask {
 
         $target = $this->getCamera()->getTarget();
 
-        $target->setPosition($position); //FIXME: WHY DIDN'T UPDATE IN CLIENT?
+        $target->setPosition($position);
+
         $pk = new MovePlayerPacket();
         $pk->eid = 0;
         $pk->x = $target->getX();
@@ -51,6 +52,7 @@ class CameraTask extends PluginTask {
         $pk->bodyYaw = $target->getYaw();
         $pk->pitch = $target->getPitch();
         $pk->onGround = false;
+
         $target->dataPacket($pk);
     }
 
