@@ -26,7 +26,7 @@ class CameraTask extends PluginTask {
     public function onRun($currentTick){
         $movement = current($this->getCamera()->getMovements());
         if($movement === false){
-            $this->getCamera()->cancel();
+            $this->getCamera()->stop();
             return;
         }
 

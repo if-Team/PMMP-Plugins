@@ -55,14 +55,19 @@ class Camera {
         return $this->slowness;
     }
 
+    public function isRunning(){
+        return $this->taskId !== -1;
+    }
+
     public function start(){
-        if($this->taskId === -1){
+        if(!$this->isRunning()){
+            reset($this->getMovements());
             $this->taskId = Cameraman::getInstance()->getServer()->getScheduler()->scheduleRepeatingTask(new CameraTask($this), 20 / Cameraman::TICKS_PER_SECOND)->getTaskId();
         }
     }
 
-    public function cancel(){
-        if($this->taskId !== -1){
+    public function stop(){
+        if($this->isRunning()){
             Cameraman::getInstance()->getServer()->getScheduler()->cancelTask($this->taskId);
             $this->taskId = -1;
         }
