@@ -127,6 +127,10 @@ class Cameraman extends PluginBase implements Listener {
                     return $this->sendHelpMessages($sender, $args[0]);
                 }
 
+                if(!isset($this->waypoints[$key]) or count($this->waypoints[$key]) < 2){
+                    $sender->sendMessage("You should set least two waypoints before!");
+                }
+
                 if(isset($this->cameras[$key]) and $this->cameras[$key]->isRunning()){
                     $this->cameras[$key]->stop();
                     $sender->sendMessage("Interrupting current travels...");
