@@ -7,7 +7,7 @@ api: [1.12.0]
 permissions:
   cameraman.use:
     description: Allows player to use all features of Cameraman
-    default: op
+    default: true
 
 commands:
   camera:
