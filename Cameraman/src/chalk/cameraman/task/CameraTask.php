@@ -40,7 +40,6 @@ class CameraTask extends PluginTask {
         }
 
         $target = $this->getCamera()->getTarget();
-
         $target->setPosition($position);
 
         $pk = new MovePlayerPacket();

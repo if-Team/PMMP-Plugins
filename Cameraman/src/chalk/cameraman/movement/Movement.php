@@ -21,8 +21,8 @@ abstract class Movement {
      * @param Vector3 $destination
      */
     public function __construct(Vector3 $origin, Vector3 $destination){
-        $this->origin = $origin->round()->add(0.5, 0.5, 0.5);
-        $this->destination = $destination->round()->add(0.5, 0.5, 0.5);
+        $this->origin = $origin;
+        $this->destination = $destination;
     }
 
     /**

@@ -19,7 +19,7 @@ class Cameraman extends PluginBase implements Listener {
     /** @var Cameraman */
     private static $instance = null;
 
-    const TICKS_PER_SECOND = 10;
+    const TICKS_PER_SECOND = 20;
 
     /** @var Vector3[][] */
     private $waypoints = [];
@@ -51,7 +51,7 @@ class Cameraman extends PluginBase implements Listener {
 
         $movements = [];
         foreach($waypoints as $waypoint){
-            if($lastWaypoint !== null){
+            if($lastWaypoint !== null and !$waypoint->equals($lastWaypoint)){
                 $movements[] = new StraightMovement($lastWaypoint, $waypoint);
             }
             $lastWaypoint = $waypoint;
@@ -118,7 +118,7 @@ class Cameraman extends PluginBase implements Listener {
                     $this->waypoints[$key] = [];
                 }
 
-                $this->waypoints[$key][] = $sender->getPosition();
+                $this->waypoints[$key][] = $sender->getPosition()->floor()->add(0.5, 0, 0.5);
                 $sender->sendMessage("Added Waypoint #" . count($this->waypoints[$key]));
                 break;
 
@@ -182,5 +182,4 @@ class Cameraman extends PluginBase implements Listener {
         }
         return true;
     }
-
 }
