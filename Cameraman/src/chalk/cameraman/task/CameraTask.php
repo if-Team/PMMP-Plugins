@@ -10,6 +10,7 @@ namespace chalk\cameraman\task;
 use chalk\cameraman\Camera;
 use chalk\cameraman\Cameraman;
 use pocketmine\scheduler\PluginTask;
+use pocketmine\network\protocol\MovePlayerPacket;
 
 class CameraTask extends PluginTask {
     /** @var Camera */
@@ -41,9 +42,16 @@ class CameraTask extends PluginTask {
         $target = $this->getCamera()->getTarget();
 
         $target->setPosition($position); //FIXME: WHY DIDN'T UPDATE IN CLIENT?
-        $target->getLevel()->addEntityMovement( $target->chunk->getX(), $target->chunk->getZ(), $target->getId(),
-                                                $target->getX(), $target->getY(), $target->getZ(),
-                                                $target->getYaw(), $target->getPitch());
+        $pk = new MovePlayerPacket();
+        $pk->eid = 0;
+        $pk->x = $target->getX();
+        $pk->y = $target->getY();
+        $pk->z = $target->getZ();
+        $pk->yaw = $target->getYaw();
+        $pk->bodyYaw = $target->getYaw();
+        $pk->pitch = $target->getPitch();
+        $pk->onGround = false;
+        $target->dataPacket($pk);
     }
 
     /**
