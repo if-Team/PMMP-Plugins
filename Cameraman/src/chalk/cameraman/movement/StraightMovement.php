@@ -25,7 +25,11 @@ class StraightMovement extends Movement {
         $this->dy = $this->getDestination()->getY() - $this->getOrigin()->getY();
         $this->dz = $this->getDestination()->getZ() - $this->getOrigin()->getZ();
 
-        $this->distance = Cameraman::TICKS_PER_SECOND * max($this->dx, $this->dy, $this->dz);
+        $this->distance = Cameraman::TICKS_PER_SECOND * max(abs($this->dx), abs($this->dy), abs($this->dz));
+
+        if($this->distance === 0){
+            throw new \InvalidArgumentException("DISTANCE IS ZERO");
+        }
     }
 
     /**
@@ -38,6 +42,7 @@ class StraightMovement extends Movement {
             return false;
         }
 
+        //echo $this->__toString() . " - " . $progress . "\n";
         return $this->getOrigin()->add($this->dx * $progress, $this->dy * $progress, $this->dz * $progress);
     }
 

@@ -61,7 +61,6 @@ class Camera {
 
     public function start(){
         if(!$this->isRunning()){
-            $this->resetMovements();
             $this->taskId = Cameraman::getInstance()->getServer()->getScheduler()->scheduleRepeatingTask(new CameraTask($this), 20 / Cameraman::TICKS_PER_SECOND)->getTaskId();
         }
     }
@@ -71,23 +70,5 @@ class Camera {
             Cameraman::getInstance()->getServer()->getScheduler()->cancelTask($this->taskId);
             $this->taskId = -1;
         }
-    }
-
-    /**
-     * @return Movement
-     */
-    public function currentMovement(){
-        return current($this->movements);
-    }
-
-    /**
-     * @return Movement
-     */
-    public function nextMovement(){
-        return next($this->movements);
-    }
-
-    public function resetMovements(){
-        reset($this->movements);
     }
 }

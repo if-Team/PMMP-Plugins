@@ -132,7 +132,13 @@ class Cameraman extends PluginBase implements Listener {
                     $sender->sendMessage("Interrupting current travels...");
                 }
 
-                $this->cameras[$key] = new Camera($sender, Cameraman::createStraightMovements($this->waypoints[$key]), doubleval($args[1]));
+                $slowness = doubleval($args[1]);
+                if($slowness <= 0){
+                    $sender->sendMessage("The value of slowness cannot be zero or negative!");
+                    return true;
+                }
+
+                $this->cameras[$key] = new Camera($sender, Cameraman::createStraightMovements($this->waypoints[$key]), $slowness);
                 $this->cameras[$key]->start();
                 $sender->sendMessage("Travelling started!");
                 break;

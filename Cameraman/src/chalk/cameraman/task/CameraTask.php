@@ -15,6 +15,9 @@ class CameraTask extends PluginTask {
     /** @var Camera */
     private $camera;
 
+    /** @var int */
+    private $i = 0;
+
     function __construct(Camera $camera){
         parent::__construct(Cameraman::getInstance());
         $this->camera = $camera;
@@ -24,19 +27,18 @@ class CameraTask extends PluginTask {
      * @param $currentTick
      */
     public function onRun($currentTick){
-        $movement = $this->getCamera()->currentMovement();
-        if($movement === false){
+        if($this->i >= count($this->getCamera()->getMovements())){
             $this->getCamera()->stop();
             return;
         }
 
-        $position = $movement->tick($this->getCamera()->getSlowness());
+        $position = $this->getCamera()->getMovements()[$this->i]->tick($this->getCamera()->getSlowness());
         if($position === false){
-            $this->getCamera()->nextMovement();
+            $this->i++;
             return;
         }
 
-        $this->getCamera()->getTarget()->setPosition($position);
+        $this->getCamera()->getTarget()->teleport($position);
     }
 
     /**
