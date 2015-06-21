@@ -29,7 +29,7 @@ abstract class Movement {
      * @return Vector3
      */
     public function getOrigin(){
-        return $this->$origin;
+        return $this->origin;
     }
 
     /**
