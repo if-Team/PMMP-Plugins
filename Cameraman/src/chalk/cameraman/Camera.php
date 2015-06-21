@@ -21,7 +21,7 @@ class Camera {
     private $slowness;
 
     /** @var int */
-    private $taskId = -1;
+    private $taskId = -1, $originalGamemode;
 
     /**
      * @param Player $target
@@ -62,6 +62,9 @@ class Camera {
     public function start(){
         if(!$this->isRunning()){
             $this->taskId = Cameraman::getInstance()->getServer()->getScheduler()->scheduleRepeatingTask(new CameraTask($this), 20 / Cameraman::TICKS_PER_SECOND)->getTaskId();
+
+            $this->originalGamemode = $this->getTarget()->getGamemode();
+            $this->getTarget()->setGamemode(3);
         }
     }
 
@@ -69,6 +72,9 @@ class Camera {
         if($this->isRunning()){
             Cameraman::getInstance()->getServer()->getScheduler()->cancelTask($this->taskId);
             $this->taskId = -1;
+
+            $this->getTarget()->setGamemode($this->originalGamemode);
+            $this->originalGamemode = 3;
         }
     }
 }
