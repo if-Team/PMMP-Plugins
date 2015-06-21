@@ -7,33 +7,33 @@
 
 namespace chalk\cameraman\movement;
 
-use pocketmine\math\Vector3;
+use pocketmine\level\Location;
 
 abstract class Movement {
-    /** @var Vector3 */
+    /** @var Location */
     private $origin;
 
-    /** @var Vector3 */
+    /** @var Location */
     private $destination;
 
     /**
-     * @param Vector3 $origin
-     * @param Vector3 $destination
+     * @param Location $origin
+     * @param Location $destination
      */
-    public function __construct(Vector3 $origin, Vector3 $destination){
+    public function __construct(Location $origin, Location $destination){
         $this->origin = $origin;
         $this->destination = $destination;
     }
 
     /**
-     * @return Vector3
+     * @return Location
      */
     public function getOrigin(){
         return $this->origin;
     }
 
     /**
-     * @return Vector3
+     * @return Location
      */
     public function getDestination(){
         return $this->destination;
@@ -45,7 +45,7 @@ abstract class Movement {
 
     /**
      * @param number $slowness
-     * @return Vector3|boolean
+     * @return Location|boolean
      */
     public abstract function tick($slowness);
 }

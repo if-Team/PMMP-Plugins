@@ -8,17 +8,17 @@
 namespace chalk\cameraman\movement;
 
 use chalk\cameraman\Cameraman;
-use pocketmine\math\Vector3;
+use pocketmine\level\Location;
 
 class StraightMovement extends Movement {
     private $dx, $dy, $dz;
     private $distance, $d = 0;
 
     /**
-     * @param Vector3 $origin
-     * @param Vector3 $destination
+     * @param Location $origin
+     * @param Location $destination
      */
-    function __construct(Vector3 $origin, Vector3 $destination){
+    function __construct(Location $origin, Location $destination){
         parent::__construct($origin, $destination);
 
         $this->dx = $this->getDestination()->getX() - $this->getOrigin()->getX();
@@ -33,11 +33,20 @@ class StraightMovement extends Movement {
 
     /**
      * @param number $slowness
-     * @return Vector3|boolean
+     * @return Location|boolean
      */
     public function tick($slowness){
-        $progress = $this->d++ / ($this->distance * $slowness);
-        return ($progress > 1) ? false : $this->getOrigin()->add($this->dx * $progress, $this->dy * $progress, $this->dz * $progress);
+        $distance = $this->distance * $slowness;
+        if($distance < 0.0000001){
+            return false;
+        }
+
+        $progress = $this->d++ / $distance;
+        if($progress > 1){
+            return false;
+        }
+
+        return new Location($this->getOrigin()->getX() + $this->dx * $progress, $this->getOrigin()->getY() + $this->dy * $progress, $this->getOrigin()->getZ() + $this->dz * $progress);
     }
 
 }

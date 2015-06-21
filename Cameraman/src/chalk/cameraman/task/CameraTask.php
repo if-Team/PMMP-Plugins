@@ -33,14 +33,14 @@ class CameraTask extends PluginTask {
             return;
         }
 
-        $position = $this->getCamera()->getMovements()[$this->i]->tick($this->getCamera()->getSlowness());
-        if($position === false){
+        $location = $this->getCamera()->getMovements()[$this->i]->tick($this->getCamera()->getSlowness());
+        if($location === false){
             $this->i++;
             return;
         }
 
         $target = $this->getCamera()->getTarget();
-        $target->setPosition($position);
+        $target->setPositionAndRotation($location, $location->getYaw(), $location->getPitch());
 
         $pk = new MovePlayerPacket();
         $pk->eid = 0;

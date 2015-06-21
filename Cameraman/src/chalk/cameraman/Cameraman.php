@@ -11,7 +11,7 @@ use chalk\cameraman\movement\StraightMovement;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\event\Listener;
-use pocketmine\math\Vector3;
+use pocketmine\level\Location;
 use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 
@@ -21,7 +21,7 @@ class Cameraman extends PluginBase implements Listener {
 
     const TICKS_PER_SECOND = 20;
 
-    /** @var Vector3[][] */
+    /** @var Location[][] */
     private $waypoints = [];
 
     /** @var Camera[] */
@@ -43,7 +43,7 @@ class Cameraman extends PluginBase implements Listener {
     }
 
     /**
-     * @param Vector3[] $waypoints
+     * @param Location[] $waypoints
      * @return Movement[]
      */
     public static function createStraightMovements(array $waypoints){
@@ -120,7 +120,7 @@ class Cameraman extends PluginBase implements Listener {
                     $this->waypoints[$key] = [];
                 }
 
-                $this->waypoints[$key][] = $sender->getPosition()->floor()->add(0.5, 0, 0.5);
+                $this->waypoints[$key][] = $sender->getLocation();
                 $sender->sendMessage("[INFO] Added Waypoint #" . count($this->waypoints[$key]));
                 break;
 
