@@ -7,6 +7,7 @@
 
 namespace chalk\cameraman;
 
+use chalk\cameraman\movement\StraightMovement;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\event\Listener;
@@ -45,8 +46,17 @@ class Cameraman extends PluginBase implements Listener {
      * @param Vector3[] $waypoints
      * @return Movement[]
      */
-    public static function createMovementsFromWaypoints(array $waypoints){
-        //TODO: Implement this method
+    public static function createStraightMovements(array $waypoints){
+        $lastWaypoint = null;
+
+        $movements = [];
+        foreach($waypoints as $waypoint){
+            if($lastWaypoint !== null){
+                $movements[] = new StraightMovement($lastWaypoint, $waypoint);
+            }
+            $lastWaypoint = $waypoint;
+        }
+        return $movements;
     }
 
     /**
@@ -122,7 +132,7 @@ class Cameraman extends PluginBase implements Listener {
                     $sender->sendMessage("Interrupting current travels...");
                 }
 
-                $this->cameras[$key] = new Camera($sender, Cameraman::createMovementsFromWaypoints($this->waypoints[$key]), doubleval($args[1]));
+                $this->cameras[$key] = new Camera($sender, Cameraman::createStraightMovements($this->waypoints[$key]), doubleval($args[1]));
                 $this->cameras[$key]->start();
                 $sender->sendMessage("Travelling started!");
                 break;
