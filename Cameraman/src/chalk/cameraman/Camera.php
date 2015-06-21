@@ -8,10 +8,10 @@ namespace chalk\cameraman;
 
 use chalk\cameraman\movement\Movement;
 use chalk\cameraman\task\CameraTask;
-use pocketmine\entity\Entity;
+use pocketmine\Player;
 
 class Camera {
-    /** @var Entity */
+    /** @var Player */
     private $target;
 
     /** @var Movement[] */
@@ -24,18 +24,18 @@ class Camera {
     private $taskId = -1;
 
     /**
-     * @param Entity $target
+     * @param Player $target
      * @param Movement[] $movements
      * @param number $slowness
      */
-    function __construct(Entity $target, array $movements, $slowness){
+    function __construct(Player $target, array $movements, $slowness){
         $this->target = $target;
         $this->movements = $movements;
         $this->slowness = $slowness;
     }
 
     /**
-     * @return Entity
+     * @return Player
      */
     public function getTarget(){
         return $this->target;
