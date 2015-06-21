@@ -138,9 +138,14 @@ class Cameraman extends PluginBase implements Listener {
                     return true;
                 }
 
+                if($sender->getGamemode() !== 1){
+                    $sender->sendMessage("You should set your gamemode to creative!");
+                    return true;
+                }
+
                 $this->cameras[$key] = new Camera($sender, Cameraman::createStraightMovements($this->waypoints[$key]), $slowness);
                 $this->cameras[$key]->start();
-                $sender->sendMessage("Travelling started!");
+                $sender->sendMessage("Travelling started! (make sure you are flying)");
                 break;
 
             case "stop":
