@@ -24,7 +24,7 @@ class CameraTask extends PluginTask {
      * @param $currentTick
      */
     public function onRun($currentTick){
-        $movement = current($this->getCamera()->getMovements());
+        $movement = $this->getCamera()->currentMovement();
         if($movement === false){
             $this->getCamera()->stop();
             return;
@@ -32,7 +32,7 @@ class CameraTask extends PluginTask {
 
         $position = $movement->tick($this->getCamera()->getSlowness());
         if($position === false){
-            next($this->getCamera()->getMovements());
+            $this->getCamera()->nextMovement();
             return;
         }
 
