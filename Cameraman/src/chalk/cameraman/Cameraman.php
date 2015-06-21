@@ -13,7 +13,21 @@ use pocketmine\event\Listener;
 use pocketmine\plugin\PluginBase;
 
 class Cameraman extends PluginBase implements Listener {
-    private $list = [];
+    /** @var Cameraman */
+    private static $instance = null;
+
+    const TICKS_PER_SECOND = 10;
+
+    /**
+     * @return Cameraman
+     */
+    public static function getInstance(){
+        return self::$instance;
+    }
+
+    public function onLoad(){
+        self::$instance = $this;
+    }
 
     public function onEnable(){
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
@@ -24,8 +38,8 @@ class Cameraman extends PluginBase implements Listener {
      * @return boolean
      */
     public function sendHelpMessages(CommandSender $sender){
-        $sender->sendMessage("/cam p - Adds a waypoint at the current position and head rotation");
-        $sender->sendMessage("/cam start - Travels the path in the given ?. e.g. /cam start ?");
+        $sender->sendMessage("/cam p - Adds a waypoint at the current position");
+        $sender->sendMessage("/cam start <slowness> - Travels the path in the given slowness. e.g. /cam start 10");
         return true;
     }
 

@@ -7,37 +7,24 @@
 
 namespace chalk\cameraman\movement;
 
-use pocketmine\entity\Entity;
-use pocketmine\level\Position;
+use pocketmine\math\Vector3;
 
 abstract class Movement {
-    /** @var Entity */
-    private $target;
-
-    /** @var Position */
+    /** @var Vector3 */
     private $origin;
 
     /** @var boolean */
     private $moving = false;
 
     /**
-     * @param Entity $target
-     * @param Position $origin
+     * @param Vector3 $origin
      */
-    public function __construct(Entity $target, Position $origin = null){
-        $this->target = $target;
-        $this->origin = ($origin === null) ? $target->getPosition() : $origin;
+    public function __construct(Vector3 $origin){
+        $this->origin = $origin;
     }
 
     /**
-     * @return Entity
-     */
-    public function getTarget(){
-        return $this->target;
-    }
-
-    /**
-     * @return Position
+     * @return Vector3
      */
     public function getOrigin(){
         return $this->$origin;
@@ -51,7 +38,8 @@ abstract class Movement {
     }
 
     /**
-     * @return boolean
+     * @param number $slowness
+     * @return Vector3|null
      */
-    public abstract function tick();
+    public abstract function tick($slowness);
 }

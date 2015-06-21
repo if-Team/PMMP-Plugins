@@ -7,49 +7,45 @@
 
 namespace chalk\cameraman\movement;
 
-use pocketmine\entity\Entity;
-use pocketmine\level\Position;
+use chalk\cameraman\Cameraman;
+use pocketmine\math\Vector3;
 
 class StraightMovement extends Movement {
-    /** @var Position */
+    /** @var Vector3 */
     private $destination;
 
     private $dx, $dy, $dz;
     private $distance, $d = 0;
 
-    function __construct(Entity $target, Position $destination, Position $origin = null){
-        parent::__construct($target, $origin);
+    function __construct(Vector3 $origin, Vector3 $destination){
+        parent::__construct($origin);
         $this->destination = $destination;
 
-        if($this->getOrigin()->getLevel() !== $this->destination->getLevel()){
-            throw new \InvalidArgumentException();
-        }
+        $this->dx = $this->getDestination()->getX() - $this->getOrigin()->getX();
+        $this->dy = $this->getDestination()->getY() - $this->getOrigin()->getY();
+        $this->dz = $this->getDestination()->getZ() - $this->getOrigin()->getZ();
 
-        $this->dx = $this->getDestination()->getFloorX() - $this->getOrigin()->getFloorX();
-        $this->dy = $this->getDestination()->getFloorY() - $this->getOrigin()->getFloorY();
-        $this->dz = $this->getDestination()->getFloorZ() - $this->getOrigin()->getFloorZ();
-
-        $this->distance = max($this->dx, $this->dy, $this->dz);
+        $this->distance = Cameraman::TICKS_PER_SECOND * max($this->dx, $this->dy, $this->dz);
     }
 
     /**
-     * @return Position
+     * @return Vector3
      */
     public function getDestination(){
         return $this->destination;
     }
 
     /**
-     * @return boolean
+     * @param number $slowness
+     * @return Vector3|null
      */
-    public function tick(){
-        $progress = $this->d++ / $this->distance;
+    public function tick($slowness){
+        $progress = $this->d++ / ($this->distance * $slowness);
         if($progress > 1){
-            return true;
+            return false;
         }
 
-        $this->getTarget()->setPosition($this->getOrigin()->add($this->dx * $progress, $this->dy * $progress, $this->dz * $progress));
-        return false;
+        return $this->getOrigin()->add($this->dx * $progress, $this->dy * $progress, $this->dz * $progress);
     }
 
 }
