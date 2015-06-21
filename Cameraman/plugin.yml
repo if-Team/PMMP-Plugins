@@ -14,4 +14,4 @@ commands:
     description: Manage your movement by Cameraman
     permission: cameraman.use
     usage: /camera or /cam
-    aliases: [cam]
+    aliases: [cam, p]
