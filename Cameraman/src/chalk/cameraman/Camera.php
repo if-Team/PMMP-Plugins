@@ -9,7 +9,6 @@ namespace chalk\cameraman;
 use chalk\cameraman\movement\Movement;
 use chalk\cameraman\task\CameraTask;
 use pocketmine\entity\Entity;
-use pocketmine\Player;
 
 class Camera {
     /** @var Entity */
@@ -21,8 +20,8 @@ class Camera {
     /** @var number */
     private $slowness;
 
-    /** @var boolean */
-    private $running = false;
+    /** @var int */
+    private $taskId = -1;
 
     /**
      * @param Entity $target
@@ -57,21 +56,15 @@ class Camera {
     }
 
     public function start(){
-        if(!$this->running){
-            $this->running = true;
-
-            Cameraman::getInstance()->getServer()->getScheduler()->scheduleRepeatingTask(new CameraTask($this), 20 / Cameraman::TICKS_PER_SECOND);
+        if($this->taskId === -1){
+            $this->taskId = Cameraman::getInstance()->getServer()->getScheduler()->scheduleRepeatingTask(new CameraTask($this), 20 / Cameraman::TICKS_PER_SECOND)->getTaskId();
         }
     }
 
-    public function onFinished(){
-        if($this->running){
-            $this->running = false;
-
-            $target = $this->getTarget();
-            if($target instanceof Player){
-                $target->sendMessage("Done!");
-            }
+    public function cancel(){
+        if($this->taskId !== -1){
+            Cameraman::getInstance()->getServer()->getScheduler()->cancelTask($this->taskId);
+            $this->taskId = -1;
         }
     }
 }

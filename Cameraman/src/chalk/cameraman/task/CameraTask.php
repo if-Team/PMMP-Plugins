@@ -24,14 +24,19 @@ class CameraTask extends PluginTask {
      * @param $currentTick
      */
     public function onRun($currentTick){
-        foreach($this->getCamera()->getMovements() as $movement){
-            while($position = $movement->tick($this->getCamera()->getSlowness())){
-                $this->getCamera()->getTarget()->setPosition($position);
-            }
+        $movement = current($this->getCamera()->getMovements());
+        if($movement === false){
+            $this->getCamera()->cancel();
+            return;
         }
 
-        $this->getCamera()->onFinished();
-        $this->getOwner()->getServer()->getScheduler()->cancelTask($this->getTaskId());
+        $position = $movement->tick($this->getCamera()->getSlowness());
+        if($position === false){
+            next($this->getCamera()->getMovements());
+            return;
+        }
+
+        $this->getCamera()->getTarget()->setPosition($position);
     }
 
     /**

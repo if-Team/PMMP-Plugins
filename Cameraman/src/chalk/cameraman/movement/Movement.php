@@ -13,9 +13,6 @@ abstract class Movement {
     /** @var Vector3 */
     private $origin;
 
-    /** @var boolean */
-    private $moving = false;
-
     /**
      * @param Vector3 $origin
      */
@@ -31,15 +28,8 @@ abstract class Movement {
     }
 
     /**
-     * @return boolean
-     */
-    public function isMoving(){
-        return $this->moving;
-    }
-
-    /**
      * @param number $slowness
-     * @return Vector3|null
+     * @return Vector3|boolean
      */
     public abstract function tick($slowness);
 }

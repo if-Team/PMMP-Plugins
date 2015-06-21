@@ -37,7 +37,7 @@ class StraightMovement extends Movement {
 
     /**
      * @param number $slowness
-     * @return Vector3|null
+     * @return Vector3|boolean
      */
     public function tick($slowness){
         $progress = $this->d++ / ($this->distance * $slowness);

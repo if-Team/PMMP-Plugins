@@ -55,6 +55,17 @@ class Cameraman extends PluginBase implements Listener {
             return $this->sendHelpMessages($sender);
         }
 
+        switch(strToLower($args[0])){
+            case "p":
+                break;
+
+            case "start":
+                break;
+
+            case "stop":
+                break;
+        }
+
         return true;
     }
 
