@@ -38,7 +38,12 @@ class CameraTask extends PluginTask {
             return;
         }
 
-        $this->getCamera()->getTarget()->teleport($position);
+        $target = $this->getCamera()->getTarget();
+
+        $target->setPosition($position); //FIXME: WHY DIDN'T UPDATE IN CLIENT?
+        $target->getLevel()->addEntityMovement( $target->chunk->getX(), $target->chunk->getZ(), $target->getId(),
+                                                $target->getX(), $target->getY(), $target->getZ(),
+                                                $target->getYaw(), $target->getPitch());
     }
 
     /**

@@ -42,7 +42,7 @@ class StraightMovement extends Movement {
             return false;
         }
 
-        //echo $this->__toString() . " - " . $progress . "\n";
+        echo $this->__toString() . " - " . $progress . "\n";
         return $this->getOrigin()->add($this->dx * $progress, $this->dy * $progress, $this->dz * $progress);
     }
 
