@@ -14,6 +14,7 @@ use pocketmine\event\Listener;
 use pocketmine\level\Location;
 use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
+use pocketmine\utils\TextFormat;
 
 class Cameraman extends PluginBase implements Listener {
     /** @var Cameraman */
@@ -61,6 +62,15 @@ class Cameraman extends PluginBase implements Listener {
 
     /**
      * @param CommandSender $sender
+     * @param string $message
+     * @param string $color
+     */
+    public function sendMessage(CommandSender $sender, $message, $color = TextFormat::GREEN){
+        $sender->sendMessage(TextFormat::BOLD . TextFormat::DARK_GREEN . "[Cameraman] " . TextFormat::RESET . $color . $message);
+    }
+
+    /**
+     * @param CommandSender $sender
      * @param string $command
      * @return boolean
      */
@@ -68,23 +78,28 @@ class Cameraman extends PluginBase implements Listener {
         $command = strToLower($command);
 
         if(!$command or $command === "p"){
-            $sender->sendMessage("/cam p - Adds a waypoint at the current position");
+            $this->sendMessage($sender, "/cam p [index]", TextFormat::DARK_GREEN);
+            $this->sendMessage($sender, "Adds a waypoint at the current position");
         }
 
         if(!$command or $command === "start"){
-            $sender->sendMessage("/cam start <slowness> - Travels the path in the given slowness. e.g. /cam start 10");
+            $this->sendMessage($sender, "/cam start <slowness>", TextFormat::DARK_GREEN);
+            $this->sendMessage($sender, "Travels the path in the given slowness");
         }
 
         if(!$command or $command === "stop"){
-            $sender->sendMessage("/cam stop - Interrupts travelling");
+            $this->sendMessage($sender, "/cam stop", TextFormat::DARK_GREEN);
+            $this->sendMessage($sender, "Interrupts travelling");
         }
 
         if(!$command or $command === "goto"){
-            $sender->sendMessage("/cam goto <index> - Teleports to the specified waypoint");
+            $this->sendMessage($sender, "/cam goto <index>", TextFormat::DARK_GREEN);
+            $this->sendMessage($sender, "Teleports to the specified waypoint");
         }
 
         if(!$command or $command === "clear"){
-            $sender->sendMessage("/cam clear - Removes all waypoints");
+            $this->sendMessage($sender, "/cam clear [index]", TextFormat::DARK_GREEN);
+            $this->sendMessage($sender, "Removes all waypoints");
         }
         
         return true;
@@ -99,7 +114,7 @@ class Cameraman extends PluginBase implements Listener {
      */
     public function onCommand(CommandSender $sender, Command $command, $commandAlias, array $args){
         if(!$sender instanceof Player){
-            $sender->sendMessage("[ERROR] Please issue this command in-game!");
+            $this->sendMessage($sender, "Please issue this command in-game!", TextFormat::RED);
             return true;
         }
 
@@ -120,8 +135,19 @@ class Cameraman extends PluginBase implements Listener {
                     $this->waypoints[$key] = [];
                 }
 
-                $this->waypoints[$key][] = $sender->getLocation();
-                $sender->sendMessage("[INFO] Added Waypoint #" . count($this->waypoints[$key]));
+                if(count($args) > 1 and is_numeric($args[1])){
+                    $index = intval($args[1]);
+                    if($index < 1 or $index > count($this->waypoints[$key])){
+                        $this->sendMessage($sender, "The index is out of bounds! (count: " . count($this->waypoints[$key]) . ")", TextFormat::RED);
+                        return true;
+                    }
+
+                    $this->waypoints[$key][$index - 1] = $sender->getLocation();
+                    $this->sendMessage($sender, "Reset Waypoint #" . $index);
+                }else{
+                    $this->waypoints[$key][] = $sender->getLocation();
+                    $this->sendMessage($sender, "Added Waypoint #" . count($this->waypoints[$key]));
+                }
                 break;
 
             case "start":
@@ -130,41 +156,41 @@ class Cameraman extends PluginBase implements Listener {
                 }
 
                 if(!isset($this->waypoints[$key]) or count($this->waypoints[$key]) < 2){
-                    $sender->sendMessage("[ERROR] You should set least two waypoints before!");
+                    $this->sendMessage($sender, "You should set at least two waypoints before start!", TextFormat::RED);
                     return $this->sendHelpMessages($sender, "p");
                 }
 
                 if(isset($this->cameras[$key]) and $this->cameras[$key]->isRunning()){
                     $this->cameras[$key]->stop();
-                    $sender->sendMessage("[INFO] Interrupting current travels...");
+                    $this->sendMessage($sender, "Interrupting current travels...", TextFormat::GRAY);
                 }
 
                 $slowness = doubleval($args[1]);
-                if($slowness <= 0){
-                    $sender->sendMessage("[ERROR] The value of slowness cannot be zero or negative!");
+                if($slowness < 0.0000001){
+                    $this->sendMessage($sender, "The value of slowness cannot be zero or negative! (current: " . $slowness . ")", TextFormat::RED);
                     return true;
                 }
 
                 if($sender->getGamemode() !== 1){
-                    $sender->sendMessage("[ERROR] You should set your gamemode to creative!");
+                    $this->sendMessage($sender, "You should set your gamemode to creative!", TextFormat::RED);
                     return true;
                 }
 
                 $this->cameras[$key] = new Camera($sender, Cameraman::createStraightMovements($this->waypoints[$key]), $slowness);
                 $this->cameras[$key]->start();
-                $sender->sendMessage("[INFO] Travelling started! (make sure you are flying)");
+                $this->sendMessage($sender, "Travelling started! (make sure you are flying)");
                 break;
 
             case "stop":
                 if(!isset($this->cameras[$key]) or !$this->cameras[$key]->isRunning()){
-                    $sender->sendMessage("[ERROR] Travels are already interrupted!");
+                    $this->sendMessage($sender, "Travels are already interrupted!", TextFormat::RED);
                     return true;
                 }
 
                 $this->cameras[$key]->stop();
                 unset($this->cameras[$key]);
 
-                $sender->sendMessage("[INFO] Travelling has been interrupted!");
+                $this->sendMessage($sender, "Travelling has been interrupted!");
                 break;
 
             case "goto":
@@ -173,23 +199,39 @@ class Cameraman extends PluginBase implements Listener {
                 }
 
                 if(!isset($this->waypoints[$key])){
-                    $sender->sendMessage("[ERROR] There are no waypoints to teleport!");
+                    $this->sendMessage($sender, "There are no waypoints to teleport!", TextFormat::RED);
                     return true;
                 }
 
                 $index = intval($args[1]);
-                if(count($this->waypoints[$key]) < $index){
-                    $sender->sendMessage("[ERROR] The index is out of bounds!");
+                if($index < 1 or $index > count($this->waypoints[$key])){
+                    $this->sendMessage($sender, "The index is out of bounds! (count: " . count($this->waypoints[$key]) . ")", TextFormat::RED);
                     return true;
                 }
 
                 $sender->setPosition($this->waypoints[$key][$index - 1]);
-                $sender->sendMessage("[INFO] Teleported to Waypoint #" . $index . "!");
+                $this->sendMessage($sender, "Teleported to Waypoint #" . $index . "!");
                 break;
 
             case "clear":
-                unset($this->waypoints[$key]);
-                $sender->sendMessage("[INFO] All waypoints has been removed!");
+                if(count($args) > 1 and is_numeric($args[1])){
+                    if(!isset($this->waypoints[$key])){
+                        $this->sendMessage($sender, "There are no waypoints to teleport!", TextFormat::RED);
+                        return true;
+                    }
+
+                    $index = intval($args[1]);
+                    if($index < 1 or $index > count($this->waypoints[$key])){
+                        $this->sendMessage($sender, "The index is out of bounds! (count: " . count($this->waypoints[$key]) . ")", TextFormat::RED);
+                        return true;
+                    }
+
+                    array_splice($this->waypoints, $index - 1, 1);
+                    $this->sendMessage($sender, "Waypoint #" . $index . " has been removed!");
+                }else{
+                    unset($this->waypoints[$key]);
+                    $this->sendMessage($sender, "All waypoints has been removed!");
+                }
                 break;
         }
         return true;
