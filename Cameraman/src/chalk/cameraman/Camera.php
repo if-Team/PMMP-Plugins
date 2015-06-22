@@ -70,7 +70,7 @@ class Camera {
             Cameraman::getInstance()->getServer()->getScheduler()->cancelTask($this->taskId);
             $this->taskId = -1;
 
-            $this->getTarget()->sendMessage("[INFO] Travelling finished!");
+            Cameraman::getInstance()->sendMessage($this->getTarget(), "Travelling finished!");
         }
     }
 }

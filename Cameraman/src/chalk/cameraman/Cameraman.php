@@ -156,7 +156,7 @@ class Cameraman extends PluginBase implements Listener {
                 }
 
                 if(!isset($this->waypoints[$key]) or count($this->waypoints[$key]) < 2){
-                    $this->sendMessage($sender, "You should set at least two waypoints before start!", TextFormat::RED);
+                    $this->sendMessage($sender, "You should set at least two waypoints!", TextFormat::RED);
                     return $this->sendHelpMessages($sender, "p");
                 }
 
@@ -167,7 +167,7 @@ class Cameraman extends PluginBase implements Listener {
 
                 $slowness = doubleval($args[1]);
                 if($slowness < 0.0000001){
-                    $this->sendMessage($sender, "The value of slowness cannot be zero or negative! (current: " . $slowness . ")", TextFormat::RED);
+                    $this->sendMessage($sender, "The slowness must be positive! (current: " . $slowness . ")", TextFormat::RED);
                     return true;
                 }
 
@@ -226,7 +226,7 @@ class Cameraman extends PluginBase implements Listener {
                         return true;
                     }
 
-                    array_splice($this->waypoints, $index - 1, 1);
+                    array_splice($this->waypoints[$key], $index - 1, 1);
                     $this->sendMessage($sender, "Waypoint #" . $index . " has been removed! (total: " . count($this->waypoints[$key]) . ")");
                 }else{
                     unset($this->waypoints[$key]);
