@@ -138,12 +138,12 @@ class Cameraman extends PluginBase implements Listener {
                 if(count($args) > 1 and is_numeric($args[1])){
                     $index = intval($args[1]);
                     if($index < 1 or $index > count($this->waypoints[$key])){
-                        $this->sendMessage($sender, "The index is out of bounds! (count: " . count($this->waypoints[$key]) . ")", TextFormat::RED);
+                        $this->sendMessage($sender, "The index is out of bounds! (total: " . count($this->waypoints[$key]) . ")", TextFormat::RED);
                         return true;
                     }
 
                     $this->waypoints[$key][$index - 1] = $sender->getLocation();
-                    $this->sendMessage($sender, "Reset Waypoint #" . $index);
+                    $this->sendMessage($sender, "Reset Waypoint #" . $index . " (total: " . count($this->waypoints[$key]) . ")");
                 }else{
                     $this->waypoints[$key][] = $sender->getLocation();
                     $this->sendMessage($sender, "Added Waypoint #" . count($this->waypoints[$key]));
@@ -205,11 +205,11 @@ class Cameraman extends PluginBase implements Listener {
 
                 $index = intval($args[1]);
                 if($index < 1 or $index > count($this->waypoints[$key])){
-                    $this->sendMessage($sender, "The index is out of bounds! (count: " . count($this->waypoints[$key]) . ")", TextFormat::RED);
+                    $this->sendMessage($sender, "The index is out of bounds! (total: " . count($this->waypoints[$key]) . ")", TextFormat::RED);
                     return true;
                 }
 
-                $sender->setPosition($this->waypoints[$key][$index - 1]);
+                $sender->teleport($this->waypoints[$key][$index - 1]);
                 $this->sendMessage($sender, "Teleported to Waypoint #" . $index . "!");
                 break;
 
@@ -222,12 +222,12 @@ class Cameraman extends PluginBase implements Listener {
 
                     $index = intval($args[1]);
                     if($index < 1 or $index > count($this->waypoints[$key])){
-                        $this->sendMessage($sender, "The index is out of bounds! (count: " . count($this->waypoints[$key]) . ")", TextFormat::RED);
+                        $this->sendMessage($sender, "The index is out of bounds! (total: " . count($this->waypoints[$key]) . ")", TextFormat::RED);
                         return true;
                     }
 
                     array_splice($this->waypoints, $index - 1, 1);
-                    $this->sendMessage($sender, "Waypoint #" . $index . " has been removed!");
+                    $this->sendMessage($sender, "Waypoint #" . $index . " has been removed! (total: " . count($this->waypoints[$key]) . ")");
                 }else{
                     unset($this->waypoints[$key]);
                     $this->sendMessage($sender, "All waypoints has been removed!");
