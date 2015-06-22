@@ -11,8 +11,10 @@ use chalk\cameraman\movement\StraightMovement;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\event\Listener;
+use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\level\Location;
 use pocketmine\math\Vector3;
+use pocketmine\network\protocol\MovePlayerPacket;
 use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\TextFormat;
@@ -56,7 +58,8 @@ class Cameraman extends PluginBase implements Listener {
      * @return Location[]
      */
     public function getWaypoint(Player $player){
-        return $this->waypoints[strToLower($player->getName())];
+        $key = strToLower($player->getName());
+        return isset($this->getWaypoints()[$key]) ? $this->getWaypoints()[$key] : null;
     }
 
     /**
@@ -64,6 +67,15 @@ class Cameraman extends PluginBase implements Listener {
      */
     public function getCameras(){
         return $this->cameras;
+    }
+
+    /**
+     * @param Player $player
+     * @return Camera|null
+     */
+    public function getCamera(Player $player){
+        $key = strToLower($player->getName());
+        return isset($this->getCameras()[$key]) ? $this->getCameras()[$key] : null;
     }
 
     /**
@@ -260,7 +272,7 @@ class Cameraman extends PluginBase implements Listener {
                     $this->sendWaypointMessage($sender, $this->waypoints[$key][$index - 1], $index);
                 }else{
                     foreach($this->waypoints[$key] as $index => $waypoint){
-                        $this->sendWaypointMessage($sender, $waypoint, $index);
+                        $this->sendWaypointMessage($sender, $waypoint, $index + 1);
                     }
                 }
                 break;
@@ -307,5 +319,14 @@ class Cameraman extends PluginBase implements Listener {
                 break;
         }
         return true;
+    }
+
+    public function onDataPacketReceive(DataPacketReceiveEvent $event){
+        if($event->getPacket() instanceof MovePlayerPacket){
+            $camera = $this->getCamera($event->getPlayer());
+            if($camera !== null and $camera->isRunning()){
+               $event->setCancelled(true);
+            }
+        }
     }
 }

@@ -21,7 +21,7 @@ class Camera {
     private $slowness;
 
     /** @var int */
-    private $taskId = -1;
+    private $taskId = -1, $gamemode;
 
     /**
      * @param Player $target
@@ -62,6 +62,9 @@ class Camera {
     public function start(){
         if(!$this->isRunning()){
             $this->taskId = Cameraman::getInstance()->getServer()->getScheduler()->scheduleRepeatingTask(new CameraTask($this), 20 / Cameraman::TICKS_PER_SECOND)->getTaskId();
+
+            $this->gamemode = $this->getTarget()->getGamemode();
+            $this->getTarget()->setGamemode(Player::SPECTATOR);
         }
     }
 
@@ -70,9 +73,7 @@ class Camera {
             Cameraman::getInstance()->getServer()->getScheduler()->cancelTask($this->taskId);
             $this->taskId = -1;
 
-            $waypoints = Cameraman::getInstance()->getWaypoint($this->getTarget());
-            $this->getTarget()->teleport(end($waypoints)); reset($waypoints);
-
+            $this->getTarget()->setGamemode($this->gamemode);
             Cameraman::getInstance()->sendMessage($this->getTarget(), "Travelling finished!");
         }
     }
