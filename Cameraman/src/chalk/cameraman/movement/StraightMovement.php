@@ -43,7 +43,7 @@ class StraightMovement extends Movement {
             return false;
         }
 
-        return new Location($this->getOrigin()->getX() + $this->distance->getX() * $progress, $this->getOrigin()->getY() + $this->distance->getY() * $progress, $this->getOrigin()->getZ() + $this->distance->getZ() * $progress, $this->getOrigin()->getYaw() + $this->distance->getYaw() * $progress, $this->getOrigin()->getPitch() + $this->distance->getPitch() * $progress);
+        return new Location($this->getOrigin()->getX() + $this->distance->getX() * $progress, 1.62 + $this->getOrigin()->getY() + $this->distance->getY() * $progress, $this->getOrigin()->getZ() + $this->distance->getZ() * $progress, $this->getOrigin()->getYaw() + $this->distance->getYaw() * $progress, $this->getOrigin()->getPitch() + $this->distance->getPitch() * $progress);
     }
 
 }

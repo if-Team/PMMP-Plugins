@@ -41,6 +41,7 @@ class CameraTask extends PluginTask {
 
         $target = $this->getCamera()->getTarget();
         $target->setPositionAndRotation($location, $location->getYaw(), $location->getPitch());
+        $target->resetFallDistance();
 
         $pk = new MovePlayerPacket();
         $pk->eid = 0;
