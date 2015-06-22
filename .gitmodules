@@ -1,0 +1,3 @@
+[submodule "MineBros"]
+	path = MineBros
+	url = https://github.com/ns827/MineBros.git

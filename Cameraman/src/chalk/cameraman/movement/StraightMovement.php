@@ -7,49 +7,46 @@
 
 namespace chalk\cameraman\movement;
 
-use pocketmine\entity\Entity;
-use pocketmine\level\Position;
+use chalk\cameraman\Cameraman;
+use pocketmine\level\Location;
 
 class StraightMovement extends Movement {
-    /** @var Position */
-    private $destination;
-
     private $dx, $dy, $dz;
     private $distance, $d = 0;
 
-    function __construct(Entity $target, Position $destination, Position $origin = null){
-        parent::__construct($target, $origin);
-        $this->destination = $destination;
+    /**
+     * @param Location $origin
+     * @param Location $destination
+     */
+    function __construct(Location $origin, Location $destination){
+        parent::__construct($origin, $destination);
 
-        if($this->getOrigin()->getLevel() !== $this->destination->getLevel()){
-            throw new \InvalidArgumentException();
+        $this->dx = $this->getDestination()->getX() - $this->getOrigin()->getX();
+        $this->dy = $this->getDestination()->getY() - $this->getOrigin()->getY();
+        $this->dz = $this->getDestination()->getZ() - $this->getOrigin()->getZ();
+
+        $this->distance = Cameraman::TICKS_PER_SECOND * max(abs($this->dx), abs($this->dy), abs($this->dz));
+        if($this->distance === 0){
+            throw new \InvalidArgumentException("distance cannot be zero");
+        }
+    }
+
+    /**
+     * @param number $slowness
+     * @return Location|boolean
+     */
+    public function tick($slowness){
+        $distance = $this->distance * $slowness;
+        if($distance < 0.0000001){
+            return false;
         }
 
-        $this->dx = $this->getDestination()->getFloorX() - $this->getOrigin()->getFloorX();
-        $this->dy = $this->getDestination()->getFloorY() - $this->getOrigin()->getFloorY();
-        $this->dz = $this->getDestination()->getFloorZ() - $this->getOrigin()->getFloorZ();
-
-        $this->distance = max($this->dx, $this->dy, $this->dz);
-    }
-
-    /**
-     * @return Position
-     */
-    public function getDestination(){
-        return $this->destination;
-    }
-
-    /**
-     * @return boolean
-     */
-    public function tick(){
-        $progress = $this->d++ / $this->distance;
+        $progress = $this->d++ / $distance;
         if($progress > 1){
-            return true;
+            return false;
         }
 
-        $this->getTarget()->setPosition($this->getOrigin()->add($this->dx * $progress, $this->dy * $progress, $this->dz * $progress));
-        return false;
+        return new Location($this->getOrigin()->getX() + $this->dx * $progress, $this->getOrigin()->getY() + $this->dy * $progress, $this->getOrigin()->getZ() + $this->dz * $progress);
     }
 
 }

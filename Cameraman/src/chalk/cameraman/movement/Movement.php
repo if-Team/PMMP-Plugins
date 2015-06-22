@@ -7,51 +7,45 @@
 
 namespace chalk\cameraman\movement;
 
-use pocketmine\entity\Entity;
-use pocketmine\level\Position;
+use pocketmine\level\Location;
 
 abstract class Movement {
-    /** @var Entity */
-    private $target;
-
-    /** @var Position */
+    /** @var Location */
     private $origin;
 
-    /** @var boolean */
-    private $moving = false;
+    /** @var Location */
+    private $destination;
 
     /**
-     * @param Entity $target
-     * @param Position $origin
+     * @param Location $origin
+     * @param Location $destination
      */
-    public function __construct(Entity $target, Position $origin = null){
-        $this->target = $target;
-        $this->origin = ($origin === null) ? $target->getPosition() : $origin;
+    public function __construct(Location $origin, Location $destination){
+        $this->origin = $origin;
+        $this->destination = $destination;
     }
 
     /**
-     * @return Entity
-     */
-    public function getTarget(){
-        return $this->target;
-    }
-
-    /**
-     * @return Position
+     * @return Location
      */
     public function getOrigin(){
-        return $this->$origin;
+        return $this->origin;
     }
 
     /**
-     * @return boolean
+     * @return Location
      */
-    public function isMoving(){
-        return $this->moving;
+    public function getDestination(){
+        return $this->destination;
+    }
+
+    public function __toString(){
+        return "Movement(" . $this->getOrigin() . " -> " . $this->getDestination() . ")";
     }
 
     /**
-     * @return boolean
+     * @param number $slowness
+     * @return Location|boolean
      */
-    public abstract function tick();
+    public abstract function tick($slowness);
 }
