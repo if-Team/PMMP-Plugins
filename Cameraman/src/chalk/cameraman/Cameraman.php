@@ -12,6 +12,7 @@ use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\event\Listener;
 use pocketmine\level\Location;
+use pocketmine\math\Vector3;
 use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\TextFormat;
@@ -20,7 +21,7 @@ class Cameraman extends PluginBase implements Listener {
     /** @var Cameraman */
     private static $instance = null;
 
-    const TICKS_PER_SECOND = 20;
+    const TICKS_PER_SECOND = 10;
 
     /** @var Location[][] */
     private $waypoints = [];
@@ -64,9 +65,12 @@ class Cameraman extends PluginBase implements Listener {
      * @param CommandSender $sender
      * @param string $message
      * @param string $color
+     * @return boolean
      */
     public function sendMessage(CommandSender $sender, $message, $color = TextFormat::GREEN){
         $sender->sendMessage(TextFormat::BOLD . TextFormat::DARK_GREEN . "[Cameraman] " . TextFormat::RESET . $color . $message);
+
+        return true;
     }
 
     /**
@@ -76,6 +80,11 @@ class Cameraman extends PluginBase implements Listener {
      */
     public function sendHelpMessages(CommandSender $sender, $command = ""){
         $command = strToLower($command);
+
+        if(!$command or $command === "help"){
+            $this->sendMessage($sender, "/cam help", TextFormat::DARK_GREEN);
+            $this->sendMessage($sender, "Shows the help menu of commands");
+        }
 
         if(!$command or $command === "p"){
             $this->sendMessage($sender, "/cam p [index]", TextFormat::DARK_GREEN);
@@ -92,6 +101,11 @@ class Cameraman extends PluginBase implements Listener {
             $this->sendMessage($sender, "Interrupts travelling");
         }
 
+        if(!$command or $command === "stat"){
+            $this->sendMessage($sender, "/cam info [index]", TextFormat::DARK_GREEN);
+            $this->sendMessage($sender, "Shows the information of current waypoints");
+        }
+
         if(!$command or $command === "goto"){
             $this->sendMessage($sender, "/cam goto <index>", TextFormat::DARK_GREEN);
             $this->sendMessage($sender, "Teleports to the specified waypoint");
@@ -99,9 +113,21 @@ class Cameraman extends PluginBase implements Listener {
 
         if(!$command or $command === "clear"){
             $this->sendMessage($sender, "/cam clear [index]", TextFormat::DARK_GREEN);
-            $this->sendMessage($sender, "Removes all waypoints");
+            $this->sendMessage($sender, "Removes all or specific waypoints");
         }
         
+        return true;
+    }
+
+    /**
+     * @param CommandSender $sender
+     * @param Vector3 $waypoint
+     * @param int index
+     * @return boolean
+     */
+    public function sendWaypointMessage(CommandSender $sender, Vector3 $waypoint, $index){
+        $this->sendMessage($sender, "Waypoint #" . $index . " - [" . $waypoint->getFloorX() . ", " . $waypoint->getFloorY() . ", " . $waypoint->getFloorZ() . "]");
+
         return true;
     }
 
@@ -119,7 +145,7 @@ class Cameraman extends PluginBase implements Listener {
         }
 
         if($commandAlias === "p"){ //=> shortcut for /cam p
-            $args = ["p"];
+            $args = ["p"] + $args;
         }else if(!is_array($args) or count($args) < 1 or !is_string($args[0])){
             return $this->sendHelpMessages($sender);
         }
@@ -128,6 +154,9 @@ class Cameraman extends PluginBase implements Listener {
 
         switch(strToLower($args[0])){
             default:
+                return $this->sendMessage($sender, "Unknown command. Try " . TextFormat::UNDERLINE . "/cam help" . TextFormat::RESET . TextFormat::RED . " for a list of commands", TextFormat::RED);
+
+            case "help":
                 return $this->sendHelpMessages($sender);
 
             case "p":
@@ -193,6 +222,27 @@ class Cameraman extends PluginBase implements Listener {
                 $this->sendMessage($sender, "Travelling has been interrupted!");
                 break;
 
+            case "info":
+                if(!isset($this->waypoints[$key])){
+                    $this->sendMessage($sender, "There are no waypoints to show!", TextFormat::RED);
+                    return true;
+                }
+
+                if(count($args) > 1 and is_numeric($args[1])){
+                    $index = intval($args[1]);
+                    if($index < 1 or $index > count($this->waypoints[$key])){
+                        $this->sendMessage($sender, "The index is out of bounds! (total: " . count($this->waypoints[$key]) . ")", TextFormat::RED);
+                        return true;
+                    }
+
+                    $this->sendWaypointMessage($sender, $this->waypoints[$key][$index - 1], $index);
+                }else{
+                    foreach($this->waypoints[$key] as $index => $waypoint){
+                        $this->sendWaypointMessage($sender, $waypoint, $index);
+                    }
+                }
+                break;
+
             case "goto":
                 if(count($args) < 2 or !is_numeric($args[1])){
                     return $this->sendHelpMessages($sender, $args[0]);
@@ -214,12 +264,12 @@ class Cameraman extends PluginBase implements Listener {
                 break;
 
             case "clear":
-                if(count($args) > 1 and is_numeric($args[1])){
-                    if(!isset($this->waypoints[$key])){
-                        $this->sendMessage($sender, "There are no waypoints to teleport!", TextFormat::RED);
-                        return true;
-                    }
+                if(!isset($this->waypoints[$key])){
+                    $this->sendMessage($sender, "There are no waypoints to remove!", TextFormat::RED);
+                    return true;
+                }
 
+                if(count($args) > 1 and is_numeric($args[1])){
                     $index = intval($args[1]);
                     if($index < 1 or $index > count($this->waypoints[$key])){
                         $this->sendMessage($sender, "The index is out of bounds! (total: " . count($this->waypoints[$key]) . ")", TextFormat::RED);
