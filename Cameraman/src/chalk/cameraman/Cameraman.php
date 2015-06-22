@@ -45,6 +45,28 @@ class Cameraman extends PluginBase implements Listener {
     }
 
     /**
+     * @return Location[][]
+     */
+    public function getWaypoints(){
+        return $this->waypoints;
+    }
+
+    /**
+     * @param Player $player
+     * @return Location[]
+     */
+    public function getWaypoint(Player $player){
+        return $this->waypoints[strToLower($player->getName())];
+    }
+
+    /**
+     * @return Camera[]
+     */
+    public function getCameras(){
+        return $this->cameras;
+    }
+
+    /**
      * @param Location[] $waypoints
      * @return Movement[]
      */
