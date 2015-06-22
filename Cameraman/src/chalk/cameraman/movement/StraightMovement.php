@@ -11,8 +11,11 @@ use chalk\cameraman\Cameraman;
 use pocketmine\level\Location;
 
 class StraightMovement extends Movement {
-    private $dx, $dy, $dz;
-    private $distance, $d = 0;
+    /** @var Location */
+    private $distance;
+
+    /** @var int */
+    private $current = 0, $length = 0;
 
     /**
      * @param Location $origin
@@ -21,14 +24,8 @@ class StraightMovement extends Movement {
     function __construct(Location $origin, Location $destination){
         parent::__construct($origin, $destination);
 
-        $this->dx = $this->getDestination()->getX() - $this->getOrigin()->getX();
-        $this->dy = $this->getDestination()->getY() - $this->getOrigin()->getY();
-        $this->dz = $this->getDestination()->getZ() - $this->getOrigin()->getZ();
-
-        $this->distance = Cameraman::TICKS_PER_SECOND * max(abs($this->dx), abs($this->dy), abs($this->dz));
-        if($this->distance === 0){
-            throw new \InvalidArgumentException("distance cannot be zero");
-        }
+        $this->distance = new Location($this->getDestination()->getX() - $this->getOrigin()->getX(), $this->getDestination()->getY() - $this->getOrigin()->getY(), $this->getDestination()->getZ() - $this->getOrigin()->getZ(), $this->getDestination()->getYaw() - $this->getOrigin()->getYaw(), $this->getDestination()->getPitch() - $this->getOrigin()->getPitch());
+        $this->length = Cameraman::TICKS_PER_SECOND * max(abs($this->distance->getX()), abs($this->distance->getY()), abs($this->distance->getZ()), abs($this->distance->getYaw()), abs($this->distance->getPitch()));
     }
 
     /**
@@ -36,17 +33,17 @@ class StraightMovement extends Movement {
      * @return Location|boolean
      */
     public function tick($slowness){
-        $distance = $this->distance * $slowness;
-        if($distance < 0.0000001){
+        $length = $this->length * $slowness;
+        if($length < 0.0000001){
             return false;
         }
 
-        $progress = $this->d++ / $distance;
+        $progress = $this->current++ / $length;
         if($progress > 1){
             return false;
         }
 
-        return new Location($this->getOrigin()->getX() + $this->dx * $progress, $this->getOrigin()->getY() + $this->dy * $progress, $this->getOrigin()->getZ() + $this->dz * $progress);
+        return new Location($this->getOrigin()->getX() + $this->distance->getX() * $progress, $this->getOrigin()->getY() + $this->distance->getY() * $progress, $this->getOrigin()->getZ() + $this->distance->getZ() * $progress, $this->getOrigin()->getYaw() + $this->distance->getYaw() * $progress, $this->getOrigin()->getPitch() + $this->distance->getPitch() * $progress);
     }
 
 }
