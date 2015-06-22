@@ -46,6 +46,7 @@ class SignCommand extends PluginBase implements Listener {
 	public function onTouch(PlayerInteractEvent $event) {
 		$block = $event->getBlock ();
 		if (isset ( $this->configData ["{$block->x}:{$block->y}:{$block->z}"] )) $this->getServer ()->getCommandMap ()->dispatch ( $event->getPlayer (), $this->configData ["{$block->x}:{$block->y}:{$block->z}"] );
+		$event->setCancelled();
 	}
 	public function initMessage() {
 		$this->saveResource ( "messages.yml", false );
