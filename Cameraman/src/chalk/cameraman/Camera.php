@@ -49,6 +49,14 @@ class Camera {
     }
 
     /**
+     * @param int $index
+     * @return Movement
+     */
+    public function getMovement($index){
+        return $this->movements[$index];
+    }
+
+    /**
      * @return number
      */
     public function getSlowness(){

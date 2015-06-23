@@ -45,7 +45,7 @@ abstract class Movement {
 
     /**
      * @param number $slowness
-     * @return Location|boolean
+     * @return Location|null
      */
     public abstract function tick($slowness);
 }

@@ -10,14 +10,13 @@ namespace chalk\cameraman\task;
 use chalk\cameraman\Camera;
 use chalk\cameraman\Cameraman;
 use pocketmine\scheduler\PluginTask;
-use pocketmine\network\protocol\MovePlayerPacket;
 
 class CameraTask extends PluginTask {
     /** @var Camera */
     private $camera;
 
     /** @var int */
-    private $current = 0;
+    private $index = 0;
 
     function __construct(Camera $camera){
         parent::__construct(Cameraman::getInstance());
@@ -28,31 +27,18 @@ class CameraTask extends PluginTask {
      * @param $currentTick
      */
     public function onRun($currentTick){
-        if($this->current >= count($this->getCamera()->getMovements())){
+        if($this->index >= count($this->getCamera()->getMovements())){
             $this->getCamera()->stop();
             return;
         }
 
-        $location = $this->getCamera()->getMovements()[$this->current]->tick($this->getCamera()->getSlowness());
-        if($location === false){
-            $this->current++;
+        if(($location = $this->getCamera()->getMovement($this->index)->tick($this->getCamera()->getSlowness())) === null){
+            $this->index++;
             return;
         }
 
-        $target = $this->getCamera()->getTarget();
-        $target->setPositionAndRotation($location, $location->getYaw(), $location->getPitch());
-
-        $pk = new MovePlayerPacket();
-        $pk->eid = 0;
-        $pk->x = $target->getX();
-        $pk->y = $target->getY();
-        $pk->z = $target->getZ();
-        $pk->yaw = $target->getYaw();
-        $pk->bodyYaw = $target->getYaw();
-        $pk->pitch = $target->getPitch();
-        $pk->onGround = false;
-
-        $target->dataPacket($pk);
+        $this->getCamera()->getTarget()->setPositionAndRotation($location, $location->getYaw(), $location->getPitch());
+        Cameraman::sendMovePlayerPacket($this->getCamera()->getTarget());
     }
 
     /**

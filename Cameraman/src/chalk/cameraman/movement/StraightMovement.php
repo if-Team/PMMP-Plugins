@@ -30,17 +30,15 @@ class StraightMovement extends Movement {
 
     /**
      * @param number $slowness
-     * @return Location|boolean
+     * @return Location|null
      */
     public function tick($slowness){
-        $length = $this->length * $slowness;
-        if($length < 0.0000001){
-            return false;
+        if(($length = $this->length * $slowness) < 0.0000001){
+            return null;
         }
 
-        $progress = $this->current++ / $length;
-        if($progress > 1){
-            return false;
+        if(($progress = $this->current++ / $length) > 1){
+            return null;
         }
 
         return new Location($this->getOrigin()->getX() + $this->distance->getX() * $progress, 1.62 + $this->getOrigin()->getY() + $this->distance->getY() * $progress, $this->getOrigin()->getZ() + $this->distance->getZ() * $progress, $this->getOrigin()->getYaw() + $this->distance->getYaw() * $progress, $this->getOrigin()->getPitch() + $this->distance->getPitch() * $progress);

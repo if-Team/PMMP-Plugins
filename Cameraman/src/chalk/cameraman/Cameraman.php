@@ -26,7 +26,7 @@ class Cameraman extends PluginBase implements Listener {
     const TICKS_PER_SECOND = 10;
 
     /** @var Location[][] */
-    private $waypoints = [];
+    private $waypointMap = [];
 
     /** @var Camera[] */
     private $cameras = [];
@@ -49,17 +49,35 @@ class Cameraman extends PluginBase implements Listener {
     /**
      * @return Location[][]
      */
-    public function getWaypoints(){
-        return $this->waypoints;
+    public function getWaypointMap(){
+        return $this->waypointMap;
+    }
+
+    /**
+     * @param Location[][] $waypointMap
+     * @return Location[][]
+     */
+    public function setWaypointMap(array $waypointMap){
+        $this->waypointMap = $waypointMap;
+        return $waypointMap;
     }
 
     /**
      * @param Player $player
      * @return Location[]
      */
-    public function getWaypoint(Player $player){
-        $key = strToLower($player->getName());
-        return isset($this->getWaypoints()[$key]) ? $this->getWaypoints()[$key] : null;
+    public function getWaypoints(Player $player){
+        return isset($this->getWaypointMap()[$player->getName()]) ? $this->getWaypointMap()[$player->getName()] : null;
+    }
+
+    /**
+     * @param Player $player
+     * @param Location[] $waypoints
+     * @return Location[]
+     */
+    public function setWaypoints(Player $player, array $waypoints){
+        $this->getWaypointMap()[$player->getName()] = $waypoints;
+        return $waypoints;
     }
 
     /**
@@ -74,8 +92,17 @@ class Cameraman extends PluginBase implements Listener {
      * @return Camera|null
      */
     public function getCamera(Player $player){
-        $key = strToLower($player->getName());
-        return isset($this->getCameras()[$key]) ? $this->getCameras()[$key] : null;
+        return isset($this->getCameras()[$player->getName()]) ? $this->getCameras()[$player->getName()] : null;
+    }
+
+    /**
+     * @param Player $player
+     * @param Camera $camera
+     * @return Camera
+     */
+    public function setCamera(Player $player, Camera $camera){
+        $this->getCameras()[$player->getName()] = $camera;
+        return $camera;
     }
 
     /**
@@ -99,7 +126,7 @@ class Cameraman extends PluginBase implements Listener {
      * @param CommandSender $sender
      * @param string $message
      * @param string $color
-     * @return boolean
+     * @return bool
      */
     public function sendMessage(CommandSender $sender, $message, $color = TextFormat::GREEN){
         $sender->sendMessage(TextFormat::BOLD . TextFormat::DARK_GREEN . "[Cameraman] " . TextFormat::RESET . $color . $message);
@@ -109,16 +136,23 @@ class Cameraman extends PluginBase implements Listener {
 
     /**
      * @param CommandSender $sender
+     * @return bool
+     */
+    public function sendAboutMessages(CommandSender $sender){
+        $sender->sendMessage(TextFormat::BOLD . TextFormat::DARK_GREEN . "[Cameraman v" . $this->getDescription()->getVersion() . "]");
+        $sender->sendMessage(TextFormat::GREEN . "Author: " . $this->getDescription()->getAuthors()[0]);
+        $sender->sendMessage(TextFormat::GREEN . "Website: " . $this->getDescription()->getWebsite());
+
+        return true;
+    }
+
+    /**
+     * @param CommandSender $sender
      * @param string $command
-     * @return boolean
+     * @return bool
      */
     public function sendHelpMessages(CommandSender $sender, $command = ""){
         $command = strToLower($command);
-
-        if(!$command or $command === "help"){
-            $this->sendMessage($sender, "/cam help", TextFormat::DARK_GREEN);
-            $this->sendMessage($sender, "Shows the help menu of commands");
-        }
 
         if(!$command or $command === "p"){
             $this->sendMessage($sender, "/cam p [index]", TextFormat::DARK_GREEN);
@@ -149,6 +183,16 @@ class Cameraman extends PluginBase implements Listener {
             $this->sendMessage($sender, "/cam clear [index]", TextFormat::DARK_GREEN);
             $this->sendMessage($sender, "Removes all or specific waypoints");
         }
+
+        if(!$command or $command === "help"){
+            $this->sendMessage($sender, "/cam help", TextFormat::DARK_GREEN);
+            $this->sendMessage($sender, "Shows the help menu of commands");
+        }
+
+        if(!$command or $command === "about"){
+            $this->sendMessage($sender, "/cam about", TextFormat::DARK_GREEN);
+            $this->sendMessage($sender, "Shows the information of this plugin");
+        }
         
         return true;
     }
@@ -157,7 +201,7 @@ class Cameraman extends PluginBase implements Listener {
      * @param CommandSender $sender
      * @param Vector3 $waypoint
      * @param int index
-     * @return boolean
+     * @return bool
      */
     public function sendWaypointMessage(CommandSender $sender, Vector3 $waypoint, $index){
         $this->sendMessage($sender, "Waypoint #" . $index . " - [" . $waypoint->getFloorX() . ", " . $waypoint->getFloorY() . ", " . $waypoint->getFloorZ() . "]");
@@ -166,11 +210,27 @@ class Cameraman extends PluginBase implements Listener {
     }
 
     /**
+     * @param int $index
+     * @param array $array
+     * @param CommandSender $sender
+     * @return bool
+     */
+    public function isIndexOutOfBounds($index, array $array, CommandSender $sender = null){
+        if($index < 1 or $index > count($array)){
+            if($sender !== null){
+                $this->sendMessage($sender, "The index is out of bounds! (total: " . count($array) . ")", TextFormat::RED);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param CommandSender $sender
      * @param Command $command
      * @param string $commandAlias
      * @param array $args
-     * @return boolean
+     * @return bool
      */
     public function onCommand(CommandSender $sender, Command $command, $commandAlias, array $args){
         if(!$sender instanceof Player){
@@ -178,16 +238,14 @@ class Cameraman extends PluginBase implements Listener {
             return true;
         }
 
-        if($commandAlias === "p"){ //=> shortcut for /cam p
-            if(!is_array($args)){
-                $args = [];
-            }
+        if($commandAlias === "p"){
+            //shortcut for /cam p
             array_unshift($args, "p");
-        }else if(!is_array($args) or count($args) < 1 or !is_string($args[0])){
-            return $this->sendHelpMessages($sender);
         }
 
-        $key = strToLower($sender->getName());
+        if(count($args) < 1){
+            return $this->sendHelpMessages($sender);
+        }
 
         switch(strToLower($args[0])){
             default:
@@ -198,23 +256,24 @@ class Cameraman extends PluginBase implements Listener {
             case "help":
                 return $this->sendHelpMessages($sender);
 
+            case "about":
+                return $this->sendAboutMessages($sender);
+
             case "p":
-                if(!isset($this->waypoints[$key])){
-                    $this->waypoints[$key] = [];
+                if(($waypoints = $this->getWaypoints($sender)) === null){
+                    $waypoints = $this->setWaypoints($sender, []);
                 }
 
                 if(count($args) > 1 and is_numeric($args[1])){
-                    $index = intval($args[1]);
-                    if($index < 1 or $index > count($this->waypoints[$key])){
-                        $this->sendMessage($sender, "The index is out of bounds! (total: " . count($this->waypoints[$key]) . ")", TextFormat::RED);
+                    if($this->isIndexOutOfBounds($index = intval($args[1]), $waypoints, $sender)){
                         return true;
                     }
 
-                    $this->waypoints[$key][$index - 1] = $sender->getLocation();
-                    $this->sendMessage($sender, "Reset Waypoint #" . $index . " (total: " . count($this->waypoints[$key]) . ")");
+                    $waypoints[$index - 1] = $sender->getLocation();
+                    $this->sendMessage($sender, "Reset Waypoint #" . $index . " (total: " . count($waypoints) . ")");
                 }else{
-                    $this->waypoints[$key][] = $sender->getLocation();
-                    $this->sendMessage($sender, "Added Waypoint #" . count($this->waypoints[$key]));
+                    $waypoints[] = $sender->getLocation();
+                    $this->sendMessage($sender, "Added Waypoint #" . count($waypoints));
                 }
                 break;
 
@@ -223,60 +282,51 @@ class Cameraman extends PluginBase implements Listener {
                     return $this->sendHelpMessages($sender, $args[0]);
                 }
 
-                if(!isset($this->waypoints[$key]) or count($this->waypoints[$key]) < 2){
+                if(($waypoints = $this->getWaypoints($sender)) === null or count($waypoints) < 2){
                     $this->sendMessage($sender, "You should set at least two waypoints!", TextFormat::RED);
                     return $this->sendHelpMessages($sender, "p");
                 }
 
-                if(isset($this->cameras[$key]) and $this->cameras[$key]->isRunning()){
-                    $this->cameras[$key]->stop();
+                if(($camera = $this->getCamera($sender)) !== null and $camera->isRunning()){
+                    $camera->stop();
                     $this->sendMessage($sender, "Interrupting current travels...", TextFormat::GRAY);
                 }
 
-                $slowness = doubleval($args[1]);
-                if($slowness < 0.0000001){
-                    $this->sendMessage($sender, "The slowness must be positive! (current: " . $slowness . ")", TextFormat::RED);
-                    return true;
+                if(($slowness = doubleval($args[1])) < 0.0000001){
+                    return $this->sendMessage($sender, "The slowness must be positive! (current: " . $slowness . ")", TextFormat::RED);
                 }
 
-                if($sender->getGamemode() !== 1){
+                /*if($sender->getGamemode() !== 1){
                     $this->sendMessage($sender, "You should set your gamemode to creative!", TextFormat::RED);
                     return true;
-                }
+                }*/
 
-                $this->cameras[$key] = new Camera($sender, Cameraman::createStraightMovements($this->waypoints[$key]), $slowness);
-                $this->cameras[$key]->start();
+                $this->setCamera($sender, new Camera($sender, Cameraman::createStraightMovements($waypoints), $slowness))->start();
                 $this->sendMessage($sender, "Travelling started! (make sure you are flying)");
                 break;
 
             case "stop":
-                if(!isset($this->cameras[$key]) or !$this->cameras[$key]->isRunning()){
-                    $this->sendMessage($sender, "Travels are already interrupted!", TextFormat::RED);
-                    return true;
+                if(($camera = $this->getCamera($sender)) === null or !$camera->isRunning()){
+                    return $this->sendMessage($sender, "Travels are already interrupted!", TextFormat::RED);
                 }
 
-                $this->cameras[$key]->stop();
-                unset($this->cameras[$key]);
-
+                $camera->stop(); unset($camera);
                 $this->sendMessage($sender, "Travelling has been interrupted!");
                 break;
 
             case "info":
-                if(!isset($this->waypoints[$key])){
-                    $this->sendMessage($sender, "There are no waypoints to show!", TextFormat::RED);
-                    return true;
+                if(($waypoints = $this->getWaypoints($sender)) === null or count($waypoints) === 0){
+                    return $this->sendMessage($sender, "There are no waypoints to show!", TextFormat::RED);
                 }
 
                 if(count($args) > 1 and is_numeric($args[1])){
-                    $index = intval($args[1]);
-                    if($index < 1 or $index > count($this->waypoints[$key])){
-                        $this->sendMessage($sender, "The index is out of bounds! (total: " . count($this->waypoints[$key]) . ")", TextFormat::RED);
+                    if($this->isIndexOutOfBounds($index = intval($args[1]), $waypoints, $sender)){
                         return true;
                     }
 
-                    $this->sendWaypointMessage($sender, $this->waypoints[$key][$index - 1], $index);
+                    $this->sendWaypointMessage($sender, $waypoints[$index - 1], $index);
                 }else{
-                    foreach($this->waypoints[$key] as $index => $waypoint){
+                    foreach($waypoints as $index => $waypoint){
                         $this->sendWaypointMessage($sender, $waypoint, $index + 1);
                     }
                 }
@@ -287,38 +337,32 @@ class Cameraman extends PluginBase implements Listener {
                     return $this->sendHelpMessages($sender, $args[0]);
                 }
 
-                if(!isset($this->waypoints[$key])){
-                    $this->sendMessage($sender, "There are no waypoints to teleport!", TextFormat::RED);
+                if(($waypoints = $this->getWaypoints($sender)) === null or count($waypoints) === 0){
+                    return $this->sendMessage($sender, "There are no waypoints to teleport!", TextFormat::RED);
+                }
+
+                if($this->isIndexOutOfBounds($index = intval($args[1]), $waypoints, $sender)){
                     return true;
                 }
 
-                $index = intval($args[1]);
-                if($index < 1 or $index > count($this->waypoints[$key])){
-                    $this->sendMessage($sender, "The index is out of bounds! (total: " . count($this->waypoints[$key]) . ")", TextFormat::RED);
-                    return true;
-                }
-
-                $sender->teleport($this->waypoints[$key][$index - 1]);
+                $sender->teleport($waypoints[$index - 1]);
                 $this->sendMessage($sender, "Teleported to Waypoint #" . $index . "!");
                 break;
 
             case "clear":
-                if(!isset($this->waypoints[$key])){
-                    $this->sendMessage($sender, "There are no waypoints to remove!", TextFormat::RED);
-                    return true;
+                if(($waypoints = $this->getWaypoints($sender)) === null or count($waypoints) === 0){
+                    return $this->sendMessage($sender, "There are no waypoints to remove!", TextFormat::RED);
                 }
 
                 if(count($args) > 1 and is_numeric($args[1])){
-                    $index = intval($args[1]);
-                    if($index < 1 or $index > count($this->waypoints[$key])){
-                        $this->sendMessage($sender, "The index is out of bounds! (total: " . count($this->waypoints[$key]) . ")", TextFormat::RED);
+                    if($this->isIndexOutOfBounds($index = intval($args[1]), $waypoints, $sender)){
                         return true;
                     }
 
-                    array_splice($this->waypoints[$key], $index - 1, 1);
-                    $this->sendMessage($sender, "Waypoint #" . $index . " has been removed! (total: " . count($this->waypoints[$key]) . ")");
+                    array_splice($waypoints, $index - 1, 1);
+                    $this->sendMessage($sender, "Waypoint #" . $index . " has been removed! (total: " . count($waypoints) . ")");
                 }else{
-                    unset($this->waypoints[$key]);
+                    unset($waypoints);
                     $this->sendMessage($sender, "All waypoints has been removed!");
                 }
                 break;
@@ -327,11 +371,26 @@ class Cameraman extends PluginBase implements Listener {
     }
 
     public function onDataPacketReceive(DataPacketReceiveEvent $event){
-        if($event->getPacket() instanceof MovePlayerPacket){
-            $camera = $this->getCamera($event->getPlayer());
-            if($camera !== null and $camera->isRunning()){
-               $event->setCancelled(true);
-            }
+        if($event->getPacket() instanceof MovePlayerPacket and ($camera = $this->getCamera($event->getPlayer())) !== null and $camera->isRunning()){
+            $event->setCancelled(true);
         }
+    }
+
+    /**
+     * @param Player $player
+     * @return bool|int
+     */
+    public static function sendMovePlayerPacket(Player $player){
+        $packet = new MovePlayerPacket();
+        $packet->eid = 0;
+        $packet->x = $player->getX();
+        $packet->y = $player->getY();
+        $packet->z = $player->getZ();
+        $packet->yaw = $player->getYaw();
+        $packet->bodyYaw = $player->getYaw();
+        $packet->pitch = $player->getPitch();
+        $packet->onGround = false;
+
+        return $player->dataPacket($packet);
     }
 }
