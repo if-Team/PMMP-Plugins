@@ -3,6 +3,7 @@ main: chalk\cameraman\Cameraman
 version: 0.1
 author: ChalkPE
 api: [1.12.0]
+website: http://chalk.pe
 
 permissions:
   cameraman.use:
