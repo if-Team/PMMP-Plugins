@@ -8,6 +8,7 @@ namespace chalk\cameraman;
 
 use chalk\cameraman\movement\Movement;
 use chalk\cameraman\task\CameraTask;
+use pocketmine\level\Location;
 use pocketmine\Player;
 
 class Camera {
@@ -21,7 +22,13 @@ class Camera {
     private $slowness;
 
     /** @var int */
-    private $taskId = -1, $gamemode;
+    private $taskId = -1;
+
+    /** @var int */
+    private $gamemode;
+
+    /** @var Location */
+    private $location;
 
     /**
      * @param Player $target
@@ -71,17 +78,20 @@ class Camera {
         if(!$this->isRunning()){
             $this->taskId = Cameraman::getInstance()->getServer()->getScheduler()->scheduleRepeatingTask(new CameraTask($this), 20 / Cameraman::TICKS_PER_SECOND)->getTaskId();
 
+            $this->location = $this->getTarget()->getLocation();
             $this->gamemode = $this->getTarget()->getGamemode();
+
             $this->getTarget()->setGamemode(Player::SPECTATOR);
         }
     }
 
     public function stop(){
         if($this->isRunning()){
-            Cameraman::getInstance()->getServer()->getScheduler()->cancelTask($this->taskId);
-            $this->taskId = -1;
+            Cameraman::getInstance()->getServer()->getScheduler()->cancelTask($this->taskId); $this->taskId = -1;
 
+            $this->getTarget()->teleport($this->location);
             $this->getTarget()->setGamemode($this->gamemode);
+
             Cameraman::getInstance()->sendMessage($this->getTarget(), "Travelling finished!");
         }
     }
