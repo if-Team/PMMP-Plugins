@@ -67,7 +67,7 @@ class Cameraman extends PluginBase implements Listener {
      * @return Location[]
      */
     public function getWaypoints(Player $player){
-        return isset($this->getWaypointMap()[$player->getName()]) ? $this->getWaypointMap()[$player->getName()] : null;
+        return isset($this->waypointMap[$player->getName()]) ? $this->waypointMap[$player->getName()] : null;
     }
 
     /**
@@ -76,8 +76,23 @@ class Cameraman extends PluginBase implements Listener {
      * @return Location[]
      */
     public function setWaypoints(Player $player, array $waypoints){
-        $this->getWaypointMap()[$player->getName()] = $waypoints;
+        $this->waypointMap[$player->getName()] = $waypoints;
         return $waypoints;
+    }
+
+    /**
+     * @param Player $player
+     * @param Location $waypoint
+     * @param int $index
+     * @return Location[]
+     */
+    public function setWaypoint(Player $player, Location $waypoint, $index = -1){
+        if($index >= 0){
+            $this->waypointMap[$player->getName()][$index] = $waypoint;
+        }else{
+            $this->waypointMap[$player->getName()][] = $waypoint;
+        }
+        return $this->waypointMap[$player->getName()];
     }
 
     /**
@@ -92,7 +107,7 @@ class Cameraman extends PluginBase implements Listener {
      * @return Camera|null
      */
     public function getCamera(Player $player){
-        return isset($this->getCameras()[$player->getName()]) ? $this->getCameras()[$player->getName()] : null;
+        return isset($this->cameras[$player->getName()]) ? $this->cameras[$player->getName()] : null;
     }
 
     /**
@@ -101,7 +116,7 @@ class Cameraman extends PluginBase implements Listener {
      * @return Camera
      */
     public function setCamera(Player $player, Camera $camera){
-        $this->getCameras()[$player->getName()] = $camera;
+        $this->cameras[$player->getName()] = $camera;
         return $camera;
     }
 
@@ -277,10 +292,10 @@ class Cameraman extends PluginBase implements Listener {
                         return true;
                     }
 
-                    $waypoints[$index - 1] = $sender->getLocation();
+                    $waypoints = $this->setWaypoint($sender, $sender->getLocation(), $index - 1);
                     $this->sendMessage($sender, "Reset Waypoint #" . $index . " (total: " . count($waypoints) . ")");
                 }else{
-                    $waypoints[] = $sender->getLocation();
+                    $waypoints = $this->setWaypoint($sender, $sender->getLocation());
                     $this->sendMessage($sender, "Added Waypoint #" . count($waypoints));
                 }
                 break;
