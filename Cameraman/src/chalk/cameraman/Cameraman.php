@@ -179,7 +179,10 @@ class Cameraman extends PluginBase implements Listener {
         }
 
         if($commandAlias === "p"){ //=> shortcut for /cam p
-            $args = ["p"] + $args;
+            if(!is_array($args)){
+                $args = [];
+            }
+            array_unshift($args, "p");
         }else if(!is_array($args) or count($args) < 1 or !is_string($args[0])){
             return $this->sendHelpMessages($sender);
         }
@@ -188,7 +191,9 @@ class Cameraman extends PluginBase implements Listener {
 
         switch(strToLower($args[0])){
             default:
-                return $this->sendMessage($sender, "Unknown command. Try " . TextFormat::UNDERLINE . "/cam help" . TextFormat::RESET . TextFormat::RED . " for a list of commands", TextFormat::RED);
+                $this->sendMessage($sender, "Unknown command!", TextFormat::RED);
+                $this->sendMessage($sender, "Try " . TextFormat::BOLD . "/cam help" . TextFormat::RESET . TextFormat::RED . " for a list of commands", TextFormat::RED);
+                break;
 
             case "help":
                 return $this->sendHelpMessages($sender);
