@@ -310,22 +310,17 @@ class Cameraman extends PluginBase implements Listener {
                     return $this->sendHelpMessages($sender, "p");
                 }
 
-                if(($camera = $this->getCamera($sender)) !== null and $camera->isRunning()){
-                    $camera->stop();
-                    $this->sendMessage($sender, "Interrupting current travels...", TextFormat::GRAY);
-                }
-
                 if(($slowness = doubleval($args[1])) < 0.0000001){
                     return $this->sendMessage($sender, "The slowness must be positive! (current: " . $slowness . ")", TextFormat::RED);
                 }
 
-                /*if($sender->getGamemode() !== 1){
-                    $this->sendMessage($sender, "You should set your gamemode to creative!", TextFormat::RED);
-                    return true;
-                }*/
+                if(($camera = $this->getCamera($sender)) !== null and $camera->isRunning()){
+                    $this->sendMessage($sender, "Interrupting current travels...", TextFormat::DARK_GREEN);
+                    $camera->stop();
+                }
 
                 $this->setCamera($sender, new Camera($sender, Cameraman::createStraightMovements($waypoints), $slowness))->start();
-                $this->sendMessage($sender, "Travelling started! (make sure you are flying)");
+                $this->sendMessage($sender, "Travelling started! (slowness: " . $slowness . ")");
                 break;
 
             case "stop":
