@@ -258,7 +258,7 @@ class Cameraman extends PluginBase implements Listener {
                 break;
 
             case "help":
-                if(count($args) > 1 and is_numeric($args[1])){
+                if(count($args) > 1){
                     return $this->sendHelpMessages($sender, $args[1]);
                 }else{
                     return $this->sendHelpMessages($sender);
