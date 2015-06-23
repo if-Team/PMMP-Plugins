@@ -151,47 +151,51 @@ class Cameraman extends PluginBase implements Listener {
      * @param string $command
      * @return bool
      */
-    public function sendHelpMessages(CommandSender $sender, $command = ""){
+    public function sendHelpMessages(CommandSender $sender, $command = "1"){
         $command = strToLower($command);
 
-        if(!$command or $command === "p"){
-            $this->sendMessage($sender, "/cam p [index]", TextFormat::DARK_GREEN);
-            $this->sendMessage($sender, "Adds a waypoint at the current position");
+        if(is_numeric($command)){
+            $sender->sendMessage(TextFormat::BOLD . TextFormat::DARK_GREEN . "-- Showing help page " . $command . " of 3 (/cam help [page]) --");
         }
 
-        if(!$command or $command === "start"){
-            $this->sendMessage($sender, "/cam start <slowness>", TextFormat::DARK_GREEN);
-            $this->sendMessage($sender, "Travels the path in the given slowness");
+        if($command === "" or $command === "1" or $command === "p"){
+            $this->sendMessage($sender, "/cam p [index]");
+            $this->sendMessage($sender, "Adds a waypoint at the current position", TextFormat::DARK_GREEN);
         }
 
-        if(!$command or $command === "stop"){
-            $this->sendMessage($sender, "/cam stop", TextFormat::DARK_GREEN);
-            $this->sendMessage($sender, "Interrupts travelling");
+        if($command === "" or $command === "1" or $command === "start"){
+            $this->sendMessage($sender, "/cam start <slowness>");
+            $this->sendMessage($sender, "Travels the path in the given slowness", TextFormat::DARK_GREEN);
         }
 
-        if(!$command or $command === "stat"){
-            $this->sendMessage($sender, "/cam info [index]", TextFormat::DARK_GREEN);
-            $this->sendMessage($sender, "Shows the information of current waypoints");
+        if($command === "" or $command === "1" or $command === "stop"){
+            $this->sendMessage($sender, "/cam stop");
+            $this->sendMessage($sender, "Interrupts travelling", TextFormat::DARK_GREEN);
         }
 
-        if(!$command or $command === "goto"){
-            $this->sendMessage($sender, "/cam goto <index>", TextFormat::DARK_GREEN);
-            $this->sendMessage($sender, "Teleports to the specified waypoint");
+        if($command === "" or $command === "2" or $command === "info"){
+            $this->sendMessage($sender, "/cam info [index]");
+            $this->sendMessage($sender, "Shows the information of current waypoints", TextFormat::DARK_GREEN);
         }
 
-        if(!$command or $command === "clear"){
-            $this->sendMessage($sender, "/cam clear [index]", TextFormat::DARK_GREEN);
-            $this->sendMessage($sender, "Removes all or specific waypoints");
+        if($command === "" or $command === "2" or $command === "goto"){
+            $this->sendMessage($sender, "/cam goto <index>");
+            $this->sendMessage($sender, "Teleports to the specified waypoint", TextFormat::DARK_GREEN);
         }
 
-        if(!$command or $command === "help"){
-            $this->sendMessage($sender, "/cam help", TextFormat::DARK_GREEN);
-            $this->sendMessage($sender, "Shows the help menu of commands");
+        if($command === "" or $command === "2" or $command === "clear"){
+            $this->sendMessage($sender, "/cam clear [index]");
+            $this->sendMessage($sender, "Removes all or specific waypoints", TextFormat::DARK_GREEN);
         }
 
-        if(!$command or $command === "about"){
-            $this->sendMessage($sender, "/cam about", TextFormat::DARK_GREEN);
-            $this->sendMessage($sender, "Shows the information of this plugin");
+        if($command === "" or $command === "3" or $command === "help"){
+            $this->sendMessage($sender, "/cam help [command]");
+            $this->sendMessage($sender, "Shows the help menu of commands", TextFormat::DARK_GREEN);
+        }
+
+        if($command === "" or $command === "3" or $command === "about"){
+            $this->sendMessage($sender, "/cam about");
+            $this->sendMessage($sender, "Shows the information of this plugin", TextFormat::DARK_GREEN);
         }
         
         return true;
@@ -254,7 +258,11 @@ class Cameraman extends PluginBase implements Listener {
                 break;
 
             case "help":
-                return $this->sendHelpMessages($sender);
+                if(count($args) > 1 and is_numeric($args[1])){
+                    return $this->sendHelpMessages($sender, $args[1]);
+                }else{
+                    return $this->sendHelpMessages($sender);
+                }
 
             case "about":
                 return $this->sendAboutMessages($sender);
