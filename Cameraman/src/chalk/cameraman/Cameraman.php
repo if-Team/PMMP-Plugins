@@ -320,7 +320,6 @@ class Cameraman extends PluginBase implements Listener {
                 }
 
                 $this->setCamera($sender, new Camera($sender, Cameraman::createStraightMovements($waypoints), $slowness))->start();
-                $this->sendMessage($sender, "Travelling started! (slowness: " . $slowness . ")");
                 break;
 
             case "stop":

@@ -82,6 +82,7 @@ class Camera {
             $this->gamemode = $this->getTarget()->getGamemode();
 
             $this->getTarget()->setGamemode(Player::SPECTATOR);
+            Cameraman::getInstance()->sendMessage($this->getTarget(), "Travelling started! (slowness: " . $this->getSlowness() . ")");
         }
     }
 
