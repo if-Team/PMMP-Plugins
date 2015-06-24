@@ -48,7 +48,7 @@ class Gentleman extends PluginBase implements Listener {
 		if (\substr ( $command, 0, 1 ) != "/") { // only chat
 			if (! isset ( $this->chatCheck [$event->getPlayer ()->getName () . ">" . $command] )) {
 				$this->chatCheck [$event->getPlayer ()->getName () . ">" . $command] = false;
-				$this->getServer ()->getScheduler ()->scheduleAsyncTask ( new GentlemanAsyncTask ( $event->getPlayer ()->getName (), "chat.type.text", $event->getMessage (), $this->badQueue, $this->dictionary, "chat", true ) );
+				$this->getServer ()->getScheduler ()->scheduleAsyncTask ( new GentlemanAsyncTask ( $event->getPlayer ()->getName (), "chat.type.text", $event->getMessage (), $this->badQueue, $this->dictionary, "chat", true, true ) );
 				$event->setCancelled ();
 				return;
 			} else {
@@ -123,10 +123,12 @@ class Gentleman extends PluginBase implements Listener {
 	}
 	public function asyncProcess($name, $format, $message, $find, $eventType) {
 		$player = $this->playerTemp [$name];
-		if (! $player instanceof Player)
+		if (! $player instanceof Player){
 			return;
-		if ($player->closed)
+		}
+		if ($player->closed){
 			return;
+		}
 		switch ($eventType) {
 			case "chat" :
 				if ($find == null) {
