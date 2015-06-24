@@ -123,6 +123,10 @@ class Gentleman extends PluginBase implements Listener {
 	}
 	public function asyncProcess($name, $format, $message, $find, $eventType) {
 		$player = $this->playerTemp [$name];
+		if (! $player instanceof Player)
+			return;
+		if ($player->closed)
+			return;
 		switch ($eventType) {
 			case "chat" :
 				if ($find == null) {
