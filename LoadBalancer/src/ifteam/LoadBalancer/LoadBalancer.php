@@ -241,12 +241,13 @@ class LoadBalancer extends PluginBase implements Listener {
 						return true;
 					}
 					$find = null;
-					foreach ($this->db ["masterList"] as $index => $address){
-						if($address == $args[1]) $find = $index;
+					foreach ( $this->db ["masterList"] as $index => $address ) {
+						if ($address == $args [1])
+							$find = $index;
 					}
-					if($find === null){
+					if ($find === null) {
 						$this->message ( $player, $this->get ( "master-server-doesnt-exist" ) );
-					}else{
+					} else {
 						unset ( $this->db ["masterList"] [$find] );
 						$this->message ( $player, $this->get ( "master-server-deleted" ) );
 					}
@@ -444,6 +445,15 @@ class LoadBalancer extends PluginBase implements Listener {
 		$save = new Config ( $this->getDataFolder () . "pluginDB.yml", Config::YAML );
 		$save->setAll ( $this->db );
 		$save->save ();
+		
+		foreach ( $this->getServer ()->getOnlinePlayers () as $onlinePlayer ) {
+			if (! $onlinePlayer instanceof DummyPlayer)
+				continue;
+			if (! isset ( $allPlayerList [$onlinePlayer->getName ()] )) {
+				$onlinePlayer->loggedIn = false;
+				$onlinePlayer->close ();
+			}
+		}
 	}
 	/**
 	 * Custom Packet event processing, server connection work

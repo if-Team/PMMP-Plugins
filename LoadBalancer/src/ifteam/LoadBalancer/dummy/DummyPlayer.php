@@ -19,7 +19,7 @@ class DummyPlayer extends Player {
 		//parent::handleDataPacket ( $packet );
 	}
 	public function isOnline() {
-		return false;
+		return true;
 	}
 	public function isAlive(){
 		return false;
