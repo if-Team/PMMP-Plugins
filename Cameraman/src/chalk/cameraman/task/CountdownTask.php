@@ -15,47 +15,50 @@ class CountdownTask extends PluginTask {
     /** @var Player */
     private $player;
 
-    /** @var callable */
-    private $callback;
-
     /** @var string */
     private $message;
+
+    /** @var callable */
+    private $callback;
 
     /** @var int */
     private $countdown;
 
     /**
      * @param Player $player
-     * @param callable $callback
      * @param string $message
+     * @param callable $callback
      * @param int $countdown
      */
-    function __construct(Player $player, callable $callback, $message, $countdown = 3){
+    function __construct(Player $player, $message, callable $callback, $countdown = 3){
         parent::__construct(Cameraman::getInstance());
 
         $this->player = $player;
-        $this->countdown = $countdown;
+        $this->message = $message;
         $this->callback = $callback;
+        $this->countdown = $countdown;
     }
 
     /**
      * @param $currentTick
      */
     public function onRun($currentTick){
-        if(--$this->countdown <= 0){
-            $this->getOwner()->getServer()->getScheduler()->cancelTask($this->getTaskId());
-
-            call_user_func($this->callback);
+        echo $this->countdown . PHP_EOL;
+        if($this->countdown <= 0){
+            Cameraman::getInstance()->cancelCountdownTask($this); //FIXME: Task doesn't stop!
             return;
         }
 
-        Cameraman::getInstance()->sendMessage($this->player, str_replace("%countdown%", $this->countdown, $this->message));
+        if(is_string($this->message)){
+            Cameraman::getInstance()->sendMessage($this->player, str_replace("%countdown%", $this->countdown, $this->message));
+        }
+
+        $this->countdown--;
     }
 
-    /**
-     * @return Player
-     */
-    public function getPlayer(){
-        return $this->player;
+    public function onCancel(){
+        call_user_func($this->callback);
     }
+
+
 }

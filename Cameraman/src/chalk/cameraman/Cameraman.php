@@ -8,6 +8,7 @@
 namespace chalk\cameraman;
 
 use chalk\cameraman\movement\StraightMovement;
+use chalk\cameraman\task\CountdownTask;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\event\Listener;
@@ -409,5 +410,13 @@ class Cameraman extends PluginBase implements Listener {
         $packet->onGround = false;
 
         return $player->dataPacket($packet);
+    }
+
+    public function scheduleCountdownTask(CountdownTask $task, $period = 20){
+        $this->getServer()->getScheduler()->scheduleDelayedRepeatingTask($task, $period, $period);
+    }
+
+    public function cancelCountdownTask(CountdownTask $task){
+        $this->getServer()->getScheduler()->cancelTask($task->getTaskId());
     }
 }

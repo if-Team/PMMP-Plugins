@@ -8,6 +8,7 @@ namespace chalk\cameraman;
 
 use chalk\cameraman\movement\Movement;
 use chalk\cameraman\task\CameraTask;
+use chalk\cameraman\task\CountdownTask;
 use pocketmine\level\Location;
 use pocketmine\Player;
 
@@ -76,13 +77,17 @@ class Camera {
 
     public function start(){
         if(!$this->isRunning()){
-            $this->taskId = Cameraman::getInstance()->getServer()->getScheduler()->scheduleRepeatingTask(new CameraTask($this), 20 / Cameraman::TICKS_PER_SECOND)->getTaskId();
-
             $this->location = $this->getTarget()->getLocation();
             $this->gamemode = $this->getTarget()->getGamemode();
 
             $this->getTarget()->setGamemode(Player::SPECTATOR);
-            Cameraman::getInstance()->sendMessage($this->getTarget(), "Travelling started! (slowness: " . $this->getSlowness() . ")");
+
+            $that = $this;
+            Cameraman::getInstance()->scheduleCountdownTask(new CountdownTask($this->getTarget(), "Travelling will start in %countdown% seconds...", function() use ($that){
+                $that->taskId = Cameraman::getInstance()->getServer()->getScheduler()->scheduleRepeatingTask(new CameraTask($that), 20 / Cameraman::TICKS_PER_SECOND)->getTaskId();
+
+                Cameraman::getInstance()->sendMessage($that->getTarget(), "Travelling started! (slowness: " . $that->getSlowness() . ")");
+            }));
         }
     }
 
@@ -90,10 +95,13 @@ class Camera {
         if($this->isRunning()){
             Cameraman::getInstance()->getServer()->getScheduler()->cancelTask($this->taskId); $this->taskId = -1;
 
-            $this->getTarget()->teleport($this->location);
-            $this->getTarget()->setGamemode($this->gamemode);
+            $that = $this;
+            Cameraman::getInstance()->scheduleCountdownTask(new CountdownTask($this->getTarget(), null, function() use ($that){
+                $that->getTarget()->teleport($that->location);
+                $that->getTarget()->setGamemode($that->gamemode);
 
-            Cameraman::getInstance()->sendMessage($this->getTarget(), "Travelling finished!");
+                Cameraman::getInstance()->sendMessage($that->getTarget(), "Travelling finished!");
+            }));
         }
     }
 }
