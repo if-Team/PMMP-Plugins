@@ -20,17 +20,19 @@ use pocketmine\command\CommandSender;
 use ifteam\LoadBalancer\task\GetExternalIPAsyncTask;
 use pocketmine\command\Command;
 use pocketmine\command\PluginCommand;
+use ifteam\LoadBalancer\api\EDGEControl;
 
 class LoadBalancer extends PluginBase implements Listener {
 	private static $instance = null; /* Plug-in instance variables */
 	public $messages, $db; /* Message variables, DB variables */
-	public $m_version = 2; /* Current version of the message */
+	public $m_version = 3; /* Current version of the message */
 	public $updateList = [ ]; /* Slave Server List */
 	public $cooltime = [ ]; /* Prevent access bombard */
 	public $callback; /* LoadBalancerTask */
 	public $dummyInterface; /* Dummy Player Interface */
 	public $externalIp = null; /* Server External Ip */
 	public $checkFistConnect = [ ]; /* Check First Connect */
+	public $slaveData; /* SlaveMode Data */
 	public function onEnable() {
 		/* make Plug-in DataFolder */
 		@mkdir ( $this->getDataFolder () );
@@ -68,6 +70,7 @@ class LoadBalancer extends PluginBase implements Listener {
 			if ($this->db ["mode"] == "master")
 				$this->dummyInterface = new DummyInterface ( $this->getServer () );
 			$this->callback = $this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new LoadBalancerTask ( $this ), 20 );
+			new EDGEControl($this);
 		}
 	}
 	/**
@@ -475,15 +478,29 @@ class LoadBalancer extends PluginBase implements Listener {
 				$this->getLogger ()->info ( TextFormat::DARK_AQUA . $ev->getPacket ()->address . ":" . $ev->getPacket ()->port . " " . $this->get ( "mastermode-first-connected" ) );
 				CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, json_encode ( [ 
 						$this->db ["passcode"],
-						"0",
+						"hello",
 						"0",
 						"0" 
 				] ) ) );
+			} else {
+				CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, json_encode ( [ 
+						$this->db ["passcode"],
+						"online",
+						count ( $this->getServer ()->getOnlinePlayers () ),
+						$this->getServer ()->getMaxPlayers () 
+				] ) ) );
 			}
 		} else if ($this->db ["mode"] == "slave") {
-			if (! isset ( $this->checkFistConnect [$ev->getPacket ()->address . ":" . $ev->getPacket ()->port] )) {
-				$this->checkFistConnect [$ev->getPacket ()->address . ":" . $ev->getPacket ()->port] = 1;
-				$this->getLogger ()->info ( TextFormat::DARK_AQUA . $ev->getPacket ()->address . ":" . $ev->getPacket ()->port . " " . $this->get ( "slavemode-first-connected" ) );
+			switch ($data [1]) {
+				case "hello" :
+					if (! isset ( $this->checkFistConnect [$ev->getPacket ()->address . ":" . $ev->getPacket ()->port] )) {
+						$this->checkFistConnect [$ev->getPacket ()->address . ":" . $ev->getPacket ()->port] = 1;
+						$this->getLogger ()->info ( TextFormat::DARK_AQUA . $ev->getPacket ()->address . ":" . $ev->getPacket ()->port . " " . $this->get ( "slavemode-first-connected" ) );
+					}
+					break;
+				case "online" :
+					$this->slaveData ["online"] = $data [2];
+					$this->slaveData ["max"] = $data [3];
 			}
 		}
 	}

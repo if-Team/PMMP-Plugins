@@ -2,7 +2,7 @@
 # YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
 
 #PLEASE SET HERE TO YOUR LANGUAGE PREFIX
-m_version: 2
+m_version: 3
 
 #(EN) ENGLISH
 eng: true
@@ -38,6 +38,7 @@ kor-loadbalancer-changepw-help: "/로드밸런서 암호변경 <암호> - 로드
 kor-only-available-slave-mode: "슬레이브모드 서버만 사용가능합니다"
 kor-slavemode-first-connected: " 로드밸런서에 정상연결되었습니다."
 kor-mastermode-first-connected: "서버가 이 로드밸런서에 연결되었습니다."
+kor-all-online-count: "전체서버인원:"
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/blob/master/LoadBalancer/resources/messages.yml
