@@ -9,7 +9,8 @@ use pocketmine\Server;
 class GentlemanAsyncTask extends AsyncTask {
 	public $name, $format, $message;
 	public $badQueue, $dictionary, $dictionaryCheck, $eventType, $find = null;
-	public function __construct($name, $format, $message, &$badQueue, &$dictionary, $eventType, $dictionaryCheck = false) {
+	public $isFullChat;
+	public function __construct($name, $format, $message, &$badQueue, &$dictionary, $eventType, $dictionaryCheck = false, $isFullChat = false) {
 		$this->name = $name;
 		$this->format = $format;
 		$this->message = $message;
@@ -17,9 +18,17 @@ class GentlemanAsyncTask extends AsyncTask {
 		$this->dictionary = $dictionary;
 		$this->dictionaryCheck = $dictionaryCheck;
 		$this->eventType = $eventType;
+		$this->isFullChat = $isFullChat;
 	}
 	public function onRun() {
-		$this->find = $this->checkSwearWord ( $this->message, $this->dictionaryCheck );
+		if ($this->isFullChat) {
+			$chat = explode ( ">", $this->message );
+			array_shift ( $chat );
+			$chat = implode ( $chat );
+			$this->find = $this->checkSwearWord ( $chat, $this->dictionaryCheck );
+		} else {
+			$this->find = $this->checkSwearWord ( $this->message, $this->dictionaryCheck );
+		}
 	}
 	public function onCompletion(Server $server) {
 		$this->badQueue = null;
@@ -41,7 +50,8 @@ class GentlemanAsyncTask extends AsyncTask {
 		return $cut_array;
 	}
 	public function checkSwearWord($word, $dictionaryCheck = false) {
-		if ($dictionaryCheck) $word = $this->removeDictionaryText ( $word );
+		if ($dictionaryCheck)
+			$word = $this->removeDictionaryText ( $word );
 		$word = $this->cutWords ( $word );
 		foreach ( $this->badQueue as $queue ) { // 비속어단어별 [바,보]
 			$wordLength = count ( $queue );
@@ -52,7 +62,8 @@ class GentlemanAsyncTask extends AsyncTask {
 						$find_count [$match_alpha] = 0; // ["바"=>0 "보"=0]
 						break;
 					}
-				if ($wordLength == count ( $find_count )) return implode ( "", $queue );
+				if ($wordLength == count ( $find_count ))
+					return implode ( "", $queue );
 			}
 		}
 		return null;

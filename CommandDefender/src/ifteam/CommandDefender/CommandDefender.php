@@ -34,6 +34,7 @@ class CommandDefender extends PluginBase implements Listener {
 			return;
 		if ($event->isCancelled ())
 			return;
+		if($event->getPlayer()->closed) return;
 		if (! isset ( $this->queue [$event->getPlayer ()->getAddress ()] ))
 			$this->queue [$event->getPlayer ()->getAddress ()] = 1;
 		$this->queue [$event->getPlayer ()->getAddress ()] ++;
@@ -48,6 +49,7 @@ class CommandDefender extends PluginBase implements Listener {
 			return;
 		if ($event->isCancelled ())
 			return;
+		if($event->getPlayer()->closed) return;
 		if (! isset ( $this->queue [$event->getPlayer ()->getAddress ()] ))
 			$this->queue [$event->getPlayer ()->getAddress ()] = 1;
 		$this->queue [$event->getPlayer ()->getAddress ()] ++;

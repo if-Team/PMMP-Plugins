@@ -23,7 +23,7 @@ class DummyInterface implements SourceInterface {
 		unset ( $this->ackStore [$player->getName ()] );
 		unset ( $this->replyStore [$player->getName ()] );
 	}
-	public function openSession($username, $address = "SPECTER", $port = 0) {
+	public function openSession($username, $address = "LOADBALANCER", $port = 0) {
 		if (! isset ( $this->replyStore [$username] )) {
 			$player = new DummyPlayer ( $this, null, $address, $port );
 			$player->setName ( $username );

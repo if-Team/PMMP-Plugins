@@ -46,6 +46,10 @@ class API_CustomPacketListner implements Listener {
 	}
 	public function sendRedistribution(Event $event, $message) {
 		if ($this->customPacketAvailable and $this->plugin->getConfig ()->get ( "echo-enabled", false )) {
+			if ($event instanceof PlayerCommandPreprocessEvent) {
+				if ($event->getPlayer ()->closed)
+					return;
+			}
 			$passcode = $this->plugin->getConfig ()->get ( "echo-passcode", null );
 			if ($passcode === null) {
 				return;

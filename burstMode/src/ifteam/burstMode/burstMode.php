@@ -51,6 +51,7 @@ class burstMode extends PluginBase implements Listener { // spl_object_hash
 		
 		if (! $player instanceof Player)
 			return;
+		if ($player->closed) return;
 		if ($entity instanceof Snowball) {
 			$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new BurstSnowballTask ( $this, $player ), 10 );
 			$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new BurstSnowballTask ( $this, $player ), 20 );
