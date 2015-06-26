@@ -413,7 +413,7 @@ class Cameraman extends PluginBase implements Listener {
     }
 
     public function scheduleCountdownTask(CountdownTask $task, $period = 20){
-        $this->getServer()->getScheduler()->scheduleDelayedRepeatingTask($task, $period, $period);
+        $this->getServer()->getScheduler()->scheduleRepeatingTask($task, $period);
     }
 
     public function cancelCountdownTask(CountdownTask $task){
