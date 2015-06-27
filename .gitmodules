@@ -1,3 +1,6 @@
+[submodule "Cameraman"]
+	path = Cameraman
+	url = https://github.com/ChalkPE/Cameraman
 [submodule "MineBros"]
 	path = MineBros
 	url = https://github.com/ns827/MineBros.git
