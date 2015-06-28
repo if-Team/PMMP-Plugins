@@ -1,0 +1,16 @@
+name: SignGeneration
+main: ifteam\SignGeneration\SignGeneration
+version: 1.1-alpha
+author: ifteam
+api: [1.4.1]
+
+commands:
+ signgen:
+   permission: SignGeneration.commands.set
+   description: SignGeneration control commands
+   usage: /signgen
+
+permission:
+ SignGeneration.commands.*:
+  default: OP
+  description: Allows commands of SignGeneration control
