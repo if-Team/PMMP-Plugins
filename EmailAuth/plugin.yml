@@ -1,0 +1,17 @@
+name: EmailAuth
+main: ifteam\EmailAuth\EmailAuth
+author: ifteam
+version: 0.3-non-alpha
+api: [1.12.0]
+
+permissions:
+ EmailAuth.login:
+  default: true
+ EmailAuth.logout:
+  default: true
+ EmailAuth.register:
+  default: true
+ EmailAuth.unregister:
+  default: true
+ EmailAuth.manage:
+  default: OP

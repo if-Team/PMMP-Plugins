@@ -15,7 +15,7 @@
  * GNU General Public License for more details.
 */
 
-namespace ifteam\emailAuth\provider;
+namespace ifteam\EmailAuth\provider;
 
 use pocketmine\IPlayer;
 use pocketmine\utils\Config;

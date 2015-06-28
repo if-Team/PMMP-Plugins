@@ -1,6 +1,6 @@
 <?php
 
-namespace ifteam\emailAuth;
+namespace ifteam\EmailAuth;
 
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
@@ -23,16 +23,19 @@ use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\inventory\InventoryOpenEvent;
 use pocketmine\command\PluginCommand;
-use ifteam\emailAuth\provider\YAMLDataProvider;
-use ifteam\emailAuth\provider\SQLite3DataProvider;
-use ifteam\emailAuth\provider\MySQLDataProvider;
-use ifteam\emailAuth\provider\DummyDataProvider;
-use ifteam\emailAuth\provider\DataProvider;
+use ifteam\EmailAuth\provider\YAMLDataProvider;
+use ifteam\EmailAuth\provider\SQLite3DataProvider;
+use ifteam\EmailAuth\provider\MySQLDataProvider;
+use ifteam\EmailAuth\provider\DummyDataProvider;
+use ifteam\EmailAuth\provider\DataProvider;
+use ifteam\EmailAuth\api\API_CustomPacketListner;
+use ifteam\EmailAuth\task\AutoSaveTask;
+use ifteam\EmailAuth\task\EmailSendTask;
 
 // TODO 리스트 - 현재남은 작업들
 // 이메일 - 가입 OTP 탈퇴 개발완료
 // 이메일 - 심플오스 데이터 이식기능 개발완료
-class emailAuth extends PluginBase implements Listener {
+class EmailAuth extends PluginBase implements Listener {
 	private static $instance = null;
 	public $db = [ ];
 	public $needAuth = [ ];
@@ -40,6 +43,7 @@ class emailAuth extends PluginBase implements Listener {
 	public $wrongauth = [ ]; // Prevent brute forcing
 	public $m_version = 1;
 	public $checkCustomPacket = false;
+	public $api_custompacket;
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		
@@ -49,7 +53,7 @@ class emailAuth extends PluginBase implements Listener {
 		$this->saveDefaultConfig ();
 		$this->reloadConfig ();
 		
-		$this->db = new dataBase ( $this->getDataFolder () . "database.yml" );
+		$this->db = new DataBase ( $this->getDataFolder () . "database.yml" );
 		
 		$this->saveResource ( "signform.html", false );
 		$this->saveResource ( "config.yml", false );
@@ -58,13 +62,13 @@ class emailAuth extends PluginBase implements Listener {
 		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new AutoSaveTask ( $this ), 2400 );
 		$this->onActivateCheck ();
 		
-		new API_CustomPacketListner ( $this );
+		$this->api_custompacket = new API_CustomPacketListner ( $this );
 		
-		$this->registerCommand ( $this->get ( "login" ), "emailAuth.login", $this->get ( "login-help" ), "/" . $this->get ( "login" ) );
-		$this->registerCommand ( $this->get ( "logout" ), "emailAuth.logout", $this->get ( "logout-help" ), "/" . $this->get ( "logout" ) );
-		$this->registerCommand ( $this->get ( "register" ), "emailAuth.register", $this->get ( "register-help" ), "/" . $this->get ( "register" ) );
-		$this->registerCommand ( $this->get ( "unregister" ), "emailAuth.unregister", $this->get ( "unregister-help" ), "/" . $this->get ( "unregister" ) );
-		$this->registerCommand ( "emailauth", "emailAuth.manage", $this->get ( "manage-help" ), "/emailauth" );
+		$this->registerCommand ( $this->get ( "login" ), "EmailAuth.login", $this->get ( "login-help" ), "/" . $this->get ( "login" ) );
+		$this->registerCommand ( $this->get ( "logout" ), "EmailAuth.logout", $this->get ( "logout-help" ), "/" . $this->get ( "logout" ) );
+		$this->registerCommand ( $this->get ( "register" ), "EmailAuth.register", $this->get ( "register-help" ), "/" . $this->get ( "register" ) );
+		$this->registerCommand ( $this->get ( "unregister" ), "EmailAuth.unregister", $this->get ( "unregister-help" ), "/" . $this->get ( "unregister" ) );
+		$this->registerCommand ( "emailauth", "EmailAuth.manage", $this->get ( "manage-help" ), "/emailauth" );
 		
 		if (file_exists ( $this->getDataFolder () . "SimpleAuth/players" ))
 			$this->getSimpleAuthData ();
@@ -179,6 +183,12 @@ class emailAuth extends PluginBase implements Listener {
 		return static::$instance;
 	}
 	public function onJoin(PlayerJoinEvent $event) {
+		if ($this->getConfig ()->get ( "servermode", null ) == "slave") {
+			// 커스텀패킷이 작동하고 있고, 슬레이브모드면 일단 모든걸 중지 후
+			// 마스터서버로의 데이터가 오고 인증이 재기되기까지 대기
+			if ($this->checkCustomPacket)
+				return;
+		}
 		if (isset ( $this->db->getAll ()["ip"][$event->getPlayer ()->getAddress ()] )) {
 			$this->message ( $event->getPlayer (), $this->get ( "automatic-ip-logined" ) );
 		} else {
@@ -219,6 +229,12 @@ class emailAuth extends PluginBase implements Listener {
 		}
 		switch (strtolower ( $command->getName () )) {
 			case $this->get ( "login" ) :
+				if ($this->getConfig ()->get ( "servermode", null ) == "slave") {
+					// 커스텀패킷이 작동하고 있고, 슬레이브모드면 일단 모든걸 중지 후
+					// 마스터서버로의 데이터가 오고 인증이 재기되기까지 대기
+					if ($this->checkCustomPacket)
+						return;
+				}
 				if (! isset ( $this->needAuth [$player->getName ()] )) {
 					$this->message ( $player, $this->get ( "already-logined" ) );
 					return true;
@@ -337,7 +353,7 @@ class emailAuth extends PluginBase implements Listener {
 					$authCode = $this->authCodeGenerator ( 6 );
 					$nowTime = date ( "Y-m-d H:i:s" );
 					$serverName = $this->getConfig ()->get ( "serverName", "" );
-					$task = new emailSendTask ( $args [0], $playerName, $nowTime, $serverName, $authCode, $this->getConfig ()->getAll (), $this->getDataFolder () . "signform.html" );
+					$task = new EmailSendTask ( $args [0], $playerName, $nowTime, $serverName, $authCode, $this->getConfig ()->getAll (), $this->getDataFolder () . "signform.html" );
 					$this->getServer ()->getScheduler ()->scheduleAsyncTask ( $task );
 					$this->authcode [$playerName] = [ 
 							"authcode" => $authCode,
@@ -347,6 +363,12 @@ class emailAuth extends PluginBase implements Listener {
 				}
 				break;
 			case $this->get ( "unregister" ) :
+				if ($this->getConfig ()->get ( "servermode", null ) == "slave") {
+					// 커스텀패킷이 작동하고 있고, 슬레이브모드면 일단 모든걸 중지 후
+					// 마스터서버로의 데이터가 오고 인증이 재기되기까지 대기
+					if ($this->checkCustomPacket)
+						return;
+				}
 				$this->db->deleteUser ( $this->db->getEmail ( $player ) );
 				$this->message ( $player, $this->get ( "unregister-is-complete" ) );
 				break;

@@ -1,5 +1,5 @@
 <?php
-namespace ifteam\emailAuth;
+namespace ifteam\EmailAuth;
 
 /**
  * PHPMailer - PHP email creation and transport class.

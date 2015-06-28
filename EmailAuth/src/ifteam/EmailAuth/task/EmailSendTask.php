@@ -1,11 +1,11 @@
 <?php
 
-namespace ifteam\emailAuth;
+namespace ifteam\EmailAuth\task;
 
 use pocketmine\scheduler\AsyncTask;
 use pocketmine\Server;
 
-class emailSendTask extends AsyncTask {
+class EmailSendTask extends AsyncTask {
 	public $sendMail, $id, $time, $serverName, $code, $istest, $config, $signform;
 	public function __construct($sendMail, $id, $time, $serverName, $code, $config, $signform) {
 		$this->sendMail = $sendMail;

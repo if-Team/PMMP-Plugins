@@ -1,11 +1,11 @@
 <?php
 
-namespace ifteam\emailAuth;
+namespace ifteam\EmailAuth;
 
 use pocketmine\utils\Config;
 use pocketmine\Player;
 
-class dataBase {
+class DataBase {
 	private $path, $yml;
 	public function __construct($path) {
 		$this->path = &$path;

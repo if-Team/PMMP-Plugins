@@ -1,5 +1,5 @@
 <?php
-namespace ifteam\emailAuth;
+namespace ifteam\EmailAuth;
 /**
  * PHPMailer RFC821 SMTP email transport class.
  * PHP Version 5

@@ -6,7 +6,7 @@ m_version: 1
 
 #(EN) ENGLISH
 eng: true
-eng-default-prefix: "[emailAuth]"
+eng-default-prefix: "[EmailAuth]"
 eng-login: "login"
 eng-login-help: "Log in to the server"
 eng-logout: "logout"
@@ -15,7 +15,7 @@ eng-register: "register"
 eng-register-help: "Register in to the server"
 eng-unregister: "unregister"
 eng-unregister-help: "unregister in to the server"
-eng-manage-help: "Manage the emailAuth"
+eng-manage-help: "Manage the EmailAuth"
 eng-adminMail-doesnt-exist: "adminEmail doesn't exist! test failed!"
 eng-adminEmailHost-doesnt-exist: "adminEmailHost doesn't exist! test failed!"
 eng-adminEmailPort-doesnt-exist: "adminEmailPort doesn't exist! test failed!"
@@ -33,10 +33,10 @@ eng-setup-help-mail: "/emailauth setup mail - MAIL ADDRESS"
 eng-setup-help-pass: "/emailauth setup pass - MAIL PASSWORD"
 eng-setup-help-host: "/emailauth setup host - MAIL HOSTDOMAIN"
 eng-setup-help-port: "/emailauth setup port - MAIL HOSTPORT"
-eng-setup-complete: "check your e-mail, if PocketMine mail is exist, now you can use emailAuth!"
+eng-setup-complete: "check your e-mail, if PocketMine mail is exist, now you can use EmailAuth!"
 eng-setup-failed: "Failed sending email, please check that the settings are incorrect."
 eng-automatic-ip-logined: "You are logged automatically! (IP Auth)"
-eng-emailauth-notification: "This server is under way to account protection via emailAuth"
+eng-emailauth-notification: "This server is under way to account protection via EmailAuth"
 eng-you-need-a-login: "Please proceed to Login! /login <password>"
 eng-you-need-a-register: "/register <email or authcode> <you want password>"
 kor-you-needReAuthMessage: "/register <email or authcode> <past password>"
@@ -142,6 +142,9 @@ kor-please-type-master-port: "마스터서버의 포트를 입력해주세요"
 kor-master-ip-selected: "마스터서버 아이피가 설정되었습니다"
 kor-master-port-selected: "마스터서버 포트가 설정되었습니다"
 kor-all-setup-complete: "모든 설정이 완료되었습니다"
+kor-slavemode-first-connected: " 로드밸런서에 정상연결되었습니다."
+kor-mastermode-first-connected: "서버가 이 로드밸런서에 연결되었습니다."
+kor-
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
-# https://github.com/if-Team/PMMP-Plugins/blob/master/emailAuth/resources/messages.yml
+# https://github.com/if-Team/PMMP-Plugins/blob/master/EmailAuth/resources/messages.yml
