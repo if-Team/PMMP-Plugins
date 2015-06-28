@@ -9,6 +9,7 @@ use pocketmine\command\Command;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\Player;
 use pocketmine\utils\TextFormat;
+use pocketmine\permission\PermissionAttachment;
 use pocketmine\utils\Config;
 use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\player\PlayerChatEvent;
@@ -28,20 +29,9 @@ use ifteam\emailAuth\provider\MySQLDataProvider;
 use ifteam\emailAuth\provider\DummyDataProvider;
 use ifteam\emailAuth\provider\DataProvider;
 
-//TODO 리스트 - 현재남은 작업들
-//이메일 - 가입 OTP 탈퇴 개발완료
-//이메일 - 심플오스 데이터 이식기능 개발완료
-
-//TODO - (연동기능)스위스뱅크 마스터모드 슬레이브모드 선택 코드 이식
-//TODO - (연동기능)마스터모드일경우
-//TODO - (연동기능)슬레이브모드일경우
-
-//TODO - (연동기능)이코노미API돈
-//TODO - (연동기능)유저인벤토리 데이터
-
-//TODO - (연동기능)타서버에 유저가 이미 접속해있으면 접속차단
-//TODO - (연동기능)모든 연동작업은 비동기 스레딩으로 처리
-//TODO - (연동기능)마스터에서 슬레이브로 데이터가 올때까지 대기 유저의 행동을 차단
+// TODO 리스트 - 현재남은 작업들
+// 이메일 - 가입 OTP 탈퇴 개발완료
+// 이메일 - 심플오스 데이터 이식기능 개발완료
 class emailAuth extends PluginBase implements Listener {
 	private static $instance = null;
 	public $db = [ ];
@@ -68,48 +58,60 @@ class emailAuth extends PluginBase implements Listener {
 		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new AutoSaveTask ( $this ), 2400 );
 		$this->onActivateCheck ();
 		
+		new API_CustomPacketListner ( $this );
+		
 		$this->registerCommand ( $this->get ( "login" ), "emailAuth.login", $this->get ( "login-help" ), "/" . $this->get ( "login" ) );
 		$this->registerCommand ( $this->get ( "logout" ), "emailAuth.logout", $this->get ( "logout-help" ), "/" . $this->get ( "logout" ) );
 		$this->registerCommand ( $this->get ( "register" ), "emailAuth.register", $this->get ( "register-help" ), "/" . $this->get ( "register" ) );
 		$this->registerCommand ( $this->get ( "unregister" ), "emailAuth.unregister", $this->get ( "unregister-help" ), "/" . $this->get ( "unregister" ) );
 		$this->registerCommand ( "emailauth", "emailAuth.manage", $this->get ( "manage-help" ), "/emailauth" );
 		
-		if (file_exists ( $this->getDataFolder () . "SimpleAuth/players" )) {
-			$config = (new Config ( $this->getDataFolder () . "SimpleAuth/config.yml", Config::YAML ))->getAll ();
-			$provider = $config ["dataProvider"];
-			switch (strtolower ( $provider )) {
-				case "yaml" :
-					$this->getLogger ()->debug ( "Using YAML data provider" );
-					$provider = new YAMLDataProvider ( $this );
-					break;
-				case "sqlite3" :
-					$this->getLogger ()->debug ( "Using SQLite3 data provider" );
-					$provider = new SQLite3DataProvider ( $this );
-					break;
-				case "mysql" :
-					$this->getLogger ()->debug ( "Using MySQL data provider" );
-					$provider = new MySQLDataProvider ( $this );
-					break;
-				case "none" :
-				default :
-					$provider = new DummyDataProvider ( $this );
-					break;
-			}
-			// SimpleAuth/* 폴더 검색 후 들어가서 모든 yml 읽어서 데이터화
-			$list = $this->getFolderList ( $this->getDataFolder () . "SimpleAuth/players", "folder" );
-			foreach ( $list as $alphabet ) {
-				$ymllist = $this->getFolderList ( $this->getDataFolder () . "SimpleAuth/players/" . $alphabet, "file" );
-				foreach ( $ymllist as $ymlname ) {
-					$yml = (new Config ( $this->getDataFolder () . "SimpleAuth/players/" . $alphabet . "/" . $ymlname, Config::YAML ))->getAll ();
-					$name = explode ( ".", $ymlname )[0];
-					$this->db->addAuthReady ( $name, $yml ["hash"] );
-				}
-			}
-			$this->rmdirAll ( $this->getDataFolder () . "SimpleAuth" );
-		}
+		if (file_exists ( $this->getDataFolder () . "SimpleAuth/players" ))
+			$this->getSimpleAuthData ();
+		
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
 	/**
+	 * Import data from SimpleAuth
+	 */
+	public function getSimpleAuthData() {
+		if (! file_exists ( $this->getDataFolder () . "SimpleAuth/players" ))
+			return;
+		$config = (new Config ( $this->getDataFolder () . "SimpleAuth/config.yml", Config::YAML ))->getAll ();
+		$provider = $config ["dataProvider"];
+		switch (strtolower ( $provider )) {
+			case "yaml" :
+				$this->getLogger ()->debug ( "Using YAML data provider" );
+				$provider = new YAMLDataProvider ( $this );
+				break;
+			case "sqlite3" :
+				$this->getLogger ()->debug ( "Using SQLite3 data provider" );
+				$provider = new SQLite3DataProvider ( $this );
+				break;
+			case "mysql" :
+				$this->getLogger ()->debug ( "Using MySQL data provider" );
+				$provider = new MySQLDataProvider ( $this );
+				break;
+			case "none" :
+			default :
+				$provider = new DummyDataProvider ( $this );
+				break;
+		}
+		// SimpleAuth/* 폴더 검색 후 들어가서 모든 yml 읽어서 데이터화
+		$folderList = $this->getFolderList ( $this->getDataFolder () . "SimpleAuth/players", "folder" );
+		foreach ( $folderList as $alphabet ) {
+			$ymlList = $this->getFolderList ( $this->getDataFolder () . "SimpleAuth/players/" . $alphabet, "file" );
+			foreach ( $ymlList as $ymlName ) {
+				$yml = (new Config ( $this->getDataFolder () . "SimpleAuth/players/" . $alphabet . "/" . $ymlName, Config::YAML ))->getAll ();
+				$name = explode ( ".", $ymlName )[0];
+				$this->db->addAuthReady ( $name, $yml ["hash"] );
+			}
+		}
+		$this->rmdirAll ( $this->getDataFolder () . "SimpleAuth" );
+	}
+	/**
+	 *
+	 * It gets a list of folders or files
 	 *
 	 * @param string $rootDir        	
 	 * @param string $filter
@@ -139,6 +141,13 @@ class emailAuth extends PluginBase implements Listener {
 		closedir ( $handler );
 		return $rList;
 	}
+	/**
+	 *
+	 * Delete the folder to the subfolders
+	 *
+	 * @param string $dir        	
+	 *
+	 */
 	public function rmdirAll($dir) {
 		$dirs = dir ( $dir );
 		while ( false !== ($entry = $dirs->read ()) ) {
@@ -156,17 +165,18 @@ class emailAuth extends PluginBase implements Listener {
 	public function onDisable() {
 		$this->autoSave ();
 	}
-	public static function getInstance() {
-		return static::$instance;
-	}
+	/**
+	 * Save the user information automatically
+	 */
 	public function autoSave() {
 		$this->db->save ();
+		$this->getConfig ()->save ();
 	}
-	public function setDataProvider(DataProvider $provider) {
-		$this->provider = $provider;
-	}
-	public function getDataProvider() {
-		return $this->provider;
+	/**
+	 * It returns an instance of the plug-in
+	 */
+	public static function getInstance() {
+		return static::$instance;
 	}
 	public function onJoin(PlayerJoinEvent $event) {
 		if (isset ( $this->db->getAll ()["ip"][$event->getPlayer ()->getAddress ()] )) {
@@ -196,12 +206,6 @@ class emailAuth extends PluginBase implements Listener {
 			$this->getLogger ()->info ( $this->get ( "setup-help-port" ) );
 			return false;
 		}
-		if ($this->getServer ()->getPluginManager ()->getPlugin ( "CustomPacket" ) != null) {
-			$this->checkCustomPacket = true;
-			if ($this->getConfig ()->get ( "usecustompacket", null ) == null) {
-				$this->getServer ()->getLogger ()->info ( TextFormat::DARK_AQUA . $this->get ( "you-can-activate-custompacket" ) );
-			}
-		}
 		return true;
 	}
 	public function onCommand(CommandSender $player, Command $command, $label, array $args) {
@@ -209,7 +213,7 @@ class emailAuth extends PluginBase implements Listener {
 		if ($player instanceof Player) {
 			if (isset ( $this->wrongauth [$player->getAddress ()] )) {
 				if ($this->wrongauth [$player->getAddress ()] >= 20) {
-					$this->getServer ()->blockAddress ( $player->getAddress () );
+					$this->getServer ()->blockAddress ( $player->getAddress (), 400 );
 				}
 			}
 		}
@@ -463,6 +467,7 @@ class emailAuth extends PluginBase implements Listener {
 						if ($usecustompacket == null) {
 							$this->getConfig ()->set ( "usecustompacket", true );
 							$this->message ( $player, $this->get ( "custompacket-enabled" ) );
+							$this->message ( $player, $this->get ( "please-choose-mode" ) );
 							return true;
 						}
 						if ($usecustompacket) {
@@ -472,6 +477,7 @@ class emailAuth extends PluginBase implements Listener {
 							$this->getConfig ()->set ( "usecustompacket", true );
 							$this->message ( $player, $this->get ( "custompacket-enabled" ) );
 						}
+						$this->message ( $player, $this->get ( "please-choose-mode" ) );
 						break;
 				}
 				break;
@@ -526,8 +532,12 @@ class emailAuth extends PluginBase implements Listener {
 	public function registerMessage(CommandSender $player) {
 		$this->message ( $player, $this->get ( "emailauth-notification" ) );
 		$this->message ( $player, $this->get ( "you-need-a-register" ) );
-		// TODO 도메인락이 있을경우 해당안내 처리하기
-		// TODO 현재 *@naver.com 이메일로만 가입가능합니다!
+		
+		$domainLock = $this->db->getLockDomain ();
+		if ($domainLock != null) {
+			$msg = str_replace ( "%domain%", $domainLock, $this->get ( "you-can-use-email-domain" ) );
+			$this->message ( $player, $this->get ( $msg ) );
+		}
 	}
 	public function loginMessage(CommandSender $player) {
 		$this->message ( $player, $this->get ( "emailauth-notification" ) );

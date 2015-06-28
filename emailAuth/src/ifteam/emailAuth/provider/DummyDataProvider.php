@@ -18,6 +18,7 @@
 namespace ifteam\emailAuth\provider;
 
 use pocketmine\IPlayer;
+use pocketmine\utils\Config;
 use ifteam\emailAuth\emailAuth;
 
 class DummyDataProvider implements DataProvider{

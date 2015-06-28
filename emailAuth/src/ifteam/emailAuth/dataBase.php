@@ -21,8 +21,6 @@ class dataBase {
 	public function getAll() {
 		return $this->yml;
 	}
-	// TODO 이메일 가입을 받은 후에 도메인락이 걸렸을경우
-	// TODO 이전 도메인들을 모두 재가입시키도록 처리해야함
 	public function checkUserData($email) {
 		echo "check A\n";
 		if (! isset ( $this->yml ["user"] [$email] ))
@@ -40,6 +38,9 @@ class dataBase {
 	public function changeLockDomain($newDomain) {
 		$newDomain = strtolower ( $newDomain );
 		$this->yml ["lockDomain"] = $newDomain;
+	}
+	public function getLockDomain() {
+		return $this->yml ["lockDomain"];
 	}
 	public function addAuthReady($name, $hash) {
 		$name = strtolower ( $name );

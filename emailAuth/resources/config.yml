@@ -44,15 +44,15 @@ authenticateTimeout: 60
 #-----------------------------------------------------
 #Whether using a custom packet
 #type : null || true || false
-usecustompacket=false
+usecustompacket: null
 
 #Set servermode
 #type : null || master || slave
-servermode=null
+servermode: null
 
-passcode=null
-masterip=null
-masterport=null
+passcode: null
+masterip: null
+masterport: null
 #-----------------------------------------------------
 
 

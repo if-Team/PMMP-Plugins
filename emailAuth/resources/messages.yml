@@ -52,7 +52,25 @@ eng-authcode-doesnt-exist: "The authentication code does not exist! Please enter
 eng-mail-has-been-sent: "Mail has been sent to the authorization number! Please check your email after signing up!"
 eng-too-short-password: "Password is too short! Sign Up Failed!"
 eng-this-account-cant-use: "This account can not be used! Login failed!"
+eng-you-can-use-email-domain: "Currently, only *@%domain% email Sign up possible!"
 eng-you-can-activate-custompacket: "/ emailauth custompacket - Can enable a interworking with custompacket!"
+eng-custompacket-enabled: "Custom packet interworking is enabled!"
+eng-custompacket-disabled: "Custom packet interworking have been disabled!"
+
+eng-please-choose-mode: "Please select the server mode (master / slave)"
+eng-master-mode-selected: "The Master mode is selected."
+eng-slave-mode-selected: "Slave mode has been selected."
+eng-please-choose-passcode: "Please enter the passcode for communications security (at least 8 characters)."
+eng-too-short-passcode: "The passcode must be eight characters abnormalities"
+eng-wrong-passcode: "The password code can not be used."
+eng-passcode-selected: "Communication for password security codes have been set."
+eng-wrong-port: "Invalid port, please choose from the range 31-65534"
+eng-wrong-ip: "Invalid IP, please enter 000.000.000.000"
+eng-please-type-master-ip: "Please enter the IP of the master server."
+eng-please-type-master-port: "Please enter the port on the master server."
+eng-master-ip-selected: "Master server IP has been set."
+eng-master-port-selected: "the master server ports have been set."
+eng-all-setup-complete: "All the settings are completed."
 
 #(KO) KOREAN
 kor: true
@@ -105,7 +123,25 @@ kor-authcode-doesnt-exist: "인증코드가 존재하지않습니다!, 이메일
 kor-mail-has-been-sent: "메일로 인증번호를 전송했습니다! 이메일을 확인후 가입해주세요!"
 kor-too-short-password: "비밀번호가 너무 짧습니다 ! 가입실패!"
 kor-this-account-cant-use: "이 계정은 사용하실 수 없습니다 ! 로그인 실패 !"
+kor-you-can-use-email-domain: "현재 *@%domain% 이메일로만 가입가능합니다!"
 kor-you-can-activate-custompacket: "/emailauth custompacket 으로 커스텀패킷 연동 활성화 가능!"
+kor-custompacket-enabled: "커스텀패킷 연동이 활성화 되었습니다 !"
+kor-custompacket-disabled: "커스텀패킷 연동이 비활성화 되었습니다 !"
+
+kor-please-choose-mode: "서버모드를 선택해주세요 (master/slave)"
+kor-master-mode-selected: "마스터모드가 선택되었습니다"
+kor-slave-mode-selected: "슬레이브모드가 선택되었습니다"
+kor-please-choose-passcode: "통신보안용 암호코드를 입력해주세요 (8자이상)"
+kor-too-short-passcode: "암호코드는 8자 이상이여야합니다"
+kor-wrong-passcode: "해당 암호코드는 사용하실 수 없습니다"
+kor-passcode-selected: "통신보안용 암호코드가 설정되었습니다"
+kor-wrong-port: "잘못된 포트입니다, 31~65534 범위에서 선택해주세요"
+kor-wrong-ip: "잘못된 아이피입니다, 000.000.000.000 과같이 입력해주세요"
+kor-please-type-master-ip: "마스터서버의 아이피를 입력해주세요"
+kor-please-type-master-port: "마스터서버의 포트를 입력해주세요"
+kor-master-ip-selected: "마스터서버 아이피가 설정되었습니다"
+kor-master-port-selected: "마스터서버 포트가 설정되었습니다"
+kor-all-setup-complete: "모든 설정이 완료되었습니다"
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/blob/master/emailAuth/resources/messages.yml
