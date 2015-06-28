@@ -2,7 +2,7 @@
 # YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
 
 #PLEASE SET HERE TO YOUR LANGUAGE PREFIX
-m_version: 1
+m_version: 2
 
 #(EN) ENGLISH
 eng: true
@@ -24,9 +24,13 @@ kor-shop: "상점"
 kor-notice: "공지"
 kor-wild: "야생"
 kor-skip: "스킵"
+kor-start: "시작"
 kor-restart: "재시작"
 kor-start-tutorial: "서버 기초 안내를 시작합니다 !"
 kor-please-read-the-sign: "주변의 안내 표지판을 읽어주세요 !"
+kor-sign-tutorial-start1: "[ 튜토리얼 시작]"
+kor-sign-tutorial-start2: "서버의 설명이 필요"
+kor-sign-tutorial-start3: "하시면 터치해주세요 !"
 kor-sign-tutorial-skip1: "[ 튜토리얼 스킵 ]"
 kor-sign-tutorial-skip2: "튜토리얼을 건너 뛰길"
 kor-sign-tutorial-skip2: "원하는경우 터치 !"
@@ -45,6 +49,7 @@ kor-all-tutorial-cleared: "모든튜토리얼 완료, 튜토리얼을 마칩니�
 kor-you-can-move-free: "자유롭게 플레잉 가능합니다"
 kor-you-need-pass-tutorial: "튜토리얼을 완료 후 이동이 가능합니다 !"
 kor-sign-deleted: "튜토리얼 표지판을 성공적으로 제거했습니다 !"
+kor-help-signset: "사용가능: [광산/상점/공지/야생/스킵/시작/재시작]"
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/blob/master/tutorialMode/resources/messages.yml

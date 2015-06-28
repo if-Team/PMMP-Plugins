@@ -9,7 +9,6 @@ use pocketmine\command\PluginCommand;
 use pocketmine\utils\TextFormat;
 use pocketmine\event\block\SignChangeEvent;
 use pocketmine\level\Position;
-use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\block\BlockBreakEvent;
@@ -25,7 +24,7 @@ use pocketmine\math\Vector3;
 class tutorialMode extends PluginBase implements Listener {
 	private static $instance = null; // 인스턴스 변수
 	public $messages, $db; // 메시지 변수, DB변수
-	public $m_version = 1; // 현재 메시지 버전
+	public $m_version = 2; // 현재 메시지 버전
 	public $continue = [ ];
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () ); // 플러그인 폴더생성
@@ -36,21 +35,11 @@ class tutorialMode extends PluginBase implements Listener {
 		$this->db = (new Config ( $this->getDataFolder () . "pluginDB.yml", Config::YAML, [ ] ))->getAll ();
 		
 		// 플러그인의 인스턴스 정의
-		if (self::$instance == null) self::$instance = $this;
-		
-		// 서버이벤트를 받아오게끔 플러그인 리스너를 서버에 등록
+		if (self::$instance == null)
+			self::$instance = $this;
+			
+			// 서버이벤트를 받아오게끔 플러그인 리스너를 서버에 등록
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
-	}
-	public function onJoin(PlayerJoinEvent $event) {
-		if (! isset ( $this->db ["mine"] )) return;
-		if (! isset ( $this->db ["shop"] )) return;
-		if (! isset ( $this->db ["notice"] )) return;
-		if (! isset ( $this->db ["wild"] )) return;
-		if (! isset ( $this->db ["finished"] [strtolower ( $event->getPlayer ()->getName () )] )) {
-			$this->continue [strtolower ( $event->getPlayer ()->getName () )] = [ "mine" => false,"shop" => false,"notice" => false,"wild" => false ];
-			$this->message ( $event->getPlayer (), $this->get ( "start-tutorial" ) );
-			$this->message ( $event->getPlayer (), $this->get ( "please-read-the-sign" ) );
-		}
 	}
 	public function onChat(PlayerChatEvent $event) {
 		if (isset ( $this->continue [strtolower ( $event->getPlayer ()->getName () )] )) {
@@ -59,10 +48,17 @@ class tutorialMode extends PluginBase implements Listener {
 		}
 	}
 	public function onSignPlace(SignChangeEvent $event) {
-		if (! $event->getPlayer ()->isOp ()) return;
-		if ($event->getLine ( 0 ) != $this->get ( "tutorial" )) return;
-		
+		if (! $event->getPlayer ()->isOp ())
+			return;
+		if ($event->getLine ( 0 ) != $this->get ( "tutorial" ))
+			return;
 		switch (strtolower ( $event->getLine ( 1 ) )) {
+			case $this->get ( "start" ) :
+				$event->setLine ( 0, TextFormat::WHITE . $this->get ( "sign-tutorial-start1" ) );
+				$event->setLine ( 1, TextFormat::WHITE . $this->get ( "sign-tutorial-start2" ) );
+				$event->setLine ( 2, TextFormat::WHITE . $this->get ( "sign-tutorial-start3" ) );
+				$this->setStartSign ( $event->getBlock () );
+				break;
 			case $this->get ( "skip" ) :
 				$event->setLine ( 0, TextFormat::WHITE . $this->get ( "sign-tutorial-skip1" ) );
 				$event->setLine ( 1, TextFormat::WHITE . $this->get ( "sign-tutorial-skip2" ) );
@@ -99,12 +95,58 @@ class tutorialMode extends PluginBase implements Listener {
 				$event->setLine ( 2, TextFormat::WHITE . $this->get ( "sign-tutorial-pass3" ) );
 				$this->setWild ( $event->getBlock (), $event->getPlayer ()->getPosition () );
 				break;
+			default :
+				$this->message ( $event->getPlayer (), $this->get ( "help-signset" ) );
+				break;
 		}
 	}
 	public function onTouch(PlayerInteractEvent $event) {
-		if (! $event->getBlock () instanceof SignPost) return;
+		if (! $event->getBlock () instanceof SignPost)
+			return;
 		if (isset ( $this->db ["sign"] [$event->getBlock ()->getLevel ()->getFolderName ()] ["{$event->getBlock()->x}.{$event->getBlock()->y}.{$event->getBlock()->z}"] )) {
 			switch ($this->db ["sign"] [$event->getBlock ()->getLevel ()->getFolderName ()] ["{$event->getBlock()->x}.{$event->getBlock()->y}.{$event->getBlock()->z}"]) {
+				case "startSign" :
+					if (! isset ( $this->db ["mine"] ))
+						return;
+					if (! isset ( $this->db ["shop"] ))
+						return;
+					if (! isset ( $this->db ["notice"] ))
+						return;
+					if (! isset ( $this->db ["wild"] ))
+						return;
+					if (! isset ( $this->db ["finished"] [strtolower ( $event->getPlayer ()->getName () )] )) {
+						$this->continue [strtolower ( $event->getPlayer ()->getName () )] = [ 
+								"mine" => false,
+								"shop" => false,
+								"notice" => false,
+								"wild" => false 
+						];
+						$this->message ( $event->getPlayer (), $this->get ( "start-tutorial" ) );
+						$this->message ( $event->getPlayer (), $this->get ( "please-read-the-sign" ) );
+						
+						foreach ( $this->continue [strtolower ( $event->getPlayer ()->getName () )] as $stage => $check ) {
+							if (! $check) {
+								$data = explode ( ".", $this->db [$stage] );
+								if (! isset ( $data [3] ))
+									continue; // POSDATA EXCEPTION
+								
+								$dx = abs ( $data [0] - $event->getPlayer ()->x );
+								$dy = abs ( $data [1] - $event->getPlayer ()->y );
+								$dz = abs ( $data [2] - $event->getPlayer ()->z );
+								if ($dx <= 10 and $dy <= 10 and $dz <= 10)
+									return;
+								
+								$level = $this->getServer ()->getLevelByName ( $data [3] );
+								if (! $level instanceof Level)
+									continue; // LEVEL EXCEPTION
+								
+								$event->getPlayer ()->teleport ( new Position ( $data [0], $data [1], $data [2], $level ) );
+								$this->message ( $event->getPlayer (), $this->get ( "you-need-pass-tutorial" ) );
+								break;
+							}
+						}
+					}
+					break;
 				case "skipSign" :
 					if (isset ( $this->db ["finished"] [strtolower ( $event->getPlayer ()->getName () )] )) {
 						$this->message ( $event->getPlayer (), $this->get ( "already-clread-all-tutorial" ) );
@@ -122,7 +164,12 @@ class tutorialMode extends PluginBase implements Listener {
 					if (isset ( $this->db ["finished"] [strtolower ( $event->getPlayer ()->getName () )] )) {
 						unset ( $this->db ["finished"] [strtolower ( $event->getPlayer ()->getName () )] );
 					}
-					$this->continue [strtolower ( $event->getPlayer ()->getName () )] = [ "mine" => false,"shop" => false,"notice" => false,"wild" => false ];
+					$this->continue [strtolower ( $event->getPlayer ()->getName () )] = [ 
+							"mine" => false,
+							"shop" => false,
+							"notice" => false,
+							"wild" => false 
+					];
 					break;
 				case "mine" :
 					if (isset ( $this->db ["finished"] [strtolower ( $event->getPlayer ()->getName () )] )) {
@@ -166,16 +213,19 @@ class tutorialMode extends PluginBase implements Listener {
 	public function tutorialClear(Player $player) {
 		foreach ( $this->continue [strtolower ( $player->getName () )] as $stage => $check ) {
 			if (! $check) {
-				if (! isset ( $this->db [$stage] )) continue; // STAGEDATA EXCEPTION
+				if (! isset ( $this->db [$stage] ))
+					continue; // STAGEDATA EXCEPTION
 				
 				$data = explode ( ".", $this->db [$stage] );
-				if (! isset ( $data [3] )) continue; // POSDATA EXCEPTION
+				if (! isset ( $data [3] ))
+					continue; // POSDATA EXCEPTION
 				
 				if ($data [3] == $player->getLevel ()->getFolderName ()) {
 					$pos = new Vector3 ( $data [0], $data [1], $data [2] );
 				} else {
 					$level = $this->getServer ()->getLevelByName ( $data [3] );
-					if (! $level instanceof Level) continue; // LEVEL EXCEPTION
+					if (! $level instanceof Level)
+						continue; // LEVEL EXCEPTION
 					$pos = new Position ( $data [0], $data [1], $data [2], $level );
 				}
 				
@@ -189,7 +239,8 @@ class tutorialMode extends PluginBase implements Listener {
 		$this->message ( $player, $this->get ( "all-tutorial-cleared" ) );
 		$this->message ( $player, $this->get ( "you-can-move-free" ) );
 		$safe = $this->getServer ()->getDefaultLevel ()->getSafeSpawn ();
-		if ($safe instanceof Position) $player->teleport ( $safe );
+		if ($safe instanceof Position)
+			$player->teleport ( $safe );
 	}
 	public function onDamage(EntityDamageEvent $event) {
 		if ($event instanceof EntityDamageByEntityEvent) {
@@ -213,15 +264,18 @@ class tutorialMode extends PluginBase implements Listener {
 			foreach ( $this->continue [strtolower ( $event->getPlayer ()->getName () )] as $stage => $check ) {
 				if (! $check) {
 					$data = explode ( ".", $this->db [$stage] );
-					if (! isset ( $data [3] )) continue; // POSDATA EXCEPTION
+					if (! isset ( $data [3] ))
+						continue; // POSDATA EXCEPTION
 					
 					$dx = abs ( $data [0] - $event->getPlayer ()->x );
 					$dy = abs ( $data [1] - $event->getPlayer ()->y );
 					$dz = abs ( $data [2] - $event->getPlayer ()->z );
-					if ($dx <= 10 and $dy <= 10 and $dz <= 10) return;
+					if ($dx <= 10 and $dy <= 10 and $dz <= 10)
+						return;
 					
 					$level = $this->getServer ()->getLevelByName ( $data [3] );
-					if (! $level instanceof Level) continue; // LEVEL EXCEPTION
+					if (! $level instanceof Level)
+						continue; // LEVEL EXCEPTION
 					
 					$event->getPlayer ()->teleport ( new Position ( $data [0], $data [1], $data [2], $level ) );
 					$this->message ( $event->getPlayer (), $this->get ( "you-need-pass-tutorial" ) );
@@ -229,6 +283,9 @@ class tutorialMode extends PluginBase implements Listener {
 				}
 			}
 		}
+	}
+	public function setStartSign(Position $sign) {
+		$this->db ["sign"] [$sign->getLevel ()->getFolderName ()] ["{$sign->x}.{$sign->y}.{$sign->z}"] = "startSign";
 	}
 	public function setSkipSign(Position $sign) {
 		$this->db ["sign"] [$sign->getLevel ()->getFolderName ()] ["{$sign->x}.{$sign->y}.{$sign->z}"] = "skipSign";
@@ -260,16 +317,20 @@ class tutorialMode extends PluginBase implements Listener {
 			}
 			switch ($this->db ["sign"] [$event->getBlock ()->getLevel ()->getFolderName ()] ["{$event->getBlock()->x}.{$event->getBlock()->y}.{$event->getBlock()->z}"]) {
 				case "mine" :
-					if (isset ( $this->db ["mine"] )) unset ( $this->db ["mine"] );
+					if (isset ( $this->db ["mine"] ))
+						unset ( $this->db ["mine"] );
 					break;
 				case "shop" :
-					if (isset ( $this->db ["shop"] )) unset ( $this->db ["shop"] );
+					if (isset ( $this->db ["shop"] ))
+						unset ( $this->db ["shop"] );
 					break;
 				case "notice" :
-					if (isset ( $this->db ["notice"] )) unset ( $this->db ["notice"] );
+					if (isset ( $this->db ["notice"] ))
+						unset ( $this->db ["notice"] );
 					break;
 				case "wild" :
-					if (isset ( $this->db ["wild"] )) unset ( $this->db ["wild"] );
+					if (isset ( $this->db ["wild"] ))
+						unset ( $this->db ["wild"] );
 					break;
 			}
 			unset ( $this->db ["sign"] [$event->getBlock ()->getLevel ()->getFolderName ()] ["{$event->getBlock()->x}.{$event->getBlock()->y}.{$event->getBlock()->z}"] );
@@ -309,11 +370,13 @@ class tutorialMode extends PluginBase implements Listener {
 		$commandMap->register ( $fallback, $command );
 	}
 	public function message(CommandSender $player, $text = "", $mark = null) {
-		if ($mark == null) $mark = $this->get ( "default-prefix" );
+		if ($mark == null)
+			$mark = $this->get ( "default-prefix" );
 		$player->sendMessage ( TextFormat::DARK_AQUA . $mark . " " . $text );
 	}
 	public function alert(CommandSender $player, $text = "", $mark = null) {
-		if ($mark == null) $mark = $this->get ( "default-prefix" );
+		if ($mark == null)
+			$mark = $this->get ( "default-prefix" );
 		$player->sendMessage ( TextFormat::RED . $mark . " " . $text );
 	}
 	public function onDisable() {
