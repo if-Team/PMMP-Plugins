@@ -144,7 +144,7 @@ kor-master-port-selected: "마스터서버 포트가 설정되었습니다"
 kor-all-setup-complete: "모든 설정이 완료되었습니다"
 kor-slavemode-first-connected: " 로드밸런서에 정상연결되었습니다."
 kor-mastermode-first-connected: "서버가 이 로드밸런서에 연결되었습니다."
-kor-
+kor-please-wait-a-certification-process: "인증절차가 곧 시작됩니다. 기다려주세요."
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/blob/master/EmailAuth/resources/messages.yml

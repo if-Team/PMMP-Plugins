@@ -521,7 +521,8 @@ class EmailAuth extends PluginBase implements Listener {
 	public function authenticatePlayer(Player $player) {
 		$this->message ( $player, $this->get ( "login-is-success" ) );
 		$this->db->updateIPAddress ( $this->db->getEmail ( $player ), $player->getAddress () );
-		unset ( $this->needAuth [$player->getName ()] );
+		if (isset ( $this->needAuth [$player->getName ()] ))
+			unset ( $this->needAuth [$player->getName ()] );
 	}
 	public function onPlayerCommand(PlayerCommandPreprocessEvent $event) {
 		if (isset ( $this->needAuth [$event->getPlayer ()->getName ()] )) {
