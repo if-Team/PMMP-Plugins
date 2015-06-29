@@ -608,7 +608,7 @@ class EmailAuth extends PluginBase implements Listener {
 			echo $mail->ErrorInfo . "\n";
 		return ($mail->send ()) ? true : false;
 	}
-	private function hash($salt, $password) {
+	public function hash($salt, $password) {
 		return bin2hex ( hash ( "sha512", $password . $salt, true ) ^ hash ( "whirlpool", $salt . $password, true ) );
 	}
 	public function initMessage() {
