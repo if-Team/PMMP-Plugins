@@ -117,6 +117,7 @@ kor-login-is-success: "로그인에 성공했습니다 !"
 kor-login-is-failed: "로그인에 실패했습니다 !"
 kor-wrong-email-type: "잘못된 이메일 형식입니다 ! 가입실패!"
 kor-register-complete: "회원가입이 완료되었습니다 !"
+kor-register-failed: "회원가입에 실패했습니다 !"
 kor-wrong-authcode: "인증번호가 잘못되었습니다 ! 가입 실패!"
 kor-wrong-password: "비밀번호가 다릅니다 ! 가입 실패!"
 kor-authcode-doesnt-exist: "인증코드가 존재하지않습니다!, 이메일을 정확히 입력해주세요"
@@ -145,6 +146,8 @@ kor-all-setup-complete: "모든 설정이 완료되었습니다"
 kor-slavemode-first-connected: " 로드밸런서에 정상연결되었습니다."
 kor-mastermode-first-connected: "서버가 이 로드밸런서에 연결되었습니다."
 kor-please-wait-a-certification-process: "인증절차가 곧 시작됩니다. 기다려주세요."
+kor-automatically-login: "자동으로 로그인 되었습니다 ! (IP로그인)"
+kor-already-connected: "이미 다른서버에 연결되어있음"
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/blob/master/EmailAuth/resources/messages.yml

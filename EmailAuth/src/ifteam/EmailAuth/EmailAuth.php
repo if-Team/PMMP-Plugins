@@ -191,6 +191,7 @@ class EmailAuth extends PluginBase implements Listener {
 		}
 		if (isset ( $this->db->getAll ()["ip"][$event->getPlayer ()->getAddress ()] )) {
 			$this->message ( $event->getPlayer (), $this->get ( "automatic-ip-logined" ) );
+			//TODO 뭐지 여기..? 자동로그인 되는건가.. 디버깅필요
 		} else {
 			$this->deauthenticatePlayer ( $event->getPlayer () );
 		}

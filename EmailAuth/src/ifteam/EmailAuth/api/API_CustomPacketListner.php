@@ -26,6 +26,7 @@ use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\inventory\InventoryOpenEvent;
+use pocketmine\event\player\PlayerKickEvent;
 
 // TODO - (연동기능)마스터모드일경우
 // TODO - (연동기능)슬레이브모드일경우
@@ -64,6 +65,21 @@ class API_CustomPacketListner implements Listener {
 	 * @var Online User List
 	 */
 	public $onlineUserList = [ ];
+	/**
+	 *
+	 * @var Need Auth User List
+	 */
+	public $needAuth = [ ];
+	/**
+	 *
+	 * @var Temporary DB
+	 */
+	public $tmpDb = [ ];
+	/**
+	 *
+	 * @var EconomyAPI
+	 */
+	public $economyAPI;
 	public function __construct(EmailAuth $plugin) {
 		$this->plugin = $plugin;
 		if ($this->plugin->getServer ()->getPluginManager ()->getPlugin ( "CustomPacket" ) != null) {
@@ -73,7 +89,7 @@ class API_CustomPacketListner implements Listener {
 			}
 			$this->plugin->getServer ()->getPluginManager ()->registerEvents ( $this, $plugin );
 			$this->plugin->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CustomPacketTask ( $this ), 20 );
-			new API_EconomyAPIListner ( $this, $this->plugin );
+			$this->economyAPI = new API_EconomyAPIListner ( $this, $this->plugin );
 		}
 	}
 	/**
@@ -102,6 +118,7 @@ class API_CustomPacketListner implements Listener {
 	 * Get a default set of servers.
 	 *
 	 * @param ServerCommandEvent $event        	
+	 *
 	 */
 	public function serverCommand(ServerCommandEvent $event) {
 		$command = $event->getCommand ();
@@ -211,6 +228,9 @@ class API_CustomPacketListner implements Listener {
 		}
 		$player->namedtag = $data;
 	}
+	public function applyEconomyData($username, $money) {
+		$this->economyAPI->setMoney ( $username, $money );
+	}
 	/**
 	 * Called when the user changes the money
 	 *
@@ -279,6 +299,33 @@ class API_CustomPacketListner implements Listener {
 			unset ( $this->standbyAuth [$player->getName ()] );
 		}
 		$this->plugin->message ( $player, $this->plugin->get ( "start-the-certification-process" ) );
+		$this->needAuth [$player->getName ()] = true;
+	}
+	public function deauthenticatePlayer(Player $player) {
+		$this->needAuth [$player->getName ()] = true;
+		if (isset ( $this->tmpDb [$player->getName ()] )) {
+			if ($this->tmpDb [$player->getName ()] ["isCheckAuthReady"]) {
+				$this->plugin->needReAuthMessage ( $player );
+				return;
+			}
+			if ($this->tmpDb [$player->getName ()] ["isRegistered"]) {
+				$this->plugin->loginMessage ( $player );
+			} else {
+				$this->plugin->registerMessage ( $player );
+			}
+		}
+	}
+	public function authenticatePlayer(Player $player) {
+		if (isset ( $this->needAuth [$player->getName ()] ))
+			unset ( $this->needAuth [$player->getName ()] );
+	}
+	public function alreadyLogined(Player $player) {
+		$player->kick ( $this->plugin->get ( "already-connected" ) );
+	}
+	public function onPlayerKickEvent(PlayerKickEvent $event) {
+		if ($event->getReason () == $this->plugin->get ( "already-connected" )) {
+			$event->setQuitMessage ( "" );
+		}
 	}
 	/**
 	 * Called when the user logs out
@@ -317,7 +364,7 @@ class API_CustomPacketListner implements Listener {
 				break;
 			case $this->plugin->get ( "register" ) :
 				// registerRequest
-				// slave->master = [passcode, registerRequest, username, password_hash, IP]
+				// slave->master = [passcode, registerRequest, username, password, IP, email]
 				// master->slave = [passcode, registerRequest, username, IsAccessSuccess[true||false]]
 				break;
 			case $this->plugin->get ( "unregister" ) :
@@ -341,7 +388,6 @@ class API_CustomPacketListner implements Listener {
 				case "online" :
 					// online
 					// slave->master = [패스코드, online]
-					// master->slave = [패스코드, online, 이코노미 데이터]
 					$this->updateList [$ev->getPacket ()->address . ":" . $ev->getPacket ()->port] ["lastcontact"] = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) );
 					if (! isset ( $this->checkFistConnect [$ev->getPacket ()->address . ":" . $ev->getPacket ()->port] )) {
 						$this->checkFistConnect [$ev->getPacket ()->address . ":" . $ev->getPacket ()->port] = 1;
@@ -384,13 +430,15 @@ class API_CustomPacketListner implements Listener {
 						$isRegistered = true;
 						$NBT = $this->getItemData ( $requestedUserName );
 					}
+					$isCheckAuthReady = $this->plugin->db->checkAuthReady ( $requestedUserName );
 					$data = [ 
 							$this->plugin->getConfig ()->get ( "passcode" ),
 							"defaultInfoRequest",
 							$isConnect,
 							$isRegistered,
 							$isAutoLogin,
-							$NBT 
+							$NBT,
+							$isCheckAuthReady 
 					];
 					CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, $data ) );
 					break;
@@ -398,33 +446,80 @@ class API_CustomPacketListner implements Listener {
 					// loginRequest
 					// slave->master = [패스코드, loginRequest, 유저명, 암호해시, IP]
 					// master->slave = [패스코드, loginRequest, 유저명, 접속성공여부[true||false]]
+					$username = $data [2];
+					$password_hash = $data [3];
+					$address = $data [4];
+					
+					$email = $this->plugin->db->getEmailToName ( $username );
+					$userdata = $this->plugin->db->getUserData ( $email );
+					
+					if ($email === false or $userdata === false) {
+						$isSuccess = false;
+					} else {
+						if ($userdata ["password"] == $password_hash) {
+							$isSuccess = true;
+							$this->onlineUserList [$username] = $ev->getPacket ()->address . ":" . $ev->getPacket ()->port;
+							$this->plugin->db->updateIPAddress ( $email, $address );
+						} else {
+							$isSuccess = false;
+						}
+					}
+					$data = [ 
+							$this->plugin->getConfig ()->get ( "passcode" ),
+							"loginRequest",
+							$username,
+							$password_hash,
+							$isSuccess 
+					];
+					CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, $data ) );
 					break;
 				case "logoutRequest" :
 					// logoutRequest
 					// slave->master = [패스코드, logoutRequest, 유저명, IP]
+					$username = $data [2];
+					$address = $data [3];
+					if (isset ( $this->onlineUserList [$username] )) {
+						unset ( $this->onlineUserList [$username] );
+					}
 					break;
 				case "registerRequest" :
 					// registerRequest
-					// slave->master = [패스코드, registerRequest, 유저명, 암호해시, IP]
+					// slave->master = [패스코드, registerRequest, 유저명, 암호, IP, 이메일]
 					// master->slave = [패스코드, registerRequest, 유저명, 접속성공여부[true||false]]
+					$username = $data [2];
+					$password_hash = $data [3];
+					$address = $data [4];
+					$email = $data [5];
+					
+					$isSuccess = $this->plugin->db->addUser ( $email, $password, $address, false, $username );
+					$data = [ 
+							$this->plugin->getConfig ()->get ( "passcode" ),
+							"registerRequest",
+							$username,
+							$isSuccess 
+					];
+					CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, $data ) );
 					break;
 				case "itemSyncro" :
-					// TODO
+					// itemSyncro
+					// slave->master = [패스코드, itemSyncro, 유저명, itemData]
+					// master->slave = [패스코드, itemSyncro, 유저명, itemData]
+					$username = $data [2];
+					$itemData = $data [3];
+					$this->applyItemData ( $username, $itemData );
 					break;
 				case "economySyncro" :
 					// master
 					// economySyncro
 					// slave->master = [패스코드, economySyncro, 유저명, 금액]
 					// master->slave = [패스코드, economySyncro, 유저명, 금액]
+					$username = $data [2];
+					$money = $data [3];
+					$this->applyEconomyData ( $username, $money );
 					break;
 			}
 		} else if ($this->plugin->getConfig ()->get ( "servermode", null ) == "slave") {
 			switch ($data [1]) {
-				case "online" :
-					// online
-					// slave->master = [패스코드, online]
-					// master->slave = [패스코드, online, 이코노미 데이터]
-					break;
 				case "hello" :
 					if (! isset ( $this->checkFistConnect [$ev->getPacket ()->address . ":" . $ev->getPacket ()->port] )) {
 						$this->checkFistConnect [$ev->getPacket ()->address . ":" . $ev->getPacket ()->port] = 1;
@@ -440,17 +535,26 @@ class API_CustomPacketListner implements Listener {
 					$isRegistered = $data [4];
 					$isAutoLogin = $data [5];
 					$NBT = $data [6];
+					$isCheckAuthReady = $data [7];
 					
-					$player = $this->plugin->getServer ()->getPlayer ( $userdata );
+					$this->tmpDb [$username] = [ 
+							"isConnect" => $isConnect,
+							"isRegistered" => $isRegistered,
+							"isAutoLogin" => $isAutoLogin,
+							"isCheckAuthReady" => $isCheckAuthReady 
+					];
+					
+					$player = $this->plugin->getServer ()->getPlayer ( $username );
 					if (! $player instanceof Player)
 						return;
 					if ($isConnect) {
-						// TODO 이미 다른서버에 접속되어있으므로 로그아웃처리됩니다.
+						$this->alreadyLogined ( $player );
 						return;
 					}
 					$this->applyItemData ( $username, $NBT );
 					if ($isAutoLogin) {
-						// TODO 자동로그인 되었습니다.
+						$this->plugin->message ( $player, $this->plugin->get ( "automatic-ip-logined" ) );
+						$this->authenticatePlayer ( $player );
 						return;
 					}
 					$this->cueAuthenticatePlayer ( $player );
@@ -459,22 +563,52 @@ class API_CustomPacketListner implements Listener {
 					// loginRequest
 					// slave->master = [패스코드, loginRequest, 유저명, 암호해시, IP]
 					// master->slave = [패스코드, loginRequest, 유저명, 접속성공여부[true||false]]
+					$username = $data [2];
+					$isSuccess = $data [3];
+					$player = $this->plugin->getServer ()->getPlayer ( $username );
+					if (! $player instanceof Player)
+						return;
+					if ($isSuccess) {
+						$this->plugin->message ( $player, $this->plugin->get ( "login-is-success" ) );
+						$this->authenticatePlayer ( $player );
+					} else {
+						$this->plugin->message ( $player, $this->plugin->get ( "login-is-failed" ) );
+						$this->deauthenticatePlayer ( $player );
+					}
 					break;
 				case "registerRequest" :
 					// registerRequest
-					// slave->master = [패스코드, registerRequest, 유저명, 암호해시, IP]
+					// slave->master = [패스코드, registerRequest, 유저명, 암호, IP, 이메일]
 					// master->slave = [패스코드, registerRequest, 유저명, 접속성공여부[true||false]]
+					$username = $data [2];
+					$isSuccess = $data [3];
+					$player = $this->plugin->getServer ()->getPlayer ( $username );
+					if (! $player instanceof Player)
+						return;
+					if ($isSuccess) {
+						$this->plugin->message ( $player, $this->plugin->get ( "register-complete" ) );
+						$this->authenticatePlayer ( $player );
+					} else {
+						$this->plugin->message ( $player, $this->plugin->get ( "register-failed" ) );
+						$this->deauthenticatePlayer ( $player );
+					}
 					break;
 				case "itemSyncro" :
 					// itemSyncro
 					// slave->master = [패스코드, itemSyncro, 유저명, itemData]
-					// slave->master = [패스코드, itemSyncro, 유저명, itemData]
+					// master->slave = [패스코드, itemSyncro, 유저명, itemData]
+					$username = $data [2];
+					$itemData = $data [3];
+					$this->applyItemData ( $username, $itemData );
 					break;
 				case "economySyncro" :
 					// slave
 					// economySyncro
 					// slave->master = [패스코드, economySyncro, 유저명, 금액]
 					// master->slave = [패스코드, economySyncro, 유저명, 금액]
+					$username = $data [2];
+					$money = $data [3];
+					$this->applyEconomyData ( $username, $money );
 					break;
 			}
 		}
@@ -494,7 +628,6 @@ class API_CustomPacketListner implements Listener {
 		$ss = substr ( $date, 17, 2 );
 		return mktime ( $hh, $ii, $ss, $mm, $dd, $yy );
 	}
-	
 	// ↓ Events interception of not joined users
 	// -------------------------------------------------------------------------
 	public function onMove(PlayerMoveEvent $event) {
