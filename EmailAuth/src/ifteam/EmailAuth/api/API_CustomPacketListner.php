@@ -27,6 +27,7 @@ use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\player\PlayerKickEvent;
+use ifteam\EmailAuth\task\EmailSendTask;
 
 class API_CustomPacketListner implements Listener {
 	/**
@@ -222,6 +223,12 @@ class API_CustomPacketListner implements Listener {
 		}
 		$player->namedtag = $data;
 	}
+	/**
+	 * Apply the EconomyData
+	 *
+	 * @param string $username        	
+	 * @param string $money        	
+	 */
 	public function applyEconomyData($username, $money) {
 		$this->economyAPI->setMoney ( $username, $money );
 	}
@@ -309,6 +316,11 @@ class API_CustomPacketListner implements Listener {
 			}
 		}
 	}
+	/**
+	 * Authenticate the Player
+	 *
+	 * @param Player $player        	
+	 */
 	public function authenticatePlayer(Player $player) {
 		if (isset ( $this->needAuth [$player->getName ()] ))
 			unset ( $this->needAuth [$player->getName ()] );
@@ -433,28 +445,34 @@ class API_CustomPacketListner implements Listener {
 						return true;
 					}
 				}
-				// Still Work On ▽
 				if (is_numeric ( $args [0] )) {
-					if (isset ( $this->authcode [$player->getName ()] )) {
-						if ($this->authcode [$player->getName ()] ["authcode"] == $args [0]) {
-							$this->db->addUser ( $this->authcode [$player->getName ()] ["email"], $password, $player->getAddress (), false, $player->getName () );
-							$this->message ( $player, $this->get ( "register-complete" ) );
-							$this->authenticatePlayer ( $player );
-							if ($this->db->checkAuthReady ( $player->getName () )) {
-								$this->db->completeAuthReady ( $player->getName () );
-							}
+					if (isset ( $this->plugin->authcode [$player->getName ()] )) {
+						if ($this->plugin->authcode [$player->getName ()] ["authcode"] == $args [0]) {
+							// registerRequest
+							// slave->master = [passcode, registerRequest, username, password, IP, email]
+							$email = $this->plugin->authcode [$player->getName ()] ["email"];
+							$data = [ 
+									$this->plugin->getConfig ()->get ( "passcode" ),
+									"registerRequest",
+									$player->getName (),
+									$password,
+									$player->getAddress (),
+									$email 
+							];
+							CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), $data ) );
+							$this->message ( $player, $this->plugin->get ( "proceed-to-register-please-wait" ) );
 						} else {
-							$this->message ( $player, $this->get ( "wrong-authcode" ) );
+							$this->plugin->message ( $player, $this->plugin->get ( "wrong-authcode" ) );
 							if ($player instanceof Player) {
-								if (isset ( $this->wrongauth [strtolower ( $player->getAddress () )] )) {
-									$this->wrongauth [$player->getAddress ()] ++;
+								if (isset ( $this->plugin->wrongauth [strtolower ( $player->getAddress () )] )) {
+									$this->plugin->wrongauth [$player->getAddress ()] ++;
 								} else {
-									$this->wrongauth [$player->getAddress ()] = 1;
+									$this->plugin->wrongauth [$player->getAddress ()] = 1;
 								}
 							}
 							$this->deauthenticatePlayer ( $player );
 						}
-						unset ( $this->authcode [$player->getName ()] );
+						unset ( $this->plugin->authcode [$player->getName ()] );
 					} else {
 						$this->message ( $player, $this->get ( "authcode-doesnt-exist" ) );
 						$this->deauthenticatePlayer ( $player );
@@ -463,31 +481,37 @@ class API_CustomPacketListner implements Listener {
 					// 이메일!
 					$e = explode ( '@', $args [0] );
 					if (! isset ( $e [1] )) {
-						$this->message ( $player, $this->get ( "wrong-email-type" ) );
+						$this->plugin->message ( $player, $this->plugin->get ( "wrong-email-type" ) );
 						return true;
 					}
 					$e1 = explode ( '.', $e [1] );
 					if (! isset ( $e1 [1] )) {
-						$this->message ( $player, $this->get ( "wrong-email-type" ) );
+						$this->plugin->message ( $player, $this->plugin->get ( "wrong-email-type" ) );
 						return true;
 					}
 					$playerName = $player->getName ();
-					$authCode = $this->authCodeGenerator ( 6 );
+					$authCode = $this->plugin->authCodeGenerator ( 6 );
 					$nowTime = date ( "Y-m-d H:i:s" );
-					$serverName = $this->getConfig ()->get ( "serverName", "" );
+					$serverName = $this->plugin->getConfig ()->get ( "serverName", "" );
 					$task = new EmailSendTask ( $args [0], $playerName, $nowTime, $serverName, $authCode, $this->getConfig ()->getAll (), $this->getDataFolder () . "signform.html" );
-					$this->getServer ()->getScheduler ()->scheduleAsyncTask ( $task );
-					$this->authcode [$playerName] = [ 
+					$this->plugin->getServer ()->getScheduler ()->scheduleAsyncTask ( $task );
+					$this->plugin->authcode [$playerName] = [ 
 							"authcode" => $authCode,
 							"email" => $args [0] 
 					];
-					$this->message ( $player, $this->get ( "mail-has-been-sent" ) );
+					$this->plugin->message ( $player, $this->plugin->get ( "mail-has-been-sent" ) );
 				}
 				break;
 			case $this->plugin->get ( "unregister" ) :
 				// unregisterRequest
-				// slave->master = [passcode, unregisterRequest, username, password_hash]
-				// master->slave = [passcode, unregisterRequest, username, IsUnRegisterSuccess[true||false]]
+				// slave->master = [passcode, unregisterRequest, username]
+				$data = [ 
+						$this->plugin->getConfig ()->get ( "passcode" ),
+						"unregisterRequest",
+						$player->getName () 
+				];
+				CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), $data ) );
+				$this->message ( $player, $this->plugin->get ( "proceed-to-unregister-please-wait" ) );
 				break;
 		}
 		return true;
@@ -624,6 +648,34 @@ class API_CustomPacketListner implements Listener {
 					$data = [ 
 							$this->plugin->getConfig ()->get ( "passcode" ),
 							"registerRequest",
+							$username,
+							$isSuccess 
+					];
+					if ($this->plugin->db->checkAuthReady ( $username )) {
+						$this->plugin->db->completeAuthReady ( $username );
+					}
+					CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, $data ) );
+					break;
+				case "unregisterRequest" :
+					// unregisterRequest
+					// slave->master = [passcode, unregisterRequest, username]
+					// master->slave = [passcode, unregisterRequest, username, isSuccess]
+					$username = $data [2];
+					if (isset ( $this->onlineUserList [$username] )) {
+						$email = $this->plugin->db->getEmailToName ( $username );
+						$deleteCheck = $this->plugin->db->deleteUser ( $email );
+						if ($email === false or $deleteCheck === false) {
+							// did not join
+							$isSuccess = false;
+						} else {
+							$isSuccess = true;
+						}
+					} else {
+						$isSuccess = false;
+					}
+					$data = [ 
+							$this->plugin->getConfig ()->get ( "passcode" ),
+							"unregisterRequest",
 							$username,
 							$isSuccess 
 					];

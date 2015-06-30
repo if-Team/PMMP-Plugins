@@ -150,7 +150,9 @@ kor-please-wait-a-certification-process: "인증절차가 곧 시작됩니다. �
 kor-automatically-login: "자동으로 로그인 되었습니다 ! (IP로그인)"
 kor-already-connected: "이미 다른서버에 연결되어있음"
 kor-proceed-to-login-please-wait: "로그인을 진행합니다. 기다려주세요.."
-kor-proceed-to-logout-please-wait: "로그인을 진행합니다. 기다려주세요.."
+kor-proceed-to-logout-please-wait: "로그아웃을 진행합니다. 기다려주세요.."
+kor-proceed-to-register-please-wait: "회원가입을 진행합니다. 기다려주세요.."
+kor-proceed-to-unregister-please-wait: "회원탈퇴를 진행합니다. 기다려주세요.."
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/blob/master/EmailAuth/resources/messages.yml
