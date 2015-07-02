@@ -4,6 +4,7 @@ namespace ifteam\EmailAuth\task;
 
 use pocketmine\scheduler\AsyncTask;
 use pocketmine\Server;
+use ifteam\EmailAuth\PHPMailer;
 
 class EmailSendTask extends AsyncTask {
 	public $sendMail, $id, $time, $serverName, $code, $istest, $config, $signform;
@@ -28,9 +29,11 @@ class EmailSendTask extends AsyncTask {
 		return ($this->PHPMailer ( $sendMail, $signForm, $code )) ? true : false;
 	}
 	public function PHPMailer($sendMail, $html, $code = "") {
+		echo "PHPMailer() is Started\n";
 		$mail = new PHPMailer ();
 		$mail->isSMTP ();
 		$mail->SMTPDebug = 0;
+		
 		if ($istest)
 			$mail->SMTPDebug = 2;
 		

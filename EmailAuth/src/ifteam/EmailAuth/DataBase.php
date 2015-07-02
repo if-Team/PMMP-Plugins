@@ -10,7 +10,7 @@ class DataBase {
 	public function __construct($path) {
 		$this->path = &$path;
 		$this->yml = (new Config ( $this->path, Config::YAML, [ 
-				"lockDomain" => "naver.com" 
+				"lockDomain" => "" 
 		] ))->getAll ();
 	}
 	public function save() {
@@ -22,14 +22,10 @@ class DataBase {
 		return $this->yml;
 	}
 	public function checkUserData($email) {
-		echo "check A\n";
 		if (! isset ( $this->yml ["user"] [$email] ))
 			return false;
-		echo "check B\n";
 		if ($this->yml ["lockDomain"] != null) {
-			echo "lockDomain is not null!\n";
 			if (explode ( '@', $email )[1] != $this->yml ["lockDomain"]) {
-				echo "lockDomain ->" . explode ( '@', $email )[1];
 				return false;
 			}
 		}
@@ -45,10 +41,8 @@ class DataBase {
 	public function addAuthReady($name, $hash) {
 		$name = strtolower ( $name );
 		if ($this->getEmailToName ( $name ) != false) {
-			echo "already signed" . $name . "\n";
 			return;
 		}
-		echo "ready complete\n";
 		$this->yml ["authready"] [$name] = $hash;
 	}
 	public function checkAuthReady($name) {
@@ -77,9 +71,24 @@ class DataBase {
 		return false;
 	}
 	public function addUser($email, $password, $ip, $set_otp = false, $name) {
-		echo "called addUser()\n";
 		if ($this->checkUserData ( $email ))
 			return false;
+		
+		$e = explode ( '@', $email );
+		if (! isset ( $e [1] )) {
+			return false;
+		}
+		$e1 = explode ( '.', $e[1] );
+		if (! isset ( $e1 [1] )) {
+			return false;
+		}
+		$domainLock = $this->getLockDomain ();
+		if ($domainLock != null) {
+			if ($e [1] != $domainLock) {
+				return false;
+			}
+		}
+		
 		$this->yml ["user"] [$email] = [ 
 				"password" => $this->hash ( strtolower ( $name ), $password ),
 				"ip" => $ip,
@@ -88,7 +97,6 @@ class DataBase {
 		];
 		$this->yml ["ip"] [$ip] = $email;
 		$this->yml ["name"] [$name] = $email;
-		echo "checked addUser Complete!\n";
 		return true;
 	}
 	public function deleteUser($email) {

@@ -1,4 +1,3 @@
-
 <?php
 
 namespace ifteam\EmailAuth\api;
@@ -10,7 +9,6 @@ use ifteam\CustomPacket\CPAPI;
 use ifteam\CustomPacket\DataPacket;
 use pocketmine\event\server\ServerCommandEvent;
 use pocketmine\utils\TextFormat;
-use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\Player;
 use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
@@ -28,6 +26,18 @@ use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\player\PlayerKickEvent;
 use ifteam\EmailAuth\task\EmailSendTask;
+use pocketmine\event\player\PlayerJoinEvent;
+use pocketmine\nbt\NBT;
+use pocketmine\nbt\tag\Long;
+use pocketmine\nbt\tag\Double;
+use pocketmine\nbt\tag\String;
+use pocketmine\nbt\tag\Enum;
+use pocketmine\nbt\tag\Int;
+use pocketmine\nbt\tag\Float;
+use pocketmine\nbt\tag\Short;
+use pocketmine\nbt\tag\Byte;
+use pocketmine\utils\Config;
+use pocketmine\event\player\PlayerPreLoginEvent;
 
 class API_CustomPacketListner implements Listener {
 	/**
@@ -189,19 +199,66 @@ class API_CustomPacketListner implements Listener {
 			}
 		}
 	}
-	/**
-	 * Returns the user nbt
-	 *
-	 * @param string $username        	
-	 * @return null|Compound
-	 */
-	public function getItemData($username) {
-		$data = $this->plugin->getServer ()->getOfflinePlayerData ( $username );
-		if ($data instanceof Compound) {
-			return json_encode ( $data );
+	public function getPlayerDataFile($name) {
+		$name =\strtolower ( $name );
+		$path = $this->plugin->getServer ()->getDataPath () . "players/";
+		if (\file_exists ( $path . "$name.dat" )) {
+			return utf8_encode ( file_get_contents ( $path . "$name.dat" ) );
 		} else {
 			return null;
 		}
+	}
+	public function getPlayerData($name, $data) {
+		$name = \strtolower ( $name );
+		$path = $this->plugin->getServer ()->getDataPath () . "players/";
+		if ($data !== null) {
+			$data = utf8_decode ( $data );
+			try {
+				$nbt = new NBT ( NBT::BIG_ENDIAN );
+				$nbt->readCompressed ( $data );
+				return $nbt->getData ();
+			} catch ( \Exception $e ) { // zlib decode error / corrupt data
+				return null;
+			}
+		} else {
+			$this->plugin->getLogger ()->notice ( $this->plugin->getServer ()->getLanguage ()->translateString ( "pocketmine.data.playerNotFound", [ 
+					$name 
+			] ) );
+		}
+		$spawn = $this->plugin->getServer ()->getDefaultLevel ()->getSafeSpawn ();
+		$nbt = new Compound ( "", [ 
+				new Long ( "firstPlayed", \floor (\microtime ( \true ) * 1000 ) ),
+				new Long ( "lastPlayed", \floor (\microtime ( \true ) * 1000 ) ),
+				new Enum ( "Pos", [ 
+						new Double ( 0, $spawn->x ),
+						new Double ( 1, $spawn->y ),
+						new Double ( 2, $spawn->z ) 
+				] ),
+				new String ( "Level", $this->plugin->getServer ()->getDefaultLevel ()->getName () ),
+				new Enum ( "Inventory", [ ] ),
+				new Compound ( "Achievements", [ ] ),
+				new Int ( "playerGameType", $this->plugin->getServer ()->getGamemode () ),
+				new Enum ( "Motion", [ 
+						new Double ( 0, 0.0 ),
+						new Double ( 1, 0.0 ),
+						new Double ( 2, 0.0 ) 
+				] ),
+				new Enum ( "Rotation", [ 
+						new Float ( 0, 0.0 ),
+						new Float ( 1, 0.0 ) 
+				] ),
+				new Float ( "FallDistance", 0.0 ),
+				new Short ( "Fire", 0 ),
+				new Short ( "Air", 300 ),
+				new Byte ( "OnGround", 1 ),
+				new Byte ( "Invulnerable", 0 ),
+				new String ( "NameTag", $name ) 
+		] );
+		$nbt->Pos->setTagType ( NBT::TAG_Double );
+		$nbt->Inventory->setTagType ( NBT::TAG_Compound );
+		$nbt->Motion->setTagType ( NBT::TAG_Double );
+		$nbt->Rotation->setTagType ( NBT::TAG_Float );
+		return $nbt;
 	}
 	/**
 	 * Apply the user nbt
@@ -211,17 +268,20 @@ class API_CustomPacketListner implements Listener {
 	 */
 	public function applyItemData($username, $data) {
 		$player = $this->plugin->getServer ()->getPlayer ( $username );
-		if (! $player instanceof Player) {
-			echo "TEST# WRONG PLAYER CHECKED!\n";
-			return;
-		}
-		
-		$data = json_decode ( $data );
-		if (! $data instanceof Compound) {
+		$compound = new Compound ();
+		$compound = $data;
+		if (! $compound instanceof Compound) {
 			echo "TEST# WRONG COMPOUND CHECKED!\n";
-			return;
+			return false;
 		}
-		$player->namedtag = $data;
+		if (! $player instanceof Player) {
+			$this->plugin->getServer ()->saveOfflinePlayerData ( $username, $data );
+			return true;
+		} else {
+			$this->plugin->getServer ()->saveOfflinePlayerData ( $username, $data );
+			$player->namedtag = $compound;
+		}
+		return true;
 	}
 	/**
 	 * Apply the EconomyData
@@ -248,13 +308,13 @@ class API_CustomPacketListner implements Listener {
 		if ($this->plugin->getConfig ()->get ( "servermode", null ) == "slave") {
 			// economySyncro
 			// slave->master = [passcode, economySyncro, username, money]
-			CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), $data ) );
+			CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
 		} else {
 			// economySyncro
 			// master->slave = [passcode, economySyncro, username, money]
-			foreach ( $this->updateList as $ipport => $data ) {
+			foreach ( $this->updateList as $ipport => $datas ) {
 				$explode = explode ( ":", $ipport );
-				CPAPI::sendPacket ( new DataPacket ( $explode [0], $explode [1], $data ) );
+				CPAPI::sendPacket ( new DataPacket ( $explode [0], $explode [1], json_encode ( $data ) ) );
 			}
 		}
 	}
@@ -263,9 +323,10 @@ class API_CustomPacketListner implements Listener {
 	 *
 	 * @param PlayerPreLoginEvent $event        	
 	 */
-	public function onLogin(PlayerPreLoginEvent $event) {
+	public function onJoin(PlayerPreLoginEvent $event) {
 		if ($this->plugin->getConfig ()->get ( "servermode", null ) == "slave") {
 			if (! $event->getPlayer () instanceof Player) {
+				echo "PlayerJoinEvent -> Player isn't Player instance!";
 				return;
 			}
 			/* defaultInfoRequest */
@@ -277,7 +338,7 @@ class API_CustomPacketListner implements Listener {
 					$event->getPlayer ()->getName (),
 					$event->getPlayer ()->getAddress () 
 			];
-			CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), $data ) );
+			CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
 			$this->standbyAuthenticatePlayer ( $event->getPlayer () );
 		}
 	}
@@ -300,19 +361,29 @@ class API_CustomPacketListner implements Listener {
 			unset ( $this->standbyAuth [$player->getName ()] );
 		}
 		$this->plugin->message ( $player, $this->plugin->get ( "start-the-certification-process" ) );
-		$this->needAuth [$player->getName ()] = true;
+		$this->deauthenticatePlayer ( $player );
 	}
 	public function deauthenticatePlayer(Player $player) {
 		$this->needAuth [$player->getName ()] = true;
 		if (isset ( $this->tmpDb [$player->getName ()] )) {
 			if ($this->tmpDb [$player->getName ()] ["isCheckAuthReady"]) {
 				$this->plugin->needReAuthMessage ( $player );
+				if ($this->tmpDb ["lockDomain"] != null) {
+					$msg = str_replace ( "%domain%", $this->tmpDb ["lockDomain"], $this->plugin->get ( "you-can-use-email-domain" ) );
+					$this->plugin->message ( $player, $msg );
+					$this->plugin->message ( $player, $this->plugin->get ( "you-need-a-register" ) );
+				}
 				return;
 			}
 			if ($this->tmpDb [$player->getName ()] ["isRegistered"]) {
 				$this->plugin->loginMessage ( $player );
 			} else {
 				$this->plugin->registerMessage ( $player );
+				if ($this->tmpDb ["lockDomain"] != null) {
+					$msg = str_replace ( "%domain%", $this->tmpDb ["lockDomain"], $this->plugin->get ( "you-can-use-email-domain" ) );
+					$this->plugin->message ( $player, $msg );
+					$this->plugin->message ( $player, $this->plugin->get ( "you-need-a-register" ) );
+				}
 			}
 		}
 	}
@@ -324,6 +395,8 @@ class API_CustomPacketListner implements Listener {
 	public function authenticatePlayer(Player $player) {
 		if (isset ( $this->needAuth [$player->getName ()] ))
 			unset ( $this->needAuth [$player->getName ()] );
+		if (isset ( $this->standbyAuth [$player->getName ()] ))
+			unset ( $this->standbyAuth [$player->getName ()] );
 	}
 	public function alreadyLogined(Player $player) {
 		$player->kick ( $this->plugin->get ( "already-connected" ) );
@@ -346,14 +419,15 @@ class API_CustomPacketListner implements Listener {
 			return;
 		}
 		// logoutRequest
-		// slave->master = [passcode, logoutRequest, username, IP]
+		// slave->master = [passcode, logoutRequest, username, IP, isUserGenerate]
 		$data = [ 
 				$this->plugin->getConfig ()->get ( "passcode" ),
 				"logoutRequest",
 				$event->getPlayer ()->getName (),
-				$event->getPlayer ()->getAddress () 
+				$event->getPlayer ()->getAddress (),
+				false 
 		];
-		CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), $data ) );
+		CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
 		
 		// itemSyncro
 		// slave->master = [passcode, itemSyncro, username, itemData]
@@ -361,9 +435,9 @@ class API_CustomPacketListner implements Listener {
 				$this->plugin->getConfig ()->get ( "passcode" ),
 				"itemSyncro",
 				$event->getPlayer ()->getName (),
-				$this->getItemData ( $event->getPlayer ()->getName () ) 
+				$this->getPlayerDataFile ( $event->getPlayer ()->getName () ) 
 		];
-		CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), $data ) );
+		CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
 	}
 	public function onCommand(CommandSender $player, Command $command, $label, array $args) {
 		if ($this->plugin->getConfig ()->get ( "servermode", null ) != "slave")
@@ -393,19 +467,20 @@ class API_CustomPacketListner implements Listener {
 						$password_hash,
 						$address 
 				];
-				CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), $data ) );
+				CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
 				break;
 			case $this->plugin->get ( "logout" ) :
 				// logoutRequest
-				// slave->master = [passcode, logoutRequest, username, IP]
+				// slave->master = [passcode, logoutRequest, username, IP, isUserGenerate]
 				$data = [ 
 						$this->plugin->getConfig ()->get ( "passcode" ),
 						"loginRequest",
 						$player->getName (),
-						$player->getAddress () 
+						$player->getAddress (),
+						true 
 				];
 				$this->plugin->message ( $player, $this->plugin->get ( "proceed-to-logout-please-wait" ) );
-				CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), $data ) );
+				CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
 				break;
 			case $this->plugin->get ( "register" ) :
 				// registerRequest
@@ -459,7 +534,7 @@ class API_CustomPacketListner implements Listener {
 									$player->getAddress (),
 									$email 
 							];
-							CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), $data ) );
+							CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
 							$this->message ( $player, $this->plugin->get ( "proceed-to-register-please-wait" ) );
 						} else {
 							$this->plugin->message ( $player, $this->plugin->get ( "wrong-authcode" ) );
@@ -493,7 +568,7 @@ class API_CustomPacketListner implements Listener {
 					$authCode = $this->plugin->authCodeGenerator ( 6 );
 					$nowTime = date ( "Y-m-d H:i:s" );
 					$serverName = $this->plugin->getConfig ()->get ( "serverName", "" );
-					$task = new EmailSendTask ( $args [0], $playerName, $nowTime, $serverName, $authCode, $this->getConfig ()->getAll (), $this->getDataFolder () . "signform.html" );
+					$task = new EmailSendTask ( $args [0], $playerName, $nowTime, $serverName, $authCode, $this->plugin->getConfig ()->getAll (), $this->getDataFolder () . "signform.html" );
 					$this->plugin->getServer ()->getScheduler ()->scheduleAsyncTask ( $task );
 					$this->plugin->authcode [$playerName] = [ 
 							"authcode" => $authCode,
@@ -510,7 +585,7 @@ class API_CustomPacketListner implements Listener {
 						"unregisterRequest",
 						$player->getName () 
 				];
-				CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), $data ) );
+				CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
 				$this->message ( $player, $this->plugin->get ( "proceed-to-unregister-please-wait" ) );
 				break;
 		}
@@ -519,9 +594,11 @@ class API_CustomPacketListner implements Listener {
 	public function onPacketReceive(CustomPacketReceiveEvent $ev) {
 		$data = json_decode ( $ev->getPacket ()->data );
 		if (! is_array ( $data ) or $data [0] != $this->plugin->getConfig ()->get ( "passcode", false )) {
+			echo "TEST# WRONG PACKET GET!\n";
 			return;
 		}
-		if ($this->getConfig ()->get ( "servermode", null ) == "master") {
+		echo "onPacketReceive() Run! {$data[1]}\n";
+		if ($this->plugin->getConfig ()->get ( "servermode", null ) == "master") {
 			switch ($data [1]) {
 				case "online" :
 					// online
@@ -539,9 +616,10 @@ class API_CustomPacketListner implements Listener {
 					}
 					break;
 				case "defaultInfoRequest" :
+					echo "defaultInfoRequest() Run!\n";
 					/* defaultInfoRequest */
 					/* slave->master = [passcode, defaultInfoRequest, username, IP] */
-					/* master->slave = [passcode, defaultInfoRequest, username, isConnected[true|false], isRegistered[true||false], isAutoLogin[true||false], NBT] */
+					/* master->slave = [passcode, defaultInfoRequest, username, isConnected[true|false], isRegistered[true||false], isAutoLogin[true||false], NBT, isCheckAuthReady, lockDomain] */
 					$requestedUserName = $data [2];
 					$requestedUserIp = $data [3];
 					
@@ -566,19 +644,23 @@ class API_CustomPacketListner implements Listener {
 							$isAutoLogin = false;
 						}
 						$isRegistered = true;
-						$NBT = $this->getItemData ( $requestedUserName );
+						$NBT = $this->getPlayerDataFile ( $requestedUserName );
 					}
 					$isCheckAuthReady = $this->plugin->db->checkAuthReady ( $requestedUserName );
+					$lockDomain = $this->plugin->db->getLockDomain ();
 					$data = [ 
 							$this->plugin->getConfig ()->get ( "passcode" ),
 							"defaultInfoRequest",
+							$requestedUserName,
 							$isConnect,
 							$isRegistered,
 							$isAutoLogin,
 							$NBT,
-							$isCheckAuthReady 
+							$isCheckAuthReady,
+							$lockDomain 
 					];
-					CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, $data ) );
+					CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, json_encode ( $data ) ) );
+					echo "sendComplete!";
 					break;
 				case "loginRequest" :
 					// loginRequest
@@ -609,7 +691,7 @@ class API_CustomPacketListner implements Listener {
 							$password_hash,
 							$isSuccess 
 					];
-					CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, $data ) );
+					CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, json_encode ( $data ) ) );
 					break;
 				case "logoutRequest" :
 					// logoutRequest
@@ -633,7 +715,7 @@ class API_CustomPacketListner implements Listener {
 							$username,
 							$isSuccess 
 					];
-					CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, $data ) );
+					CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, json_encode ( $data ) ) );
 					break;
 				case "registerRequest" :
 					// registerRequest
@@ -654,7 +736,7 @@ class API_CustomPacketListner implements Listener {
 					if ($this->plugin->db->checkAuthReady ( $username )) {
 						$this->plugin->db->completeAuthReady ( $username );
 					}
-					CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, $data ) );
+					CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, json_encode ( $data ) ) );
 					break;
 				case "unregisterRequest" :
 					// unregisterRequest
@@ -679,7 +761,7 @@ class API_CustomPacketListner implements Listener {
 							$username,
 							$isSuccess 
 					];
-					CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, $data ) );
+					CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, json_encode ( $data ) ) );
 					break;
 				case "itemSyncro" :
 					// itemSyncro
@@ -687,7 +769,8 @@ class API_CustomPacketListner implements Listener {
 					// master->slave = [passcode, itemSyncro, username, itemData]
 					$username = $data [2];
 					$itemData = $data [3];
-					$this->applyItemData ( $username, $itemData );
+					$playerdata = $this->getPlayerData ( $username, $itemData );
+					$this->applyItemData ( $username, $playerdata );
 					break;
 				case "economySyncro" :
 					// economySyncro
@@ -706,7 +789,7 @@ class API_CustomPacketListner implements Listener {
 					foreach ( $this->updateList as $ipport => $data ) {
 						if ($target_addr == $ipport)
 							continue;
-						CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, $data ) );
+						CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, json_encode ( $data ) ) );
 					}
 					break;
 			}
@@ -721,35 +804,43 @@ class API_CustomPacketListner implements Listener {
 				case "defaultInfoRequest" :
 					/* defaultInfoRequest */
 					/* slave->master = [passcode, defaultInfoRequest, username, IP] */
-					/* master->slave = [passcode, defaultInfoRequest, username, isConnected[true|false], 가입여부[true||false], 자동로그인처리[true||false], 유저정보데이터] */
+					/* master->slave = [passcode, defaultInfoRequest, username, isConnected[true|false], isRegistered[true||false], isConnected[true||false], NBT, isCheckAuthReady, lockDomain] */
+					echo "defaultInfoRequest getted!\n";
 					$username = $data [2];
 					$isConnect = $data [3];
 					$isRegistered = $data [4];
 					$isAutoLogin = $data [5];
 					$NBT = $data [6];
 					$isCheckAuthReady = $data [7];
+					$lockDomain = $data [8];
 					
 					$this->tmpDb [$username] = [ 
 							"isConnect" => $isConnect,
 							"isRegistered" => $isRegistered,
 							"isAutoLogin" => $isAutoLogin,
-							"isCheckAuthReady" => $isCheckAuthReady 
+							"isCheckAuthReady" => $isCheckAuthReady,
+							"lockDomain" => $lockDomain 
 					];
 					
 					$player = $this->plugin->getServer ()->getPlayer ( $username );
-					if (! $player instanceof Player)
-						return;
-					if ($isConnect) {
-						$this->alreadyLogined ( $player );
+					if (! $player instanceof Player) {
+						echo "he is not Player Instance!\n";
 						return;
 					}
-					$this->applyItemData ( $username, $NBT );
+					if ($isConnect) {
+						$this->alreadyLogined ( $player );
+						echo "alreadyLogined\n";
+						return;
+					}
+					$this->applyItemData ( $username, $this->getPlayerData ( $username, $NBT ) );
 					if ($isAutoLogin) {
 						$this->plugin->message ( $player, $this->plugin->get ( "automatic-ip-logined" ) );
 						$this->authenticatePlayer ( $player );
+						echo "automaticLogined\n";
 						return;
 					}
 					$this->cueAuthenticatePlayer ( $player );
+					echo "auth started!";
 					break;
 				case "loginRequest" :
 					// loginRequest
@@ -772,7 +863,8 @@ class API_CustomPacketListner implements Listener {
 					// logoutRequest
 					// slave->master = [passcode, logoutRequest, username, IP, isUserGenerate]
 					// master->slave = [passcode, logoutRequest, username, isSuccess]
-					$isSuccess = $data [2];
+					$username = $data [2];
+					$isSuccess = $data [3];
 					$player = $this->plugin->getServer ()->getPlayer ( $username );
 					if (! $player instanceof Player)
 						return;
@@ -806,7 +898,7 @@ class API_CustomPacketListner implements Listener {
 					// master->slave = [passcode, itemSyncro, 유저명, itemData]
 					$username = $data [2];
 					$itemData = $data [3];
-					$this->applyItemData ( $username, $itemData );
+					$this->applyItemData ( $username, $this->getPlayerData ( $username, $itemData ) );
 					break;
 				case "economySyncro" :
 					// slave
@@ -853,10 +945,12 @@ class API_CustomPacketListner implements Listener {
 		if (isset ( $this->standbyAuth [$event->getPlayer ()->getName ()] )) {
 			$event->setCancelled ();
 			$this->standbyAuthenticatePlayer ( $event->getPlayer () );
+			return;
 		}
 		if (isset ( $this->needAuth [$event->getPlayer ()->getName ()] )) {
 			$event->setCancelled ();
 			$this->deauthenticatePlayer ( $event->getPlayer () );
+			return;
 		}
 	}
 	public function onPlayerInteract(PlayerInteractEvent $event) {

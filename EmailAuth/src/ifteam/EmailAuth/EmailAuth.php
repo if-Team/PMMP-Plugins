@@ -191,7 +191,7 @@ class EmailAuth extends PluginBase implements Listener {
 		}
 		if (isset ( $this->db->getAll ()["ip"][$event->getPlayer ()->getAddress ()] )) {
 			$this->message ( $event->getPlayer (), $this->get ( "automatic-ip-logined" ) );
-			//TODO 뭐지 여기..? 자동로그인 되는건가.. 디버깅필요
+			// TODO 뭐지 여기..? 자동로그인 되는건가.. 디버깅필요
 		} else {
 			$this->deauthenticatePlayer ( $event->getPlayer () );
 		}
@@ -273,10 +273,22 @@ class EmailAuth extends PluginBase implements Listener {
 				}
 				break;
 			case $this->get ( "logout" ) :
+				if ($this->getConfig ()->get ( "servermode", null ) == "slave") {
+					// 커스텀패킷이 작동하고 있고, 슬레이브모드면 일단 모든걸 중지 후
+					// 마스터서버로의 데이터가 오고 인증이 재기되기까지 대기
+					if ($this->checkCustomPacket)
+						return;
+				}
 				$this->db->logout ( $this->db->getEmail ( $player ) );
 				$this->message ( $player, $this->get ( "logout-complete" ) );
 				break;
 			case $this->get ( "register" ) :
+				if ($this->getConfig ()->get ( "servermode", null ) == "slave") {
+					// 커스텀패킷이 작동하고 있고, 슬레이브모드면 일단 모든걸 중지 후
+					// 마스터서버로의 데이터가 오고 인증이 재기되기까지 대기
+					if ($this->checkCustomPacket)
+						return;
+				}
 				// 가입 <이메일또는 코드> <원하는암호>
 				if (! isset ( $this->needAuth [$player->getName ()] )) {
 					$this->message ( $player, $this->get ( "already-logined" ) );
@@ -316,8 +328,13 @@ class EmailAuth extends PluginBase implements Listener {
 				if (is_numeric ( $args [0] )) {
 					if (isset ( $this->authcode [$player->getName ()] )) {
 						if ($this->authcode [$player->getName ()] ["authcode"] == $args [0]) {
-							$this->db->addUser ( $this->authcode [$player->getName ()] ["email"], $password, $player->getAddress (), false, $player->getName () );
-							$this->message ( $player, $this->get ( "register-complete" ) );
+							$result = $this->db->addUser ( $this->authcode [$player->getName ()] ["email"], $password, $player->getAddress (), false, $player->getName () );
+							if ($result) {
+								$this->message ( $player, $this->get ( "register-complete" ) );
+							} else {
+								$this->message ( $player, $this->get ( "register-failed" ) );
+								return true;
+							}
 							$this->authenticatePlayer ( $player );
 							if ($this->db->checkAuthReady ( $player->getName () )) {
 								$this->db->completeAuthReady ( $player->getName () );
@@ -349,6 +366,15 @@ class EmailAuth extends PluginBase implements Listener {
 					if (! isset ( $e1 [1] )) {
 						$this->message ( $player, $this->get ( "wrong-email-type" ) );
 						return true;
+					}
+					$domainLock = $this->db->getLockDomain ();
+					if ($domainLock != null) {
+						if ($domainLock != $e [1]) {
+							$msg = str_replace ( "%domain%", $domainLock, $this->get ( "you-can-use-email-domain" ) );
+							$this->message ( $player, $msg );
+							$this->message ( $player, $this->get ( "you-need-a-register" ) );
+							return true;
+						}
 					}
 					$playerName = $player->getName ();
 					$authCode = $this->authCodeGenerator ( 6 );
@@ -560,7 +586,7 @@ class EmailAuth extends PluginBase implements Listener {
 		$domainLock = $this->db->getLockDomain ();
 		if ($domainLock != null) {
 			$msg = str_replace ( "%domain%", $domainLock, $this->get ( "you-can-use-email-domain" ) );
-			$this->message ( $player, $this->get ( $msg ) );
+			$this->message ( $player, $msg );
 		}
 	}
 	public function loginMessage(CommandSender $player) {
