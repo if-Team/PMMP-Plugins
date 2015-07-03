@@ -104,7 +104,7 @@ class EmailAuth extends PluginBase implements Listener {
 			foreach ( $ymlList as $ymlName ) {
 				$yml = (new Config ( $this->getDataFolder () . "SimpleAuth/players/" . $alphabet . "/" . $ymlName, Config::YAML ))->getAll ();
 				$name = explode ( ".", $ymlName )[0];
-				$this->db->addAuthReady ( $name, $yml ["hash"] );
+				$this->db->addAuthReady ( mb_convert_encoding ( $name, "UTF-8" ), $yml ["hash"] );
 			}
 		}
 		$this->rmdirAll ( $this->getDataFolder () . "SimpleAuth" );
