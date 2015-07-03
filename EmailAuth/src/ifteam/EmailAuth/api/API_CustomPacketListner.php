@@ -38,6 +38,9 @@ use pocketmine\nbt\tag\Short;
 use pocketmine\nbt\tag\Byte;
 use pocketmine\utils\Config;
 use pocketmine\event\player\PlayerPreLoginEvent;
+use pocketmine\event\server\DataPacketReceiveEvent;
+use pocketmine\item\Item as ItemItem;
+use pocketmine\entity\Effect;
 
 class API_CustomPacketListner implements Listener {
 	/**
@@ -267,19 +270,72 @@ class API_CustomPacketListner implements Listener {
 	 * @param string $data        	
 	 */
 	public function applyItemData($username, $data) {
+		if ($this->plugin->getConfig ()->get ( "servermode", null ) == "slave") {
+			echo "슬레이브 모드 서버입니다\n";
+		} else {
+			echo "마스터 모드 서버입니다\n";
+		}
+		echo "######applyItemData Activated\n";
 		$player = $this->plugin->getServer ()->getPlayer ( $username );
-		$compound = new Compound ();
 		$compound = $data;
 		if (! $compound instanceof Compound) {
 			echo "TEST# WRONG COMPOUND CHECKED!\n";
 			return false;
 		}
 		if (! $player instanceof Player) {
-			$this->plugin->getServer ()->saveOfflinePlayerData ( $username, $data );
+			echo "비접속 중인 유저의 NBT 변경을 시도합니다\n";
+			$this->plugin->getServer ()->saveOfflinePlayerData ( $username, $compound );
 			return true;
 		} else {
-			$this->plugin->getServer ()->saveOfflinePlayerData ( $username, $data );
-			$player->namedtag = $compound;
+			echo "접속 중인 유저의 NBT 변경을 시도합니다\n";
+			// Human initialize
+			if (! ($player instanceof Player)) {
+				if (isset ( $compound->NameTag )) {
+					$player->setNameTag ( $compound ["NameTag"] );
+				}
+				
+				if (isset ( $compound->Skin ) and $compound->Skin instanceof Compound) {
+					$player->setSkin ( $compound->Skin ["Data"], $compound->Skin ["Slim"] > 0 );
+				}
+			}
+			if (isset ( $compound->Inventory ) and $compound->Inventory instanceof Enum) {
+				foreach ( $compound->Inventory as $item ) {
+					if ($item ["Slot"] >= 0 and $item ["Slot"] < 9) { // Hotbar
+						$player->getInventory ()->setHotbarSlotIndex ( $item ["Slot"], isset ( $item ["TrueSlot"] ) ? $item ["TrueSlot"] : - 1 );
+					} elseif ($item ["Slot"] >= 100 and $item ["Slot"] < 104) { // Armor
+						$player->getInventory ()->setItem ( $player->getInventory ()->getSize () + $item ["Slot"] - 100, ItemItem::get ( $item ["id"], $item ["Damage"], $item ["Count"] ) );
+					} else {
+						$player->getInventory ()->setItem ( $item ["Slot"] - 9, ItemItem::get ( $item ["id"], $item ["Damage"], $item ["Count"] ) );
+					}
+				}
+			}
+			
+			// Living initialize
+			if (isset ( $compound->HealF )) {
+				$compound->Health = new Short ( "Health", ( int ) $compound ["HealF"] );
+				unset ( $compound->HealF );
+			}
+			if (! isset ( $compound->Health ) or ! ($compound->Health instanceof Short)) {
+				$compound->Health = new Short ( "Health", $player->getMaxHealth () );
+			}
+			$player->setHealth ( $compound ["Health"] );
+			
+			// Entity initialize
+			if (isset ( $compound->ActiveEffects )) {
+				foreach ( $compound->ActiveEffects->getValue () as $e ) {
+					$effect = Effect::getEffect ( $e ["Id"] );
+					if ($effect === \null) {
+						continue;
+					}
+					$effect->setAmplifier ( $e ["Amplifier"] )->setDuration ( $e ["Duration"] )->setVisible ( $e ["ShowParticles"] > 0 );
+					
+					$player->addEffect ( $effect );
+				}
+			}
+			if (isset ( $compound->CustomName )) {
+				$player->setNameTag ( $compound ["CustomName"] );
+				$player->setNameTagVisible ( $compound ["CustomNameVisible"] > 0 );
+			}
 		}
 		return true;
 	}
@@ -329,18 +385,24 @@ class API_CustomPacketListner implements Listener {
 				echo "PlayerJoinEvent -> Player isn't Player instance!";
 				return;
 			}
-			/* defaultInfoRequest */
-			/* slave->master = [passcode, defaultInfoRequest, username, IP] */
-			/* master->slave = [passcode, defaultInfoRequest, username, IsAllowAccess[true|false], IsRegistered[true|false], IsAutoLogin[true|false], NBT] */
+			$this->standbyAuthenticatePlayer ( $event->getPlayer () );
 			$data = [ 
 					$this->plugin->getConfig ()->get ( "passcode" ),
 					"defaultInfoRequest",
 					$event->getPlayer ()->getName (),
 					$event->getPlayer ()->getAddress () 
 			];
+			echo "PlayerPreLoginEvent() called\n";
+			/* defaultInfoRequest */
+			/* slave->master = [passcode, defaultInfoRequest, username, IP] */
+			/* master->slave = [passcode, defaultInfoRequest, username, IsAllowAccess[true|false], IsRegistered[true|false], IsAutoLogin[true|false], NBT] */
 			CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
-			$this->standbyAuthenticatePlayer ( $event->getPlayer () );
 		}
+	}
+	public function onDataPacketReceiveEvent(DataPacketReceiveEvent $event) {
+		/*
+		 * if ($this->plugin->getConfig ()->get ( "servermode", null ) == "slave") { $packet = $event->getPacket (); $player = $event->getPlayer (); if ($packet::NETWORK_ID == 0x82) { if ($player->loggedIn) { return; } // itemSyncroRequest // slave->master = [passcode, itemSyncro, username] echo "미리 플레이어의 아이템정보를 마스터에서 가져옵니다\n"; $data = [ $this->plugin->getConfig ()->get ( "passcode" ), "itemSyncroRequest", $player->getName () ]; CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) ); } }
+		 */
 	}
 	/**
 	 * Add the user to standbyAuth Queue.
@@ -429,6 +491,7 @@ class API_CustomPacketListner implements Listener {
 		];
 		CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
 		
+		$event->getPlayer ()->save ();
 		// itemSyncro
 		// slave->master = [passcode, itemSyncro, username, itemData]
 		$data = [ 
@@ -474,7 +537,7 @@ class API_CustomPacketListner implements Listener {
 				// slave->master = [passcode, logoutRequest, username, IP, isUserGenerate]
 				$data = [ 
 						$this->plugin->getConfig ()->get ( "passcode" ),
-						"loginRequest",
+						"logoutRequest",
 						$player->getName (),
 						$player->getAddress (),
 						true 
@@ -597,7 +660,6 @@ class API_CustomPacketListner implements Listener {
 			echo "TEST# WRONG PACKET GET!\n";
 			return;
 		}
-		echo "onPacketReceive() Run! {$data[1]}\n";
 		if ($this->plugin->getConfig ()->get ( "servermode", null ) == "master") {
 			switch ($data [1]) {
 				case "online" :
@@ -746,12 +808,7 @@ class API_CustomPacketListner implements Listener {
 					if (isset ( $this->onlineUserList [$username] )) {
 						$email = $this->plugin->db->getEmailToName ( $username );
 						$deleteCheck = $this->plugin->db->deleteUser ( $email );
-						if ($email === false or $deleteCheck === false) {
-							// did not join
-							$isSuccess = false;
-						} else {
-							$isSuccess = true;
-						}
+						($email === false or $deleteCheck === false) ? $isSuccess = false : $isSuccess = true;
 					} else {
 						$isSuccess = false;
 					}
@@ -771,6 +828,21 @@ class API_CustomPacketListner implements Listener {
 					$itemData = $data [3];
 					$playerdata = $this->getPlayerData ( $username, $itemData );
 					$this->applyItemData ( $username, $playerdata );
+					break;
+				case "itemSyncroRequest" :
+					// itemSyncroRequest
+					// slave->master = [passcode, itemSyncro, username]
+					// master->slave = [passcode, itemSyncro, username, itemData]
+					$username = $data [2];
+					// itemSyncro
+					// slave->master = [passcode, itemSyncro, username, itemData]
+					$data = [ 
+							$this->plugin->getConfig ()->get ( "passcode" ),
+							"itemSyncro",
+							$username,
+							$this->getPlayerDataFile ( $username ) 
+					];
+					CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, json_encode ( $data ) ) );
 					break;
 				case "economySyncro" :
 					// economySyncro
@@ -894,8 +966,8 @@ class API_CustomPacketListner implements Listener {
 					break;
 				case "itemSyncro" :
 					// itemSyncro
-					// slave->master = [passcode, itemSyncro, 유저명, itemData]
-					// master->slave = [passcode, itemSyncro, 유저명, itemData]
+					// slave->master = [passcode, itemSyncro, username, itemData]
+					// master->slave = [passcode, itemSyncro, username, itemData]
 					$username = $data [2];
 					$itemData = $data [3];
 					$this->applyItemData ( $username, $this->getPlayerData ( $username, $itemData ) );
@@ -903,8 +975,8 @@ class API_CustomPacketListner implements Listener {
 				case "economySyncro" :
 					// slave
 					// economySyncro
-					// slave->master = [패스코드, economySyncro, 유저명, 금액]
-					// master->slave = [패스코드, economySyncro, 유저명, 금액]
+					// slave->master = [passcode, economySyncro, username, money]
+					// master->slave = [passcode, economySyncro, username, money]
 					$username = $data [2];
 					$money = $data [3];
 					$this->applyEconomyData ( $username, $money );

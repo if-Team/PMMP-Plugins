@@ -191,7 +191,6 @@ class EmailAuth extends PluginBase implements Listener {
 		}
 		if (isset ( $this->db->getAll ()["ip"][$event->getPlayer ()->getAddress ()] )) {
 			$this->message ( $event->getPlayer (), $this->get ( "automatic-ip-logined" ) );
-			// TODO 뭐지 여기..? 자동로그인 되는건가.. 디버깅필요
 		} else {
 			$this->deauthenticatePlayer ( $event->getPlayer () );
 		}
@@ -220,10 +219,10 @@ class EmailAuth extends PluginBase implements Listener {
 		return true;
 	}
 	public function onCommand(CommandSender $player, Command $command, $label, array $args) {
-		// 연속으로 20회 이상틀리면 밴 처리
+		// 연속으로 7회 이상틀리면 밴 처리(이메일 전송포함)
 		if ($player instanceof Player) {
 			if (isset ( $this->wrongauth [$player->getAddress ()] )) {
-				if ($this->wrongauth [$player->getAddress ()] >= 20) {
+				if ($this->wrongauth [$player->getAddress ()] >= 7) {
 					$this->getServer ()->blockAddress ( $player->getAddress (), 400 );
 				}
 			}
@@ -380,6 +379,11 @@ class EmailAuth extends PluginBase implements Listener {
 					$authCode = $this->authCodeGenerator ( 6 );
 					$nowTime = date ( "Y-m-d H:i:s" );
 					$serverName = $this->getConfig ()->get ( "serverName", "" );
+					if (isset ( $this->wrongauth [$player->getAddress ()] )) {
+						$this->wrongauth [$player->getAddress ()] ++;
+					} else {
+						$this->wrongauth [$player->getAddress ()] = 1;
+					}
 					$task = new EmailSendTask ( $args [0], $playerName, $nowTime, $serverName, $authCode, $this->getConfig ()->getAll (), $this->getDataFolder () . "signform.html" );
 					$this->getServer ()->getScheduler ()->scheduleAsyncTask ( $task );
 					$this->authcode [$playerName] = [ 
