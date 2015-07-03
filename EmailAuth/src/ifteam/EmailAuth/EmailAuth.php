@@ -454,22 +454,22 @@ class EmailAuth extends PluginBase implements Listener {
 					case "test" :
 						if ($this->getConfig ()->get ( "adminEmail", null ) == null) {
 							$this->message ( $player, $this->get ( "adminMail-doesnt-exist" ) );
-							$this->message ( $player, $player, $this->get ( "setup-help-mail" ) );
+							$this->message ( $player, $this->get ( "setup-help-mail" ) );
 							return;
 						}
 						if ($this->getConfig ()->get ( "adminEmailHost", null ) == null) {
 							$this->message ( $player, $this->get ( "adminEmailHost-doesnt-exist" ) );
-							$this->message ( $player, $player, $this->get ( "setup-help-pass" ) );
+							$this->message ( $player, $this->get ( "setup-help-pass" ) );
 							return;
 						}
 						if ($this->getConfig ()->get ( "adminEmailPort", null ) == null) {
 							$this->message ( $player, $this->get ( "adminEmailPort-doesnt-exist" ) );
-							$this->message ( $player, $player, $this->get ( "setup-help-host" ) );
+							$this->message ( $player, $this->get ( "setup-help-host" ) );
 							return;
 						}
 						if ($this->getConfig ()->get ( "adminEmailPassword", null ) == null) {
 							$this->message ( $player, $this->get ( "adminEmailPassword-doesnt-exist" ) );
-							$this->message ( $player, $player, $this->get ( "setup-help-port" ) );
+							$this->message ( $player, $this->get ( "setup-help-port" ) );
 							return;
 						}
 						$playerName = "CONSOLE";
