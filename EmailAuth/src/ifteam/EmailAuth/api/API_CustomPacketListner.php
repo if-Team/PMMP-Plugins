@@ -270,24 +270,15 @@ class API_CustomPacketListner implements Listener {
 	 * @param string $data        	
 	 */
 	public function applyItemData($username, $data) {
-		if ($this->plugin->getConfig ()->get ( "servermode", null ) == "slave") {
-			echo "슬레이브 모드 서버입니다\n";
-		} else {
-			echo "마스터 모드 서버입니다\n";
-		}
-		echo "######applyItemData Activated\n";
 		$player = $this->plugin->getServer ()->getPlayer ( $username );
 		$compound = $data;
 		if (! $compound instanceof Compound) {
-			echo "TEST# WRONG COMPOUND CHECKED!\n";
 			return false;
 		}
 		if (! $player instanceof Player) {
-			echo "비접속 중인 유저의 NBT 변경을 시도합니다\n";
 			$this->plugin->getServer ()->saveOfflinePlayerData ( $username, $compound );
 			return true;
 		} else {
-			echo "접속 중인 유저의 NBT 변경을 시도합니다\n";
 			// Human initialize
 			if (! ($player instanceof Player)) {
 				if (isset ( $compound->NameTag )) {
@@ -382,7 +373,6 @@ class API_CustomPacketListner implements Listener {
 	public function onJoin(PlayerPreLoginEvent $event) {
 		if ($this->plugin->getConfig ()->get ( "servermode", null ) == "slave") {
 			if (! $event->getPlayer () instanceof Player) {
-				echo "PlayerJoinEvent -> Player isn't Player instance!";
 				return;
 			}
 			$this->standbyAuthenticatePlayer ( $event->getPlayer () );
@@ -392,17 +382,11 @@ class API_CustomPacketListner implements Listener {
 					$event->getPlayer ()->getName (),
 					$event->getPlayer ()->getAddress () 
 			];
-			echo "PlayerPreLoginEvent() called\n";
 			/* defaultInfoRequest */
 			/* slave->master = [passcode, defaultInfoRequest, username, IP] */
 			/* master->slave = [passcode, defaultInfoRequest, username, IsAllowAccess[true|false], IsRegistered[true|false], IsAutoLogin[true|false], NBT] */
 			CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
 		}
-	}
-	public function onDataPacketReceiveEvent(DataPacketReceiveEvent $event) {
-		/*
-		 * if ($this->plugin->getConfig ()->get ( "servermode", null ) == "slave") { $packet = $event->getPacket (); $player = $event->getPlayer (); if ($packet::NETWORK_ID == 0x82) { if ($player->loggedIn) { return; } // itemSyncroRequest // slave->master = [passcode, itemSyncro, username] echo "미리 플레이어의 아이템정보를 마스터에서 가져옵니다\n"; $data = [ $this->plugin->getConfig ()->get ( "passcode" ), "itemSyncroRequest", $player->getName () ]; CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) ); } }
-		 */
 	}
 	/**
 	 * Add the user to standbyAuth Queue.
@@ -657,7 +641,6 @@ class API_CustomPacketListner implements Listener {
 	public function onPacketReceive(CustomPacketReceiveEvent $ev) {
 		$data = json_decode ( $ev->getPacket ()->data );
 		if (! is_array ( $data ) or $data [0] != $this->plugin->getConfig ()->get ( "passcode", false )) {
-			echo "TEST# WRONG PACKET GET!\n";
 			return;
 		}
 		if ($this->plugin->getConfig ()->get ( "servermode", null ) == "master") {
@@ -678,7 +661,6 @@ class API_CustomPacketListner implements Listener {
 					}
 					break;
 				case "defaultInfoRequest" :
-					echo "defaultInfoRequest() Run!\n";
 					/* defaultInfoRequest */
 					/* slave->master = [passcode, defaultInfoRequest, username, IP] */
 					/* master->slave = [passcode, defaultInfoRequest, username, isConnected[true|false], isRegistered[true||false], isAutoLogin[true||false], NBT, isCheckAuthReady, lockDomain] */
@@ -722,7 +704,6 @@ class API_CustomPacketListner implements Listener {
 							$lockDomain 
 					];
 					CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, json_encode ( $data ) ) );
-					echo "sendComplete!";
 					break;
 				case "loginRequest" :
 					// loginRequest
@@ -877,7 +858,6 @@ class API_CustomPacketListner implements Listener {
 					/* defaultInfoRequest */
 					/* slave->master = [passcode, defaultInfoRequest, username, IP] */
 					/* master->slave = [passcode, defaultInfoRequest, username, isConnected[true|false], isRegistered[true||false], isConnected[true||false], NBT, isCheckAuthReady, lockDomain] */
-					echo "defaultInfoRequest getted!\n";
 					$username = $data [2];
 					$isConnect = $data [3];
 					$isRegistered = $data [4];
@@ -896,23 +876,19 @@ class API_CustomPacketListner implements Listener {
 					
 					$player = $this->plugin->getServer ()->getPlayer ( $username );
 					if (! $player instanceof Player) {
-						echo "he is not Player Instance!\n";
 						return;
 					}
 					if ($isConnect) {
 						$this->alreadyLogined ( $player );
-						echo "alreadyLogined\n";
 						return;
 					}
 					$this->applyItemData ( $username, $this->getPlayerData ( $username, $NBT ) );
 					if ($isAutoLogin) {
 						$this->plugin->message ( $player, $this->plugin->get ( "automatic-ip-logined" ) );
 						$this->authenticatePlayer ( $player );
-						echo "automaticLogined\n";
 						return;
 					}
 					$this->cueAuthenticatePlayer ( $player );
-					echo "auth started!";
 					break;
 				case "loginRequest" :
 					// loginRequest

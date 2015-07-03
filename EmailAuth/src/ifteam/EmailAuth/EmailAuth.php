@@ -32,9 +32,6 @@ use ifteam\EmailAuth\api\API_CustomPacketListner;
 use ifteam\EmailAuth\task\AutoSaveTask;
 use ifteam\EmailAuth\task\EmailSendTask;
 
-// TODO 리스트 - 현재남은 작업들
-// 이메일 - 가입 OTP 탈퇴 개발완료
-// 이메일 - 심플오스 데이터 이식기능 개발완료
 class EmailAuth extends PluginBase implements Listener {
 	private static $instance = null;
 	public $db = [ ];
@@ -251,7 +248,6 @@ class EmailAuth extends PluginBase implements Listener {
 							return true;
 						}
 						if ($data ["password"] != $args [0]) {
-							echo $data ["password"] . " : " . $args [0] . "\n";
 							$this->alert ( $player, $this->get ( "login-is-failed" ) );
 							if ($player instanceof Player) {
 								if (isset ( $this->wrongauth [$player->getAddress ()] )) {

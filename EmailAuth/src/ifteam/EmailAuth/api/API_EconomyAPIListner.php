@@ -34,7 +34,12 @@ class API_EconomyAPIListner implements Listener {
 			return;
 		$moneyData = (new Config ( $this->plugin->getDataFolder () . "EconomyAPI/Money.yml", Config::YAML ))->getAll ();
 		foreach ( $moneyData ["money"] as $player => $money ) {
-			EconomyAPI::getInstance ()->setMoney ( $player, $money );
+			$result = EconomyAPI::getInstance ()->addMoney ( $player, $money );
+			if ($result == - 1) {
+				EconomyAPI::getInstance ()->createAccount ( $player, $money );
+			} else {
+				$this->temp [$player . " " . $money] = true;
+			}
 		}
 		$this->plugin->rmdirAll ( $this->plugin->getDataFolder () . "EconomyAPI" );
 	}
@@ -50,7 +55,10 @@ class API_EconomyAPIListner implements Listener {
 	public function setMoney($username, $money) {
 		if (! $this->isEnabled)
 			return;
-		EconomyAPI::getInstance ()->setMoney ( $username, $money );
+		$result = EconomyAPI::getInstance ()->setMoney ( $username, $money );
+		if ($result == - 1) {
+			EconomyAPI::getInstance ()->createAccount ( $username, $money );
+		}
 		$this->temp [$username . " " . $money] = true;
 	}
 }
