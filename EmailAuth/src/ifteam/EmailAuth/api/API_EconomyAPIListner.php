@@ -6,6 +6,7 @@ use pocketmine\event\Listener;
 use onebone\economyapi\event\money\MoneyChangedEvent;
 use ifteam\EmailAuth\EmailAuth;
 use onebone\economyapi\EconomyAPI;
+use pocketmine\utils\Config;
 
 class API_EconomyAPIListner implements Listener {
 	public $owner; /* API_CustomPacketListner */
@@ -19,9 +20,23 @@ class API_EconomyAPIListner implements Listener {
 		if ($this->plugin->getServer ()->getPluginManager ()->getPlugin ( "EconomyAPI" ) !== null) {
 			$this->plugin->getServer ()->getPluginManager ()->registerEvents ( $this, $this->plugin );
 			$this->isEnabled = true;
+			if (file_exists ( $this->plugin->getDataFolder () . "EconomyAPI" ))
+				$this->getEconomyAPIData ();
 		} else {
 			$this->isEnabled = false;
 		}
+	}
+	/**
+	 * Import data from EconomyAPI
+	 */
+	public function getEconomyAPIData() {
+		if (! file_exists ( $this->plugin->getDataFolder () . "EconomyAPI" ))
+			return;
+		$moneyData = (new Config ( $this->plugin->getDataFolder () . "EconomyAPI/Money.yml", Config::YAML ))->getAll ();
+		foreach ( $moneyData ["money"] as $player => $money ) {
+			EconomyAPI::getInstance ()->setMoney ( $player, $money );
+		}
+		$this->plugin->rmdirAll ( $this->plugin->getDataFolder () . "EconomyAPI" );
 	}
 	public function onMoneyChangeEvent(MoneyChangedEvent $event) {
 		if ($event->isCancelled ())

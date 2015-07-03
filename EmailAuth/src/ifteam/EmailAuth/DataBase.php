@@ -43,7 +43,8 @@ class DataBase {
 		if ($this->getEmailToName ( $name ) != false) {
 			return;
 		}
-		$this->yml ["authready"] [$name] = $hash;
+		if (! isset ( $this->yml ["authready"] [$name] ))
+			$this->yml ["authready"] [$name] = $hash;
 	}
 	public function checkAuthReady($name) {
 		$name = strtolower ( $name );
@@ -78,7 +79,7 @@ class DataBase {
 		if (! isset ( $e [1] )) {
 			return false;
 		}
-		$e1 = explode ( '.', $e[1] );
+		$e1 = explode ( '.', $e [1] );
 		if (! isset ( $e1 [1] )) {
 			return false;
 		}

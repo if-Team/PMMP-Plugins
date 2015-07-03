@@ -72,7 +72,6 @@ class EmailAuth extends PluginBase implements Listener {
 		
 		if (file_exists ( $this->getDataFolder () . "SimpleAuth/players" ))
 			$this->getSimpleAuthData ();
-		
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
 	/**
