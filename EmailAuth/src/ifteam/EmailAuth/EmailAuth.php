@@ -626,8 +626,15 @@ class EmailAuth extends PluginBase implements Listener {
 		$mail->addReplyTo ( $this->getConfig ()->get ( "adminEmail" ), $this->getConfig ()->get ( "serverName" ) );
 		$mail->addAddress ( $sendMail );
 		$mail->Subject = $this->getConfig ()->get ( "subjectName" );
-		
 		$mail->msgHTML ( $html );
+		
+		$mail->smtpConnect ( array (
+				'ssl' => array (
+						'verify_peer' => false,
+						'verify_peer_name' => false,
+						'allow_self_signed' => true 
+				) 
+		) );
 		
 		if ($istest)
 			echo $mail->ErrorInfo . "\n";
