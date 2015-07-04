@@ -7,7 +7,7 @@ POLARSSL_VERSION="1.3.8"
 LIBMCRYPT_VERSION="2.5.8"
 GMP_VERSION="6.0.0a"
 GMP_VERSION_DIR="6.0.0"
-CURL_VERSION="curl-7_41_0"
+CURL_VERSION="curl-7_38_0"
 READLINE_VERSION="6.3"
 OPENSSL_VERSION="1.0.2c"
 NCURSES_VERSION="5.9"
@@ -589,7 +589,7 @@ else
 	mv curl-$CURL_VERSION curl
 	echo -n " checking..."
 	cd curl
-	./buildconf --force >> "$DIR/install.log" 2>&1
+	./buildconf --force >> "$DIR/install.log"
 	RANLIB=$RANLIB ./configure --disable-dependency-tracking \
 	--enable-ipv6 \
 	--enable-optimize \
@@ -599,24 +599,21 @@ else
 	--enable-file \
 	--without-librtmp \
 	--disable-gopher \
-	--enable-imap \
-	--enable-pop3 \
+	--disable-imap \
+	--disable-pop3 \
 	--disable-rtsp \
-	--enable-smtp \
+	--disable-smtp \
 	--disable-telnet \
 	--disable-tftp \
 	--disable-ldap \
 	--disable-ldaps \
 	--without-libidn \
-	--with-zlib="$DIR/bin/php5" \
-	--with-ssl \
-	--with-polarssl="$DIR/bin/php5" \
 	--enable-threaded-resolver \
 	--prefix="$DIR/bin/php5" \
 	$EXTRA_FLAGS \
-	$CONFIGURE_FLAGS >> "$DIR/install.log" 2>&1
+	$CONFIGURE_FLAGS
 	echo -n " compiling..."
-	make -j $THREADS >> "$DIR/install.log" 2>&1
+	make -j $THREADS >> "$DIR/install.log" 
 	echo -n " installing..."
 	make install >> "$DIR/install.log" 2>&1
 	echo -n " cleaning..."
