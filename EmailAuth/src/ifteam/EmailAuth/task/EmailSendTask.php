@@ -29,7 +29,6 @@ class EmailSendTask extends AsyncTask {
 		return ($this->PHPMailer ( $sendMail, $signForm, $code )) ? true : false;
 	}
 	public function PHPMailer($sendMail, $html, $code = "") {
-		echo "PHPMailer() is Started\n";
 		$mail = new PHPMailer ();
 		$mail->isSMTP ();
 		$mail->SMTPDebug = 0;
@@ -54,6 +53,14 @@ class EmailSendTask extends AsyncTask {
 		$mail->Subject = $this->config ["subjectName"] . " [" . $code . "]";
 		
 		$mail->msgHTML ( $html );
+		
+		$mail->smtpConnect ( array (
+				'ssl' => array (
+						'verify_peer' => false,
+						'verify_peer_name' => false,
+						'allow_self_signed' => true 
+				) 
+		) );
 		
 		if ($istest)
 			echo $mail->ErrorInfo . "\n";

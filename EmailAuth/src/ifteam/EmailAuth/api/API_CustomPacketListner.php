@@ -206,7 +206,7 @@ class API_CustomPacketListner implements Listener {
 		$name = \strtolower ( $name );
 		$path = $this->plugin->getServer ()->getDataPath () . "players/";
 		if (\file_exists ( $path . "$name.dat" )) {
-			return mb_convert_encoding ( $name ( file_get_contents ( $path . "$name.dat" ), "UTF-8" ) );
+			return mb_convert_encoding ( file_get_contents ( $path . "$name.dat" ), "UTF-8", "ISO-8859-1" );
 		} else {
 			return null;
 		}
@@ -215,7 +215,7 @@ class API_CustomPacketListner implements Listener {
 		$name =\strtolower ( $name );
 		$path = $this->plugin->getServer ()->getDataPath () . "players/";
 		if ($data !== null) {
-			$data = utf8_decode ( $data );
+			$data = mb_convert_encoding ( $data, "ISO-8859-1", "UTF-8" );
 			try {
 				$nbt = new NBT ( NBT::BIG_ENDIAN );
 				$nbt->readCompressed ( $data );
@@ -271,6 +271,7 @@ class API_CustomPacketListner implements Listener {
 	 */
 	public function applyItemData($username, $data) {
 		$player = $this->plugin->getServer ()->getPlayer ( $username );
+		
 		$compound = $data;
 		if (! $compound instanceof Compound) {
 			return false;
@@ -279,6 +280,10 @@ class API_CustomPacketListner implements Listener {
 			$this->plugin->getServer ()->saveOfflinePlayerData ( $username, $compound );
 			return true;
 		} else {
+			if (! isset ( explode ( ".", $player->getAddress () )[3] )) { // Check DummyPlayer
+				$this->plugin->getServer ()->saveOfflinePlayerData ( $username, $compound );
+				return true;
+			}
 			// Human initialize
 			if (! ($player instanceof Player)) {
 				if (isset ( $compound->NameTag )) {
@@ -414,8 +419,8 @@ class API_CustomPacketListner implements Listener {
 		if (isset ( $this->tmpDb [$player->getName ()] )) {
 			if ($this->tmpDb [$player->getName ()] ["isCheckAuthReady"]) {
 				$this->plugin->needReAuthMessage ( $player );
-				if ($this->tmpDb ["lockDomain"] != null) {
-					$msg = str_replace ( "%domain%", $this->tmpDb ["lockDomain"], $this->plugin->get ( "you-can-use-email-domain" ) );
+				if ($this->tmpDb [$player->getName ()] ["lockDomain"] != null) {
+					$msg = str_replace ( "%domain%", $this->tmpDb [$player] ["lockDomain"], $this->plugin->get ( "you-can-use-email-domain" ) );
 					$this->plugin->message ( $player, $msg );
 					$this->plugin->message ( $player, $this->plugin->get ( "you-need-a-register" ) );
 				}
@@ -425,8 +430,8 @@ class API_CustomPacketListner implements Listener {
 				$this->plugin->loginMessage ( $player );
 			} else {
 				$this->plugin->registerMessage ( $player );
-				if ($this->tmpDb ["lockDomain"] != null) {
-					$msg = str_replace ( "%domain%", $this->tmpDb ["lockDomain"], $this->plugin->get ( "you-can-use-email-domain" ) );
+				if ($this->tmpDb [$player] ["lockDomain"] != null) {
+					$msg = str_replace ( "%domain%", $this->tmpDb [$player] ["lockDomain"], $this->plugin->get ( "you-can-use-email-domain" ) );
 					$this->plugin->message ( $player, $msg );
 					$this->plugin->message ( $player, $this->plugin->get ( "you-need-a-register" ) );
 				}
@@ -489,6 +494,10 @@ class API_CustomPacketListner implements Listener {
 	public function onCommand(CommandSender $player, Command $command, $label, array $args) {
 		if ($this->plugin->getConfig ()->get ( "servermode", null ) != "slave")
 			return true;
+		if (isset ( $this->standbyAuth [$player->getName ()] )) {
+			$this->standbyAuthenticatePlayer ( $player );
+			return true;
+		}
 		switch (strtolower ( $command->getName () )) {
 			case $this->plugin->get ( "login" ) :
 				// loginRequest
@@ -501,8 +510,6 @@ class API_CustomPacketListner implements Listener {
 					$this->plugin->loginMessage ( $player );
 					return true;
 				}
-				if (! $player instanceof Player)
-					return false;
 				$username = $player->getName ();
 				$password_hash = $this->plugin->hash ( strtolower ( $username ), $args [0] );
 				$address = $player->getAddress ();
@@ -519,6 +526,10 @@ class API_CustomPacketListner implements Listener {
 			case $this->plugin->get ( "logout" ) :
 				// logoutRequest
 				// slave->master = [passcode, logoutRequest, username, IP, isUserGenerate]
+				if (isset ( $this->needAuth [$player->getName ()] )) {
+					$this->plugin->loginMessage ( $player );
+					return true;
+				}
 				$data = [ 
 						$this->plugin->getConfig ()->get ( "passcode" ),
 						"logoutRequest",
@@ -532,7 +543,7 @@ class API_CustomPacketListner implements Listener {
 			case $this->plugin->get ( "register" ) :
 				// registerRequest
 				// slave->master = [passcode, registerRequest, username, password, IP, email]
-				if (! isset ( $this->plugin->needAuth [$player->getName ()] )) {
+				if (! isset ( $this->needAuth [$player->getName ()] )) {
 					$this->plugin->message ( $player, $this->plugin->get ( "already-logined" ) );
 					return true;
 				}
@@ -582,7 +593,7 @@ class API_CustomPacketListner implements Listener {
 									$email 
 							];
 							CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
-							$this->message ( $player, $this->plugin->get ( "proceed-to-register-please-wait" ) );
+							$this->plugin->message ( $player, $this->plugin->get ( "proceed-to-register-please-wait" ) );
 						} else {
 							$this->plugin->message ( $player, $this->plugin->get ( "wrong-authcode" ) );
 							if ($player instanceof Player) {
@@ -596,7 +607,7 @@ class API_CustomPacketListner implements Listener {
 						}
 						unset ( $this->plugin->authcode [$player->getName ()] );
 					} else {
-						$this->message ( $player, $this->get ( "authcode-doesnt-exist" ) );
+						$this->plugin->message ( $player, $this->get ( "authcode-doesnt-exist" ) );
 						$this->deauthenticatePlayer ( $player );
 					}
 				} else {
@@ -615,7 +626,8 @@ class API_CustomPacketListner implements Listener {
 					$authCode = $this->plugin->authCodeGenerator ( 6 );
 					$nowTime = date ( "Y-m-d H:i:s" );
 					$serverName = $this->plugin->getConfig ()->get ( "serverName", "" );
-					$task = new EmailSendTask ( $args [0], $playerName, $nowTime, $serverName, $authCode, $this->plugin->getConfig ()->getAll (), $this->getDataFolder () . "signform.html" );
+					
+					$task = new EmailSendTask ( $args [0], $playerName, $nowTime, $serverName, $authCode, $this->plugin->getConfig ()->getAll (), $this->plugin->getDataFolder () . "signform.html" );
 					$this->plugin->getServer ()->getScheduler ()->scheduleAsyncTask ( $task );
 					$this->plugin->authcode [$playerName] = [ 
 							"authcode" => $authCode,
@@ -627,13 +639,17 @@ class API_CustomPacketListner implements Listener {
 			case $this->plugin->get ( "unregister" ) :
 				// unregisterRequest
 				// slave->master = [passcode, unregisterRequest, username]
+				if (isset ( $this->needAuth [$player->getName ()] )) {
+					$this->plugin->loginMessage ( $player );
+					return true;
+				}
 				$data = [ 
 						$this->plugin->getConfig ()->get ( "passcode" ),
 						"unregisterRequest",
 						$player->getName () 
 				];
 				CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
-				$this->message ( $player, $this->plugin->get ( "proceed-to-unregister-please-wait" ) );
+				$this->plugin->message ( $player, $this->plugin->get ( "proceed-to-unregister-please-wait" ) );
 				break;
 		}
 		return true;
@@ -731,7 +747,6 @@ class API_CustomPacketListner implements Listener {
 							$this->plugin->getConfig ()->get ( "passcode" ),
 							"loginRequest",
 							$username,
-							$password_hash,
 							$isSuccess 
 					];
 					CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, json_encode ( $data ) ) );
@@ -765,7 +780,7 @@ class API_CustomPacketListner implements Listener {
 					// slave->master = [passcode, registerRequest, username, password, IP, email]
 					// master->slave = [passcode, registerRequest, username, isSuccess[true||false]]
 					$username = $data [2];
-					$password_hash = $data [3];
+					$password = $data [3];
 					$address = $data [4];
 					$email = $data [5];
 					

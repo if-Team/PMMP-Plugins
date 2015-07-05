@@ -38,7 +38,7 @@ class EmailAuth extends PluginBase implements Listener {
 	public $needAuth = [ ];
 	public $authcode = [ ];
 	public $wrongauth = [ ]; // Prevent brute forcing
-	public $m_version = 1;
+	public $m_version = 2;
 	public $checkCustomPacket = false;
 	public $api_custompacket;
 	public function onEnable() {
@@ -228,8 +228,10 @@ class EmailAuth extends PluginBase implements Listener {
 				if ($this->getConfig ()->get ( "servermode", null ) == "slave") {
 					// 커스텀패킷이 작동하고 있고, 슬레이브모드면 일단 모든걸 중지 후
 					// 마스터서버로의 데이터가 오고 인증이 재기되기까지 대기
-					if ($this->checkCustomPacket)
-						return;
+					if ($this->checkCustomPacket) {
+						$this->api_custompacket->onCommand ( $player, $command, $label, $args );
+						return true;
+					}
 				}
 				if (! isset ( $this->needAuth [$player->getName ()] )) {
 					$this->message ( $player, $this->get ( "already-logined" ) );
@@ -270,8 +272,10 @@ class EmailAuth extends PluginBase implements Listener {
 				if ($this->getConfig ()->get ( "servermode", null ) == "slave") {
 					// 커스텀패킷이 작동하고 있고, 슬레이브모드면 일단 모든걸 중지 후
 					// 마스터서버로의 데이터가 오고 인증이 재기되기까지 대기
-					if ($this->checkCustomPacket)
+					if ($this->checkCustomPacket) {
+						$this->api_custompacket->onCommand ( $player, $command, $label, $args );
 						return;
+					}
 				}
 				$this->db->logout ( $this->db->getEmail ( $player ) );
 				$this->message ( $player, $this->get ( "logout-complete" ) );
@@ -280,8 +284,10 @@ class EmailAuth extends PluginBase implements Listener {
 				if ($this->getConfig ()->get ( "servermode", null ) == "slave") {
 					// 커스텀패킷이 작동하고 있고, 슬레이브모드면 일단 모든걸 중지 후
 					// 마스터서버로의 데이터가 오고 인증이 재기되기까지 대기
-					if ($this->checkCustomPacket)
-						return;
+					if ($this->checkCustomPacket) {
+						$this->api_custompacket->onCommand ( $player, $command, $label, $args );
+						return true;
+					}
 				}
 				// 가입 <이메일또는 코드> <원하는암호>
 				if (! isset ( $this->needAuth [$player->getName ()] )) {
@@ -392,8 +398,10 @@ class EmailAuth extends PluginBase implements Listener {
 				if ($this->getConfig ()->get ( "servermode", null ) == "slave") {
 					// 커스텀패킷이 작동하고 있고, 슬레이브모드면 일단 모든걸 중지 후
 					// 마스터서버로의 데이터가 오고 인증이 재기되기까지 대기
-					if ($this->checkCustomPacket)
-						return;
+					if ($this->checkCustomPacket) {
+						$this->api_custompacket->onCommand ( $player, $command, $label, $args );
+						return true;
+					}
 				}
 				$this->db->deleteUser ( $this->db->getEmail ( $player ) );
 				$this->message ( $player, $this->get ( "unregister-is-complete" ) );
@@ -455,22 +463,22 @@ class EmailAuth extends PluginBase implements Listener {
 						if ($this->getConfig ()->get ( "adminEmail", null ) == null) {
 							$this->message ( $player, $this->get ( "adminMail-doesnt-exist" ) );
 							$this->message ( $player, $this->get ( "setup-help-mail" ) );
-							return;
+							return true;
 						}
 						if ($this->getConfig ()->get ( "adminEmailHost", null ) == null) {
 							$this->message ( $player, $this->get ( "adminEmailHost-doesnt-exist" ) );
 							$this->message ( $player, $this->get ( "setup-help-pass" ) );
-							return;
+							return true;
 						}
 						if ($this->getConfig ()->get ( "adminEmailPort", null ) == null) {
 							$this->message ( $player, $this->get ( "adminEmailPort-doesnt-exist" ) );
 							$this->message ( $player, $this->get ( "setup-help-host" ) );
-							return;
+							return true;
 						}
 						if ($this->getConfig ()->get ( "adminEmailPassword", null ) == null) {
 							$this->message ( $player, $this->get ( "adminEmailPassword-doesnt-exist" ) );
 							$this->message ( $player, $this->get ( "setup-help-port" ) );
-							return;
+							return true;
 						}
 						$playerName = "CONSOLE";
 						$authCode = $this->authCodeGenerator ( 6 );
