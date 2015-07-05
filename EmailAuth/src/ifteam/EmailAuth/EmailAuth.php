@@ -185,10 +185,17 @@ class EmailAuth extends PluginBase implements Listener {
 			if ($this->checkCustomPacket)
 				return;
 		}
-		if (isset ( $this->db->getAll ()["ip"][$event->getPlayer ()->getAddress ()] )) {
-			$this->message ( $event->getPlayer (), $this->get ( "automatic-ip-logined" ) );
-		} else {
+		$email = $this->db->getEmailToIp ( $event->getPlayer ()->getAddress () );
+		$userdata = $this->db->getUserData ( $email );
+		if ($email === false or $userdata === false) {
 			$this->deauthenticatePlayer ( $event->getPlayer () );
+			return;
+		}
+		if ($userdata ["ip"] == $event->getPlayer ()->getAddress ()) {
+			if ($userdata ["name"] == $event->getPlayer ()->getName ()) {
+				$this->message ( $event->getPlayer (), $this->get ( "automatic-ip-logined" ) );
+				return;
+			}
 		}
 	}
 	public function onActivateCheck() {
