@@ -92,7 +92,7 @@ class API_CustomPacketListner implements Listener {
 				$this->plugin->getServer ()->getLogger ()->info ( TextFormat::DARK_AQUA . $this->plugin->get ( "you-can-activate-custompacket" ) );
 			}
 			$this->plugin->getServer ()->getPluginManager ()->registerEvents ( $this, $plugin );
-			$this->plugin->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CustomPacketTask ( $this ), 80 );
+			$this->plugin->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CustomPacketTask ( $this ), 50 );
 			$this->economyAPI = new API_EconomyAPIListner ( $this, $this->plugin );
 		}
 	}
@@ -111,7 +111,7 @@ class API_CustomPacketListner implements Listener {
 			foreach ( $this->updateList as $ipport => $data ) {
 				// CHECK TIMEOUT
 				$progress = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) ) - $this->updateList [$ipport] ["lastcontact"];
-				if ($progress > 4) {
+				if ($progress > 10) {
 					foreach ( $this->onlineUserList as $username => $address ) {
 						if ($ipport == $address) {
 							unset ( $this->onlineUserList [$username] );
