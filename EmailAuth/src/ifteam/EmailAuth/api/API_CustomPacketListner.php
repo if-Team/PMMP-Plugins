@@ -91,7 +91,7 @@ class API_CustomPacketListner implements Listener {
 				$this->plugin->getServer ()->getLogger ()->info ( TextFormat::DARK_AQUA . $this->plugin->get ( "you-can-activate-custompacket" ) );
 			}
 			$this->plugin->getServer ()->getPluginManager ()->registerEvents ( $this, $plugin );
-			$this->plugin->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CustomPacketTask ( $this ), 20 );
+			$this->plugin->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CustomPacketTask ( $this ), 80 );
 			$this->economyAPI = new API_EconomyAPIListner ( $this, $this->plugin );
 		}
 	}
@@ -420,7 +420,7 @@ class API_CustomPacketListner implements Listener {
 			if ($this->tmpDb [$player->getName ()] ["isCheckAuthReady"]) {
 				$this->plugin->needReAuthMessage ( $player );
 				if ($this->tmpDb [$player->getName ()] ["lockDomain"] != null) {
-					$msg = str_replace ( "%domain%", $this->tmpDb [$player] ["lockDomain"], $this->plugin->get ( "you-can-use-email-domain" ) );
+					$msg = str_replace ( "%domain%", $this->tmpDb [$player->getName ()] ["lockDomain"], $this->plugin->get ( "you-can-use-email-domain" ) );
 					$this->plugin->message ( $player, $msg );
 					$this->plugin->message ( $player, $this->plugin->get ( "you-need-a-register" ) );
 				}
@@ -430,8 +430,8 @@ class API_CustomPacketListner implements Listener {
 				$this->plugin->loginMessage ( $player );
 			} else {
 				$this->plugin->registerMessage ( $player );
-				if ($this->tmpDb [$player] ["lockDomain"] != null) {
-					$msg = str_replace ( "%domain%", $this->tmpDb [$player] ["lockDomain"], $this->plugin->get ( "you-can-use-email-domain" ) );
+				if ($this->tmpDb [$player->getName ()] ["lockDomain"] != null) {
+					$msg = str_replace ( "%domain%", $this->tmpDb [$player->getName ()] ["lockDomain"], $this->plugin->get ( "you-can-use-email-domain" ) );
 					$this->plugin->message ( $player, $msg );
 					$this->plugin->message ( $player, $this->plugin->get ( "you-need-a-register" ) );
 				}
@@ -449,14 +449,6 @@ class API_CustomPacketListner implements Listener {
 		if (isset ( $this->standbyAuth [$player->getName ()] ))
 			unset ( $this->standbyAuth [$player->getName ()] );
 	}
-	public function alreadyLogined(Player $player) {
-		$player->kick ( $this->plugin->get ( "already-connected" ) );
-	}
-	public function onPlayerKickEvent(PlayerKickEvent $event) {
-		if ($event->getReason () == $this->plugin->get ( "already-connected" )) {
-			$event->setQuitMessage ( "" );
-		}
-	}
 	/**
 	 * Called when the user logs out
 	 *
@@ -465,6 +457,51 @@ class API_CustomPacketListner implements Listener {
 	public function onQuit(PlayerQuitEvent $event) {
 		if (isset ( $this->standbyAuth [$event->getPlayer ()->getName ()] )) {
 			unset ( $this->standbyAuth [$event->getPlayer ()->getName ()] );
+			return;
+		}
+		if (isset ( $this->needAuth [$event->getPlayer ()->getName ()] )) {
+			unset ( $this->needAuth [$event->getPlayer ()->getName ()] );
+			return;
+		}
+		if ($this->plugin->getConfig ()->get ( "servermode", null ) != "slave") {
+			return;
+		}
+		// logoutRequest
+		// slave->master = [passcode, logoutRequest, username, IP, isUserGenerate]
+		$data = [ 
+				$this->plugin->getConfig ()->get ( "passcode" ),
+				"logoutRequest",
+				$event->getPlayer ()->getName (),
+				$event->getPlayer ()->getAddress (),
+				false 
+		];
+		CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
+		
+		$event->getPlayer ()->save ();
+		// itemSyncro
+		// slave->master = [passcode, itemSyncro, username, itemData]
+		$data = [ 
+				$this->plugin->getConfig ()->get ( "passcode" ),
+				"itemSyncro",
+				$event->getPlayer ()->getName (),
+				$this->getPlayerDataFile ( $event->getPlayer ()->getName () ) 
+		];
+		CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
+	}
+	public function alreadyLogined(Player $player) {
+		$player->kick ( $this->plugin->get ( "already-connected" ) );
+	}
+	public function onPlayerKickEvent(PlayerKickEvent $event) {
+		if ($event->getReason () == $this->plugin->get ( "already-connected" )) {
+			$event->setQuitMessage ( "" );
+		}
+		if (isset ( $this->standbyAuth [$event->getPlayer ()->getName ()] )) {
+			unset ( $this->standbyAuth [$event->getPlayer ()->getName ()] );
+			return;
+		}
+		if (isset ( $this->needAuth [$event->getPlayer ()->getName ()] )) {
+			unset ( $this->needAuth [$event->getPlayer ()->getName ()] );
+			return;
 		}
 		if ($this->plugin->getConfig ()->get ( "servermode", null ) != "slave") {
 			return;
@@ -579,37 +616,19 @@ class API_CustomPacketListner implements Listener {
 					}
 				}
 				if (is_numeric ( $args [0] )) {
-					if (isset ( $this->plugin->authcode [$player->getName ()] )) {
-						if ($this->plugin->authcode [$player->getName ()] ["authcode"] == $args [0]) {
-							// registerRequest
-							// slave->master = [passcode, registerRequest, username, password, IP, email]
-							$email = $this->plugin->authcode [$player->getName ()] ["email"];
-							$data = [ 
-									$this->plugin->getConfig ()->get ( "passcode" ),
-									"registerRequest",
-									$player->getName (),
-									$password,
-									$player->getAddress (),
-									$email 
-							];
-							CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
-							$this->plugin->message ( $player, $this->plugin->get ( "proceed-to-register-please-wait" ) );
-						} else {
-							$this->plugin->message ( $player, $this->plugin->get ( "wrong-authcode" ) );
-							if ($player instanceof Player) {
-								if (isset ( $this->plugin->wrongauth [strtolower ( $player->getAddress () )] )) {
-									$this->plugin->wrongauth [$player->getAddress ()] ++;
-								} else {
-									$this->plugin->wrongauth [$player->getAddress ()] = 1;
-								}
-							}
-							$this->deauthenticatePlayer ( $player );
-						}
-						unset ( $this->plugin->authcode [$player->getName ()] );
-					} else {
-						$this->plugin->message ( $player, $this->get ( "authcode-doesnt-exist" ) );
-						$this->deauthenticatePlayer ( $player );
-					}
+					/* checkAuthCode */
+					/* slave->master = [passcode, checkAuthCode, username, authCode, passcode_hash] */
+					/* master->slave = [passcode, checkAuthCode, username, email, isSuccess, orAuthCodeNotExist, passcode_hash] */
+					$password_hash = $this->plugin->hash ( strtolower ( $player->getName () ), $password );
+					$data = [ 
+							$this->plugin->getConfig ()->get ( "passcode" ),
+							"checkAuthCode",
+							$player->getName (),
+							$args [0],
+							$password_hash 
+					];
+					$this->plugin->message ( $player, $this->plugin->get ( "request-an-authorization-code" ) );
+					CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
 				} else {
 					// 이메일!
 					$e = explode ( '@', $args [0] );
@@ -622,18 +641,16 @@ class API_CustomPacketListner implements Listener {
 						$this->plugin->message ( $player, $this->plugin->get ( "wrong-email-type" ) );
 						return true;
 					}
-					$playerName = $player->getName ();
-					$authCode = $this->plugin->authCodeGenerator ( 6 );
-					$nowTime = date ( "Y-m-d H:i:s" );
-					$serverName = $this->plugin->getConfig ()->get ( "serverName", "" );
-					
-					$task = new EmailSendTask ( $args [0], $playerName, $nowTime, $serverName, $authCode, $this->plugin->getConfig ()->getAll (), $this->plugin->getDataFolder () . "signform.html" );
-					$this->plugin->getServer ()->getScheduler ()->scheduleAsyncTask ( $task );
-					$this->plugin->authcode [$playerName] = [ 
-							"authcode" => $authCode,
-							"email" => $args [0] 
+					/* checkisRegistered */
+					/* slave->master = [passcode, checkisRegistered, username, email] */
+					$this->plugin->message ( $player, $this->plugin->get ( "check-email-registered" ) );
+					$data = [ 
+							$this->plugin->getConfig ()->get ( "passcode" ),
+							"checkisRegistered",
+							$player->getName (),
+							$e [0] . "@" . $e [1] 
 					];
-					$this->plugin->message ( $player, $this->plugin->get ( "mail-has-been-sent" ) );
+					CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
 				}
 				break;
 			case $this->plugin->get ( "unregister" ) :
@@ -659,6 +676,9 @@ class API_CustomPacketListner implements Listener {
 		if (! is_array ( $data ) or $data [0] != $this->plugin->getConfig ()->get ( "passcode", false )) {
 			return;
 		}
+		// if ($data [1] != "online") {
+		// echo "패킷을 받았습니다 종류-> " . $data [1] . "\n";
+		// }
 		if ($this->plugin->getConfig ()->get ( "servermode", null ) == "master") {
 			switch ($data [1]) {
 				case "online" :
@@ -674,6 +694,123 @@ class API_CustomPacketListner implements Listener {
 								"0",
 								"0" 
 						] ) ) );
+					}
+					break;
+				case "checkisRegistered":
+					/* checkisRegistered */
+					/* slave->master = [passcode, checkisRegistered, username, email] */
+					/* master->slave = [passcode, checkisRegistered, username, email, isRegistered[true||false] */
+					$username = $data [2];
+					$email = $data [3];
+					
+					if ($this->plugin->db->getUserData ( $email ) !== false) {
+						$isRegistered = true;
+					} else {
+						$isRegistered = false;
+					}
+					
+					$data = [ 
+							$this->plugin->getConfig ()->get ( "passcode" ),
+							"checkisRegistered",
+							$username,
+							$email,
+							$isRegistered 
+					];
+					CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, json_encode ( $data ) ) );
+					break;
+				case "sendAuthCode":
+					/* sendAuthCode */
+					/* slave->master = [passcode, sendAuthCode, username, email] */
+					/* master->slave = [passcode, sendAuthCode, username, email, authcodeSented */
+					$username = $data [2];
+					$email = $data [3];
+					
+					$verifyNotWrong = false;
+					$verifyNotRegistered = false;
+					
+					$check = explode ( "@", $email );
+					if (isset ( $check [1] )) {
+						$lockDomain = $this->plugin->db->getLockDomain ();
+						if ($lockDomain != null and $check [1] == $lockDomain) {
+							$verifyNotWrong = true;
+						}
+					}
+					if (! $this->plugin->db->checkUserData ( $email )) {
+						$verifyNotRegistered = true;
+					}
+					if ($verifyNotWrong != false and $verifyNotRegistered != false) {
+						$nowTime = date ( "Y-m-d H:i:s" );
+						$serverName = $this->plugin->getConfig ()->get ( "serverName", "" );
+						
+						$authCode = $this->plugin->authCodeGenerator ( 6 );
+						$this->plugin->authcode [$username] = [ 
+								"authcode" => $authCode,
+								"email" => $email 
+						];
+						
+						$task = new EmailSendTask ( $email, $username, $nowTime, $serverName, $authCode, $this->plugin->getConfig ()->getAll (), $this->plugin->getDataFolder () . "signform.html" );
+						$this->plugin->getServer ()->getScheduler ()->scheduleAsyncTask ( $task );
+						
+						$data = [ 
+								$this->plugin->getConfig ()->get ( "passcode" ),
+								"sendAuthCode",
+								$username,
+								$email,
+								true 
+						];
+						CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, json_encode ( $data ) ) );
+					} else {
+						$data = [ 
+								$this->plugin->getConfig ()->get ( "passcode" ),
+								"sendAuthCode",
+								$username,
+								$email,
+								false 
+						];
+						CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, json_encode ( $data ) ) );
+					}
+					break;
+				case "checkAuthCode" :
+					/* checkAuthCode */
+					/* slave->master = [passcode, checkAuthCode, username, authCode, passcode_hash] */
+					/* master->slave = [passcode, checkAuthCode, username, email, isSuccess, orAuthCodeNotExist, passcode_hash] */
+					$username = $data [2];
+					$authCode = $data [3];
+					$passcode_hash = $data [4];
+					
+					$isSuccess = false;
+					$orAuthCodeNotExist = false;
+					if (isset ( $this->plugin->authcode [$username] )) {
+						if ($this->plugin->authcode [$username] ["authcode"] == $authCode) {
+							$isSuccess = true;
+						} else {
+							$isSuccess = false;
+						}
+						$email = $this->plugin->authcode [$username] ["email"];
+					} else {
+						$email = null;
+						$orAuthCodeNotExist = true;
+					}
+					$data = [ 
+							$this->plugin->getConfig ()->get ( "passcode" ),
+							"checkAuthCode",
+							$username,
+							$email,
+							$isSuccess,
+							$orAuthCodeNotExist,
+							$passcode_hash 
+					];
+					CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, json_encode ( $data ) ) );
+					break;
+				case "deleteAuthCode":
+					/* deleteAuthCode */
+					/* slave->master = [passcode, deleteAuthCode, username, email] */
+					$username = $data [2];
+					$email = $data [3];
+					if (isset ( $this->plugin->authcode [$username] )) {
+						if ($this->plugin->authcode [$username] ["email"] == $email) {
+							unset ( $this->plugin->authcode [$username] );
+						}
 					}
 					break;
 				case "defaultInfoRequest" :
@@ -698,8 +835,18 @@ class API_CustomPacketListner implements Listener {
 						} else {
 							$isConnect = false;
 						}
-						if ($userdata ["ip"] == $requestedUserIp and $userdata ["name"] == $requestedUserName) {
-							$isAutoLogin = true;
+						if ($ipemail = $this->plugin->db->getEmailToIp ( $requestedUserIp ) !== false) {
+							if ($ipemail == $email) {
+								if ($userdata ["name"] == $requestedUserName) {
+									$isAutoLogin = true;
+									$this->onlineUserList [$requestedUserName] = $ev->getPacket ()->address . ":" . $ev->getPacket ()->port;
+									$this->plugin->db->updateIPAddress ( $email, $requestedUserIp );
+								} else {
+									$isAutoLogin = false;
+								}
+							} else {
+								$isAutoLogin = false;
+							}
 						} else {
 							$isAutoLogin = false;
 						}
@@ -759,7 +906,7 @@ class API_CustomPacketListner implements Listener {
 					$address = $data [3];
 					$isUserGenerate = $data [4];
 					if ($isUserGenerate) {
-						$this->plugin->db->logout ( $this->plugin->db->getEmail ( $player ) );
+						$result = $this->plugin->db->logout ( $this->plugin->db->getEmailToName ( $username ) );
 					}
 					if (isset ( $this->onlineUserList [$username] )) {
 						$isSuccess = true;
@@ -777,14 +924,14 @@ class API_CustomPacketListner implements Listener {
 					break;
 				case "registerRequest" :
 					// registerRequest
-					// slave->master = [passcode, registerRequest, username, password, IP, email]
+					// slave->master = [passcode, registerRequest, username, password_hash, IP, email]
 					// master->slave = [passcode, registerRequest, username, isSuccess[true||false]]
 					$username = $data [2];
-					$password = $data [3];
+					$password_hash = $data [3];
 					$address = $data [4];
 					$email = $data [5];
 					
-					$isSuccess = $this->plugin->db->addUser ( $email, $password, $address, false, $username );
+					$isSuccess = $this->plugin->db->addUser ( $email, $password_hash, $address, false, $username );
 					$data = [ 
 							$this->plugin->getConfig ()->get ( "passcode" ),
 							"registerRequest",
@@ -840,6 +987,12 @@ class API_CustomPacketListner implements Listener {
 					];
 					CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, json_encode ( $data ) ) );
 					break;
+				case "economyRequest" :
+					// economyRequest
+					// slave->master = [passcode, economySyncro, username]
+					// master->slave = [passcode, economySyncro, username, money]
+					// TODO
+					break;
 				case "economySyncro" :
 					// economySyncro
 					// slave->master = [passcode, economySyncro, username, money]
@@ -857,17 +1010,120 @@ class API_CustomPacketListner implements Listener {
 					foreach ( $this->updateList as $ipport => $data ) {
 						if ($target_addr == $ipport)
 							continue;
-						CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, json_encode ( $data ) ) );
+						$addr = explode ( ":", $ipport );
+						CPAPI::sendPacket ( new DataPacket ( $addr [0], $addr [1], json_encode ( $data ) ) );
 					}
 					break;
 			}
-		} else if ($this->plugin->getConfig ()->get ( "servermode", null ) == "slave") {
+		} else 
+
+		if ($this->plugin->getConfig ()->get ( "servermode", null ) == "slave") {
 			switch ($data [1]) {
 				case "hello" :
 					if (! isset ( $this->checkFistConnect [$ev->getPacket ()->address . ":" . $ev->getPacket ()->port] )) {
 						$this->checkFistConnect [$ev->getPacket ()->address . ":" . $ev->getPacket ()->port] = 1;
 						$this->plugin->getLogger ()->info ( TextFormat::DARK_AQUA . $ev->getPacket ()->address . ":" . $ev->getPacket ()->port . " " . $this->plugin->get ( "slavemode-first-connected" ) );
 					}
+					break;
+				case "checkisRegistered" :
+					/* checkisRegistered */
+					/* slave->master = [passcode, checkisRegistered, username, email] */
+					/* master->slave = [passcode, checkisRegistered, username, email, isRegistered[true||false] */
+					$username = $data [2];
+					$email = $data [3];
+					$isRegistered = $data [4];
+					
+					$player = $this->plugin->getServer ()->getPlayer ( $username );
+					if (! $player instanceof Player) {
+						return;
+					}
+					if ($isRegistered) {
+						// ALREADY REGISTERED
+						$this->plugin->message ( $player, $this->plugin->get ( "that-email-is-already-registered" ) );
+						return;
+					} else {
+						// NOT REGISTERED
+						$this->plugin->message ( $player, $this->plugin->get ( "issuing-an-authorization-code" ) );
+						/* sendAuthCode */
+						/* slave->master = [passcode, sendAuthCode, username, email] */
+						$data = [ 
+								$this->plugin->getConfig ()->get ( "passcode" ),
+								"sendAuthCode",
+								$username,
+								$email 
+						];
+						CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, json_encode ( $data ) ) );
+					}
+					break;
+				case "sendAuthCode" :
+					/* sendAuthCode */
+					/* slave->master = [passcode, sendAuthCode, username, email] */
+					/* master->slave = [passcode, sendAuthCode, username, email, authcodeSented */
+					$username = $data [2];
+					$player = $this->plugin->getServer ()->getPlayer ( $username );
+					$email = $data [3];
+					$authcodeSented = $data [4];
+					
+					if (! $player instanceof Player)
+						return;
+					if ($authcodeSented) {
+						$this->plugin->message ( $player, $this->plugin->get ( "mail-has-been-sent" ) );
+					} else {
+						$this->plugin->message ( $player, $this->plugin->get ( "rejected-an-authorization-code" ) );
+					}
+					break;
+				case "checkAuthCode" :
+					/* checkAuthCode */
+					/* slave->master = [passcode, checkAuthCode, username, authCode, passcode_hash] */
+					/* master->slave = [passcode, checkAuthCode, username, email, isSuccess, orAuthCodeNotExist, passcode_hash] */
+					$username = $data [2];
+					$email = $data [3];
+					$isSuccess = $data [4];
+					$orAuthCodeNotExist = $data [5];
+					$passcode_hash = $data [6];
+					
+					$player = $this->plugin->getServer ()->getPlayer ( $username );
+					if (! $player instanceof Player) {
+						return;
+					}
+					if ($orAuthCodeNotExist) {
+						$this->plugin->message ( $player, $this->plugin->get ( "authcode-resetted" ) );
+						$this->deauthenticatePlayer ( $player );
+						return;
+					}
+					if ($isSuccess) {
+						/* registerRequest */
+						/* slave->master = [passcode, registerRequest, username, password_hash, IP, email] */
+						$data = [ 
+								$this->plugin->getConfig ()->get ( "passcode" ),
+								"registerRequest",
+								$player->getName (),
+								$passcode_hash,
+								$player->getAddress (),
+								$email 
+						];
+						CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
+						$this->plugin->message ( $player, $this->plugin->get ( "proceed-to-register-please-wait" ) );
+					} else {
+						$this->plugin->message ( $player, $this->plugin->get ( "wrong-authcode" ) );
+						if ($player instanceof Player) {
+							if (isset ( $this->plugin->wrongauth [strtolower ( $player->getAddress () )] )) {
+								$this->plugin->wrongauth [$player->getAddress ()] ++;
+							} else {
+								$this->plugin->wrongauth [$player->getAddress ()] = 1;
+							}
+						}
+						$this->deauthenticatePlayer ( $player );
+					}
+					/* deleteAuthCode */
+					/* slave->master = [passcode, deleteAuthCode, username, email] */
+					$data = [ 
+							$this->plugin->getConfig ()->get ( "passcode" ),
+							"deleteAuthCode",
+							$player->getName (),
+							$email 
+					];
+					CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
 					break;
 				case "defaultInfoRequest" :
 					/* defaultInfoRequest */
@@ -955,6 +1211,21 @@ class API_CustomPacketListner implements Listener {
 						$this->deauthenticatePlayer ( $player );
 					}
 					break;
+				case "unregisterRequest" :
+					// unregisterRequest
+					// slave->master = [passcode, unregisterRequest, username]
+					// master->slave = [passcode, unregisterRequest, username, isSuccess]
+					$username = $data [2];
+					$isSuccess = $data [3];
+					$player = $this->plugin->getServer ()->getPlayer ( $username );
+					if (! $player instanceof Player)
+						return;
+					if ($isSuccess) {
+						$player->kick ( "회원탈퇴완료" );
+					} else {
+						$this->plugin->message ( $player, $this->plugin->get ( "unregister-is-fail" ) );
+					}
+					break;
 				case "itemSyncro" :
 					// itemSyncro
 					// slave->master = [passcode, itemSyncro, username, itemData]
@@ -962,6 +1233,15 @@ class API_CustomPacketListner implements Listener {
 					$username = $data [2];
 					$itemData = $data [3];
 					$this->applyItemData ( $username, $this->getPlayerData ( $username, $itemData ) );
+					break;
+				case "economyRequest" :
+					// slave
+					// economyRequest
+					// slave->master = [passcode, economySyncro, username]
+					// master->slave = [passcode, economySyncro, username, money]
+					$username = $data [2];
+					$money = $data [3];
+					$this->applyEconomyData ( $username, $money );
 					break;
 				case "economySyncro" :
 					// slave

@@ -91,7 +91,7 @@ class DataBase {
 		}
 		
 		$this->yml ["user"] [$email] = [ 
-				"password" => $this->hash ( strtolower ( $name ), $password ),
+				"password" => $password,
 				"ip" => $ip,
 				"isotp" => $set_otp,
 				"name" => $name 

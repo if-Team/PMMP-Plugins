@@ -38,7 +38,7 @@ class EmailAuth extends PluginBase implements Listener {
 	public $needAuth = [ ];
 	public $authcode = [ ];
 	public $wrongauth = [ ]; // Prevent brute forcing
-	public $m_version = 2;
+	public $m_version = 5;
 	public $checkCustomPacket = false;
 	public $api_custompacket;
 	public function onEnable() {
@@ -335,7 +335,8 @@ class EmailAuth extends PluginBase implements Listener {
 				if (is_numeric ( $args [0] )) {
 					if (isset ( $this->authcode [$player->getName ()] )) {
 						if ($this->authcode [$player->getName ()] ["authcode"] == $args [0]) {
-							$result = $this->db->addUser ( $this->authcode [$player->getName ()] ["email"], $password, $player->getAddress (), false, $player->getName () );
+							$password_hash = $this->hash ( strtolower ( $player->getName () ), $password );
+							$result = $this->db->addUser ( $this->authcode [$player->getName ()] ["email"], $password_hash, $player->getAddress (), false, $player->getName () );
 							if ($result) {
 								$this->message ( $player, $this->get ( "register-complete" ) );
 							} else {
@@ -372,6 +373,10 @@ class EmailAuth extends PluginBase implements Listener {
 					$e1 = explode ( '.', $e [1] );
 					if (! isset ( $e1 [1] )) {
 						$this->message ( $player, $this->get ( "wrong-email-type" ) );
+						return true;
+					}
+					if ($this->db->checkUserData ( $args [0] ) != false) {
+						$this->message ( $player, $this->get ( "already-registred" ) );
 						return true;
 					}
 					$domainLock = $this->db->getLockDomain ();

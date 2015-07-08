@@ -2,7 +2,7 @@
 # YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
 
 #PLEASE SET HERE TO YOUR LANGUAGE PREFIX
-m_version: 2
+m_version: 5
 
 #(EN) ENGLISH
 eng: true
@@ -122,6 +122,7 @@ kor-register-failed: "회원가입에 실패했습니다 !"
 kor-wrong-authcode: "인증번호가 잘못되었습니다 ! 가입 실패!"
 kor-wrong-password: "비밀번호가 다릅니다 ! 가입 실패!"
 kor-authcode-doesnt-exist: "인증코드가 존재하지않습니다!, 이메일을 정확히 입력해주세요"
+kor-authcode-resetted: "인증코드가 초기화되었습니다. 인증절차를 다시 시작해주세요"
 kor-mail-has-been-sent: "메일로 인증번호를 전송했습니다! 이메일을 확인후 가입해주세요!"
 kor-too-short-password: "비밀번호가 너무 짧습니다 ! 가입실패!"
 kor-this-account-cant-use: "이 계정은 사용하실 수 없습니다 ! 로그인 실패 !"
@@ -154,6 +155,11 @@ kor-proceed-to-logout-please-wait: "로그아웃을 진행합니다. 기다려�
 kor-proceed-to-register-please-wait: "회원가입을 진행합니다. 기다려주세요.."
 kor-proceed-to-unregister-please-wait: "회원탈퇴를 진행합니다. 기다려주세요.."
 kor-start-the-certification-process: "인증절차를 시작합니다!"
+kor-check-email-registered: "이메일 가입여부를 확인합니다.."
+kor-that-email-is-already-registered: "이 이메일은 가입되어있습니다 ! 사용불가 !"
+kor-issuing-an-authorization-code: "이메일 인증코드 발급을 요청합니다.."
+kor-request-an-authorization-code: "이메일 인증코드 인증을 요청합니다.."
+kor-rejected-an-authorization-code: "인증코드 발급이 거부되었습니다. 관리자에게 연락해주세요 !"
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/blob/master/EmailAuth/resources/messages.yml
