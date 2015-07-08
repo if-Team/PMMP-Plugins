@@ -160,7 +160,7 @@ class Chatty extends PluginBase implements Listener {
 			$messages [] = mb_substr ( $message, $start, self::MESSAGE_LENGTH, "UTF-8" );
 		}
 		
-		$this->messageStack [$key] += $messages;
+		$this->messageStack [$key] .= $messages;
 		$this->messageStack [$key] = array_slice ( $this->messageStack [$key], - self::MESSAGE_MAX_LINES );
 		
 		foreach ( $this->messageStack [$key] as $index => $message ) {
@@ -246,8 +246,8 @@ class Chatty extends PluginBase implements Listener {
 			$this->packets ["AddPlayerPacket"]->eid = $this->lastNametags [$key] ["eid"];
 			$this->packets ["AddPlayerPacket"]->clientID = $this->lastNametags [$key] ["eid"];
 			$this->packets ["AddPlayerPacket"]->username = implode ( "\n", $this->messageStack [$key] );
-			$this->packets ["AddPlayerPacket"]->x = round ( $player->x ) + (-\sin ( ($player->yaw / 180 * M_PI) - 0.4 )) * 7;
-			$this->packets ["AddPlayerPacket"]->y = round ( $player->y ) + (-\sin ( $player->pitch / 180 * M_PI )) * 7;
+			$this->packets ["AddPlayerPacket"]->x = round ( $player->x ) + (- \sin ( ($player->yaw / 180 * M_PI) - 0.4 )) * 7;
+			$this->packets ["AddPlayerPacket"]->y = round ( $player->y ) + (- \sin ( $player->pitch / 180 * M_PI )) * 7;
 			$this->packets ["AddPlayerPacket"]->z = round ( $player->z ) + (cos ( ($player->yaw / 180 * M_PI) - 0.4 )) * 7;
 			
 			$player->dataPacket ( $this->packets ["AddPlayerPacket"] );
