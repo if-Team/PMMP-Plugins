@@ -2,7 +2,7 @@
 # YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
 
 #PLEASE SET HERE TO YOUR LANGUAGE PREFIX
-m_version: 5
+m_version: 6
 
 #(EN) ENGLISH
 eng: true
@@ -119,6 +119,7 @@ kor-login-is-failed: "로그인에 실패했습니다 !"
 kor-wrong-email-type: "잘못된 이메일 형식입니다 ! 가입실패!"
 kor-register-complete: "회원가입이 완료되었습니다 !"
 kor-register-failed: "회원가입에 실패했습니다 !"
+kor-unregister-is-fail: "회원탈퇴에 실패했습니다 ! 관리자에게 문의해주세요 !"
 kor-wrong-authcode: "인증번호가 잘못되었습니다 ! 가입 실패!"
 kor-wrong-password: "비밀번호가 다릅니다 ! 가입 실패!"
 kor-authcode-doesnt-exist: "인증코드가 존재하지않습니다!, 이메일을 정확히 입력해주세요"

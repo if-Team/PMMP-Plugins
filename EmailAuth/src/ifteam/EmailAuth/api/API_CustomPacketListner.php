@@ -41,6 +41,7 @@ use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\item\Item as ItemItem;
 use pocketmine\entity\Effect;
+use pocketmine\inventory\InventoryHolder;
 
 class API_CustomPacketListner implements Listener {
 	/**
@@ -284,12 +285,15 @@ class API_CustomPacketListner implements Listener {
 				$this->plugin->getServer ()->saveOfflinePlayerData ( $username, $compound );
 				return true;
 			}
+			if ((! $player instanceof InventoryHolder) or ($player->getInventory () == null)) {
+				$this->plugin->getServer ()->saveOfflinePlayerData ( $username, $compound );
+				return true;
+			}
 			// Human initialize
 			if (! ($player instanceof Player)) {
 				if (isset ( $compound->NameTag )) {
 					$player->setNameTag ( $compound ["NameTag"] );
 				}
-				
 				if (isset ( $compound->Skin ) and $compound->Skin instanceof Compound) {
 					$player->setSkin ( $compound->Skin ["Data"], $compound->Skin ["Slim"] > 0 );
 				}
@@ -948,13 +952,9 @@ class API_CustomPacketListner implements Listener {
 					// slave->master = [passcode, unregisterRequest, username]
 					// master->slave = [passcode, unregisterRequest, username, isSuccess]
 					$username = $data [2];
-					if (isset ( $this->onlineUserList [$username] )) {
-						$email = $this->plugin->db->getEmailToName ( $username );
-						$deleteCheck = $this->plugin->db->deleteUser ( $email );
-						($email === false or $deleteCheck === false) ? $isSuccess = false : $isSuccess = true;
-					} else {
-						$isSuccess = false;
-					}
+					$email = $this->plugin->db->getEmailToName ( $username );
+					$deleteCheck = $this->plugin->db->deleteUser ( $email );
+					($email === false or $deleteCheck === false) ? $isSuccess = false : $isSuccess = true;
 					$data = [ 
 							$this->plugin->getConfig ()->get ( "passcode" ),
 							"unregisterRequest",
