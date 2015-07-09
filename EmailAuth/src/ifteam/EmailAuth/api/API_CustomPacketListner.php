@@ -205,7 +205,7 @@ class API_CustomPacketListner implements Listener {
 		}
 	}
 	public function getPlayerDataFile($name) {
-		$name = \strtolower ( $name );
+		$name =\strtolower ( $name );
 		$path = $this->plugin->getServer ()->getDataPath () . "players/";
 		if (\file_exists ( $path . "$name.dat" )) {
 			return mb_convert_encoding ( file_get_contents ( $path . "$name.dat" ), "UTF-8", "ISO-8859-1" );
@@ -214,7 +214,7 @@ class API_CustomPacketListner implements Listener {
 		}
 	}
 	public function getPlayerData($name, $data) {
-		$name =\strtolower ( $name );
+		$name = \strtolower ( $name );
 		$path = $this->plugin->getServer ()->getDataPath () . "players/";
 		if ($data !== null) {
 			$data = mb_convert_encoding ( $data, "ISO-8859-1", "UTF-8" );
@@ -232,8 +232,8 @@ class API_CustomPacketListner implements Listener {
 		}
 		$spawn = $this->plugin->getServer ()->getDefaultLevel ()->getSafeSpawn ();
 		$nbt = new Compound ( "", [ 
-				new Long ( "firstPlayed",\floor ( \microtime ( \true ) * 1000 ) ),
-				new Long ( "lastPlayed",\floor ( \microtime ( \true ) * 1000 ) ),
+				new Long ( "firstPlayed", \floor (\microtime ( \true ) * 1000 ) ),
+				new Long ( "lastPlayed", \floor (\microtime ( \true ) * 1000 ) ),
 				new Enum ( "Pos", [ 
 						new Double ( 0, $spawn->x ),
 						new Double ( 1, $spawn->y ),
@@ -325,7 +325,7 @@ class API_CustomPacketListner implements Listener {
 			if (isset ( $compound->ActiveEffects )) {
 				foreach ( $compound->ActiveEffects->getValue () as $e ) {
 					$effect = Effect::getEffect ( $e ["Id"] );
-					if ($effect ===\null) {
+					if ($effect === \null) {
 						continue;
 					}
 					$effect->setAmplifier ( $e ["Amplifier"] )->setDuration ( $e ["Duration"] )->setVisible ( $e ["ShowParticles"] > 0 );
@@ -396,6 +396,15 @@ class API_CustomPacketListner implements Listener {
 			/* slave->master = [passcode, defaultInfoRequest, username, IP] */
 			/* master->slave = [passcode, defaultInfoRequest, username, IsAllowAccess[true|false], IsRegistered[true|false], IsAutoLogin[true|false], NBT] */
 			CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
+			
+			/* Fix $Achivevements Non Exist Problem */
+			$nbt = $this->plugin->getServer ()->getOfflinePlayerData ( $event->getPlayer ()->getName () );
+			if ($nbt instanceof Compound) {
+				if (! isset ( $nbt->Achievements )) {
+					$nbt->Achievements = new Compound ( "Achievements", [ ] );
+					$this->plugin->getServer ()->saveOfflinePlayerData ( $event->getPlayer ()->getName (), $nbt );
+				}
+			}
 		}
 	}
 	/**
@@ -533,7 +542,7 @@ class API_CustomPacketListner implements Listener {
 		];
 		CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
 	}
-	public function on(PlayerCommandPreprocessEvent $event) {
+	public function onPlayerCommandPreprocessEvent(PlayerCommandPreprocessEvent $event) {
 		if (isset ( $this->standbyAuth [$event->getPlayer ()->getName ()] ) or isset ( $this->needAuth [$event->getPlayer ()->getName ()] )) {
 			$mes = explode ( " ", $event->getMessage () );
 			switch ($mes [0]) {
@@ -696,9 +705,6 @@ class API_CustomPacketListner implements Listener {
 		if (! is_array ( $data ) or $data [0] != $this->plugin->getConfig ()->get ( "passcode", false )) {
 			return;
 		}
-		// if ($data [1] != "online") {
-		// echo "패킷을 받았습니다 종류-> " . $data [1] . "\n";
-		// }
 		if ($this->plugin->getConfig ()->get ( "servermode", null ) == "master") {
 			switch ($data [1]) {
 				case "online" :
@@ -840,8 +846,8 @@ class API_CustomPacketListner implements Listener {
 					$requestedUserName = $data [2];
 					$requestedUserIp = $data [3];
 					
-					// getUserData
-					$email = $this->plugin->db->getEmailToName ( $requestedUserName );
+					// IPCHECK
+					$email = $this->plugin->db->getEmailToIp ( $requestedUserIp );
 					$userdata = $this->plugin->db->getUserData ( $email );
 					if ($email === false or $userdata === false) {
 						// did not join
@@ -855,24 +861,39 @@ class API_CustomPacketListner implements Listener {
 						} else {
 							$isConnect = false;
 						}
-						if ($ipemail = $this->plugin->db->getEmailToIp ( $requestedUserIp ) !== false) {
-							if ($ipemail == $email) {
-								if ($userdata ["name"] == $requestedUserName) {
-									$isAutoLogin = true;
-									$this->onlineUserList [$requestedUserName] = $ev->getPacket ()->address . ":" . $ev->getPacket ()->port;
-									$this->plugin->db->updateIPAddress ( $email, $requestedUserIp );
-								} else {
-									$isAutoLogin = false;
-								}
-							} else {
-								$isAutoLogin = false;
-							}
+						if ($userdata ["name"] == $requestedUserName) {
+							$isAutoLogin = true;
+							$this->onlineUserList [$requestedUserName] = $ev->getPacket ()->address . ":" . $ev->getPacket ()->port;
+							$this->plugin->db->updateIPAddress ( $email, $requestedUserIp );
 						} else {
 							$isAutoLogin = false;
 						}
 						$isRegistered = true;
 						$NBT = $this->getPlayerDataFile ( $requestedUserName );
 					}
+					
+					// EMAIL-CHECK
+					if ($email === false or $userdata === false) {
+						$email = $this->plugin->db->getEmailToName ( $requestedUserName );
+						$userdata = $this->plugin->db->getUserData ( $email );
+						if ($email === false or $userdata === false) {
+							// did not join
+							$isConnect = false;
+							$isRegistered = false;
+							$isAutoLogin = false;
+							$NBT = null;
+						} else {
+							if (isset ( $this->onlineUserList [$requestedUserName] )) {
+								$isConnect = true;
+							} else {
+								$isConnect = false;
+							}
+							$isAutoLogin = false;
+							$isRegistered = true;
+							$NBT = $this->getPlayerDataFile ( $requestedUserName );
+						}
+					}
+					
 					$isCheckAuthReady = $this->plugin->db->checkAuthReady ( $requestedUserName );
 					$lockDomain = $this->plugin->db->getLockDomain ();
 					$data = [ 
