@@ -38,7 +38,7 @@ class EmailAuth extends PluginBase implements Listener {
 	public $needAuth = [ ];
 	public $authcode = [ ];
 	public $wrongauth = [ ]; // Prevent brute forcing
-	public $m_version = 6;
+	public $m_version = 7;
 	public $checkCustomPacket = false;
 	public $api_custompacket;
 	public function onEnable() {
@@ -307,11 +307,11 @@ class EmailAuth extends PluginBase implements Listener {
 				}
 				$temp = $args;
 				array_shift ( $temp );
-				$password = implode ( $temp );
+				$password = implode ( " ", $temp );
 				unset ( $temp );
 				
-				if ($password > 50) {
-					$this->message ( $player, $this->get ( "you-need-a-register" ) );
+				if (strlen ( $password ) > 50) {
+					$this->message ( $player, $this->get ( "password-is-too-long" ) );
 					return true;
 				}
 				if (! $this->db->checkAuthReady ( $player->getName () )) {

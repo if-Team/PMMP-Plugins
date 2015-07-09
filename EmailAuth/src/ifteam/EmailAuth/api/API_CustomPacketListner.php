@@ -594,11 +594,11 @@ class API_CustomPacketListner implements Listener {
 				}
 				$temp = $args;
 				array_shift ( $temp );
-				$password = implode ( $temp );
+				$password = implode ( " ", $temp );
 				unset ( $temp );
 				
-				if ($password > 50) {
-					$this->plugin->message ( $player, $this->plugin->get ( "you-need-a-register" ) );
+				if (strlen ( $password ) > 50) {
+					$this->plugin->message ( $player, $this->plugin->get ( "password-is-too-long" ) );
 					return true;
 				}
 				if (! $this->plugin->db->checkAuthReady ( $player->getName () )) {
