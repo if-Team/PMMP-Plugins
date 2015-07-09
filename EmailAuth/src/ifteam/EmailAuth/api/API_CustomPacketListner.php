@@ -863,12 +863,13 @@ class API_CustomPacketListner implements Listener {
 						}
 						if ($userdata ["name"] == $requestedUserName) {
 							$isAutoLogin = true;
+							$isRegistered = true;
 							$this->onlineUserList [$requestedUserName] = $ev->getPacket ()->address . ":" . $ev->getPacket ()->port;
 							$this->plugin->db->updateIPAddress ( $email, $requestedUserIp );
 						} else {
 							$isAutoLogin = false;
+							$isRegistered = false;
 						}
-						$isRegistered = true;
 						$NBT = $this->getPlayerDataFile ( $requestedUserName );
 					}
 					
