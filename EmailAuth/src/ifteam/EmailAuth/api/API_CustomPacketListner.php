@@ -42,6 +42,7 @@ use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\item\Item as ItemItem;
 use pocketmine\entity\Effect;
 use pocketmine\inventory\InventoryHolder;
+use pocketmine\event\player\PlayerCommandPreprocessEvent;
 
 class API_CustomPacketListner implements Listener {
 	/**
@@ -204,7 +205,7 @@ class API_CustomPacketListner implements Listener {
 		}
 	}
 	public function getPlayerDataFile($name) {
-		$name =\strtolower ( $name );
+		$name = \strtolower ( $name );
 		$path = $this->plugin->getServer ()->getDataPath () . "players/";
 		if (\file_exists ( $path . "$name.dat" )) {
 			return mb_convert_encoding ( file_get_contents ( $path . "$name.dat" ), "UTF-8", "ISO-8859-1" );
@@ -213,7 +214,7 @@ class API_CustomPacketListner implements Listener {
 		}
 	}
 	public function getPlayerData($name, $data) {
-		$name = \strtolower ( $name );
+		$name =\strtolower ( $name );
 		$path = $this->plugin->getServer ()->getDataPath () . "players/";
 		if ($data !== null) {
 			$data = mb_convert_encoding ( $data, "ISO-8859-1", "UTF-8" );
@@ -231,8 +232,8 @@ class API_CustomPacketListner implements Listener {
 		}
 		$spawn = $this->plugin->getServer ()->getDefaultLevel ()->getSafeSpawn ();
 		$nbt = new Compound ( "", [ 
-				new Long ( "firstPlayed", \floor (\microtime ( \true ) * 1000 ) ),
-				new Long ( "lastPlayed", \floor (\microtime ( \true ) * 1000 ) ),
+				new Long ( "firstPlayed",\floor ( \microtime ( \true ) * 1000 ) ),
+				new Long ( "lastPlayed",\floor ( \microtime ( \true ) * 1000 ) ),
 				new Enum ( "Pos", [ 
 						new Double ( 0, $spawn->x ),
 						new Double ( 1, $spawn->y ),
@@ -324,7 +325,7 @@ class API_CustomPacketListner implements Listener {
 			if (isset ( $compound->ActiveEffects )) {
 				foreach ( $compound->ActiveEffects->getValue () as $e ) {
 					$effect = Effect::getEffect ( $e ["Id"] );
-					if ($effect === \null) {
+					if ($effect ===\null) {
 						continue;
 					}
 					$effect->setAmplifier ( $e ["Amplifier"] )->setDuration ( $e ["Duration"] )->setVisible ( $e ["ShowParticles"] > 0 );
@@ -531,6 +532,21 @@ class API_CustomPacketListner implements Listener {
 				$this->getPlayerDataFile ( $event->getPlayer ()->getName () ) 
 		];
 		CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
+	}
+	public function on(PlayerCommandPreprocessEvent $event) {
+		if (isset ( $this->standbyAuth [$event->getPlayer ()->getName ()] ) or isset ( $this->needAuth [$event->getPlayer ()->getName ()] )) {
+			$mes = explode ( " ", $event->getMessage () );
+			switch ($mes [0]) {
+				case "/" . $this->plugin->get ( "login" ) :
+				case "/" . $this->plugin->get ( "logout" ) :
+				case "/" . $this->plugin->get ( "register" ) :
+					break;
+				default :
+					$this->plugin->message ( $event->getPlayer (), $this->plugin->get ( "youre-not-yet-login" ) );
+					$event->setCancelled ();
+					break;
+			}
+		}
 	}
 	public function onCommand(CommandSender $player, Command $command, $label, array $args) {
 		if ($this->plugin->getConfig ()->get ( "servermode", null ) != "slave")
@@ -1276,11 +1292,13 @@ class API_CustomPacketListner implements Listener {
 		if (isset ( $this->standbyAuth [$event->getPlayer ()->getName ()] )) {
 			$event->setCancelled ();
 			$event->getPlayer ()->onGround = true;
+			$event->getPlayer ()->teleport ( $event->getPlayer ()->getLevel ()->getSafeSpawn ( $event->getPlayer ()->getPosition () ) );
 			$this->standbyAuthenticatePlayer ( $event->getPlayer () );
 		}
 		if (isset ( $this->needAuth [$event->getPlayer ()->getName ()] )) {
 			$event->setCancelled ();
 			$event->getPlayer ()->onGround = true;
+			$event->getPlayer ()->teleport ( $event->getPlayer ()->getLevel ()->getSafeSpawn ( $event->getPlayer ()->getPosition () ) );
 			$this->deauthenticatePlayer ( $event->getPlayer () );
 		}
 	}
@@ -1319,11 +1337,11 @@ class API_CustomPacketListner implements Listener {
 	public function onPlayerItemConsume(PlayerItemConsumeEvent $event) {
 		if (isset ( $this->standbyAuth [$event->getPlayer ()->getName ()] )) {
 			$event->setCancelled ();
-			$this->standbyAuthenticatePlayer ( $event->getPlayer () );
+			// $this->standbyAuthenticatePlayer ( $event->getPlayer () );
 		}
 		if (isset ( $this->needAuth [$event->getPlayer ()->getName ()] )) {
 			$event->setCancelled ();
-			$this->deauthenticatePlayer ( $event->getPlayer () );
+			// $this->deauthenticatePlayer ( $event->getPlayer () );
 		}
 	}
 	public function onEntityDamage(EntityDamageEvent $event) {
@@ -1331,11 +1349,11 @@ class API_CustomPacketListner implements Listener {
 			return;
 		if (isset ( $this->standbyAuth [$event->getEntity ()->getName ()] )) {
 			$event->setCancelled ();
-			$this->standbyAuthenticatePlayer ( $event->getEntity () );
+			// $this->standbyAuthenticatePlayer ( $event->getEntity () );
 		}
 		if (isset ( $this->needAuth [$event->getEntity ()->getName ()] )) {
 			$event->setCancelled ();
-			$this->deauthenticatePlayer ( $event->getEntity () );
+			// $this->deauthenticatePlayer ( $event->getEntity () );
 		}
 	}
 	public function onBlockBreak(BlockBreakEvent $event) {
