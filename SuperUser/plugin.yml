@@ -1,0 +1,13 @@
+name: SuperUser
+main: ifteam\SuperUser\SuperUser
+version: 0.1-Alpha
+author: ifteam
+api: [1.12.1]
+
+permissions:
+ SuperUser.commands:
+  default: true
+ StaffUser.commands:
+  default: true
+ PassWD.commands:
+  default: OP
