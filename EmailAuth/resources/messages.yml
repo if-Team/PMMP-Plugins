@@ -2,7 +2,7 @@
 # YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
 
 #PLEASE SET HERE TO YOUR LANGUAGE PREFIX
-m_version: 8
+m_version: 9
 
 #(EN) ENGLISH
 eng: true
@@ -160,9 +160,10 @@ kor-check-email-registered: "이메일 가입여부를 확인합니다.."
 kor-that-email-is-already-registered: "이 이메일은 가입되어있습니다 ! 사용불가 !"
 kor-issuing-an-authorization-code: "이메일 인증코드 발급을 요청합니다.."
 kor-request-an-authorization-code: "이메일 인증코드 인증을 요청합니다.."
-kor-rejected-an-authorization-code: "인증코드 발급이 거부되었습니다. 관리자에게 연락해주세요 !"
+kor-rejected-an-authorization-code: "잘못된 이메일형식이거나, 이미가입되어있습니다 !"
 kor-password-is-too-long: "암호가 너무 깁니다 ! 사용불가 !"
 kor-youre-not-yet-login: "아직 로그인하지 않았습니다 ! 사용불가 !"
+kor-complete-unregister: "회원탈퇴완료"
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/blob/master/EmailAuth/resources/messages.yml

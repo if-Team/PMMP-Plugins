@@ -205,7 +205,7 @@ class API_CustomPacketListner implements Listener {
 		}
 	}
 	public function getPlayerDataFile($name) {
-		$name =\strtolower ( $name );
+		$name = \strtolower ( $name );
 		$path = $this->plugin->getServer ()->getDataPath () . "players/";
 		if (\file_exists ( $path . "$name.dat" )) {
 			return mb_convert_encoding ( file_get_contents ( $path . "$name.dat" ), "UTF-8", "ISO-8859-1" );
@@ -214,7 +214,7 @@ class API_CustomPacketListner implements Listener {
 		}
 	}
 	public function getPlayerData($name, $data) {
-		$name = \strtolower ( $name );
+		$name =\strtolower ( $name );
 		$path = $this->plugin->getServer ()->getDataPath () . "players/";
 		if ($data !== null) {
 			$data = mb_convert_encoding ( $data, "ISO-8859-1", "UTF-8" );
@@ -232,8 +232,8 @@ class API_CustomPacketListner implements Listener {
 		}
 		$spawn = $this->plugin->getServer ()->getDefaultLevel ()->getSafeSpawn ();
 		$nbt = new Compound ( "", [ 
-				new Long ( "firstPlayed", \floor (\microtime ( \true ) * 1000 ) ),
-				new Long ( "lastPlayed", \floor (\microtime ( \true ) * 1000 ) ),
+				new Long ( "firstPlayed",\floor ( \microtime ( \true ) * 1000 ) ),
+				new Long ( "lastPlayed",\floor ( \microtime ( \true ) * 1000 ) ),
 				new Enum ( "Pos", [ 
 						new Double ( 0, $spawn->x ),
 						new Double ( 1, $spawn->y ),
@@ -325,7 +325,7 @@ class API_CustomPacketListner implements Listener {
 			if (isset ( $compound->ActiveEffects )) {
 				foreach ( $compound->ActiveEffects->getValue () as $e ) {
 					$effect = Effect::getEffect ( $e ["Id"] );
-					if ($effect === \null) {
+					if ($effect ===\null) {
 						continue;
 					}
 					$effect->setAmplifier ( $e ["Amplifier"] )->setDuration ( $e ["Duration"] )->setVisible ( $e ["ShowParticles"] > 0 );
@@ -726,10 +726,12 @@ class API_CustomPacketListner implements Listener {
 					/* checkisRegistered */
 					/* slave->master = [passcode, checkisRegistered, username, email] */
 					/* master->slave = [passcode, checkisRegistered, username, email, isRegistered[true||false] */
-					$username = $data [2];
-					$email = $data [3];
+					$username = strtolower ( $data [2] );
+					$email = strtolower ( $data [3] );
 					
 					if ($this->plugin->db->getUserData ( $email ) !== false) {
+						$isRegistered = true;
+					} else if ($this->plugin->db->getEmailToName ( $email ) !== false) {
 						$isRegistered = true;
 					} else {
 						$isRegistered = false;
@@ -748,17 +750,17 @@ class API_CustomPacketListner implements Listener {
 					/* sendAuthCode */
 					/* slave->master = [passcode, sendAuthCode, username, email] */
 					/* master->slave = [passcode, sendAuthCode, username, email, authcodeSented */
-					$username = $data [2];
-					$email = $data [3];
+					$username = strtolower ( $data [2] );
+					$email = strtolower ( $data [3] );
 					
-					$verifyNotWrong = false;
+					$verifyNotWrong = true;
 					$verifyNotRegistered = false;
 					
 					$check = explode ( "@", $email );
 					if (isset ( $check [1] )) {
 						$lockDomain = $this->plugin->db->getLockDomain ();
-						if ($lockDomain != null and $check [1] == $lockDomain) {
-							$verifyNotWrong = true;
+						if ($lockDomain !== null and $check [1] !== $lockDomain) {
+							$verifyNotWrong = false;
 						}
 					}
 					if (! $this->plugin->db->checkUserData ( $email )) {
@@ -800,12 +802,13 @@ class API_CustomPacketListner implements Listener {
 					/* checkAuthCode */
 					/* slave->master = [passcode, checkAuthCode, username, authCode, passcode_hash] */
 					/* master->slave = [passcode, checkAuthCode, username, email, isSuccess, orAuthCodeNotExist, passcode_hash] */
-					$username = $data [2];
+					$username = strtolower ( $data [2] );
 					$authCode = $data [3];
 					$passcode_hash = $data [4];
 					
 					$isSuccess = false;
 					$orAuthCodeNotExist = false;
+					
 					if (isset ( $this->plugin->authcode [$username] )) {
 						if ($this->plugin->authcode [$username] ["authcode"] == $authCode) {
 							$isSuccess = true;
@@ -831,8 +834,8 @@ class API_CustomPacketListner implements Listener {
 				case "deleteAuthCode":
 					/* deleteAuthCode */
 					/* slave->master = [passcode, deleteAuthCode, username, email] */
-					$username = $data [2];
-					$email = $data [3];
+					$username = strtolower ( $data [2] );
+					$email = strtolower ( $data [3] );
 					if (isset ( $this->plugin->authcode [$username] )) {
 						if ($this->plugin->authcode [$username] ["email"] == $email) {
 							unset ( $this->plugin->authcode [$username] );
@@ -843,7 +846,7 @@ class API_CustomPacketListner implements Listener {
 					/* defaultInfoRequest */
 					/* slave->master = [passcode, defaultInfoRequest, username, IP] */
 					/* master->slave = [passcode, defaultInfoRequest, username, isConnected[true|false], isRegistered[true||false], isAutoLogin[true||false], NBT, isCheckAuthReady, lockDomain] */
-					$requestedUserName = $data [2];
+					$requestedUserName = strtolower ( $data [2] );
 					$requestedUserIp = $data [3];
 					
 					// IPCHECK
@@ -914,7 +917,7 @@ class API_CustomPacketListner implements Listener {
 					// loginRequest
 					// slave->master = [passcode, loginRequest, username, password_hash, IP]
 					// master->slave = [passcode, loginRequest, username, isSuccess[true||false]]
-					$username = $data [2];
+					$username = strtolower ( $data [2] );
 					$password_hash = $data [3];
 					$address = $data [4];
 					
@@ -944,18 +947,20 @@ class API_CustomPacketListner implements Listener {
 					// logoutRequest
 					// slave->master = [passcode, logoutRequest, username, IP, isUserGenerate]
 					// master->slave = [passcode, logoutRequest, username, isSuccess]
-					$username = $data [2];
+					$username = strtolower ( $data [2] );
 					$address = $data [3];
 					$isUserGenerate = $data [4];
-					if ($isUserGenerate) {
-						$result = $this->plugin->db->logout ( $this->plugin->db->getEmailToName ( $username ) );
-					}
+					
 					if (isset ( $this->onlineUserList [$username] )) {
 						$isSuccess = true;
 						unset ( $this->onlineUserList [$username] );
 					} else {
 						$isSuccess = false;
 					}
+					if ($isUserGenerate) {
+						$isSuccess = $this->plugin->db->logout ( $this->plugin->db->getEmailToIp ( $address ) );
+					}
+					
 					$data = [ 
 							$this->plugin->getConfig ()->get ( "passcode" ),
 							"logoutRequest",
@@ -968,10 +973,10 @@ class API_CustomPacketListner implements Listener {
 					// registerRequest
 					// slave->master = [passcode, registerRequest, username, password_hash, IP, email]
 					// master->slave = [passcode, registerRequest, username, isSuccess[true||false]]
-					$username = $data [2];
+					$username = strtolower ( $data [2] );
 					$password_hash = $data [3];
 					$address = $data [4];
-					$email = $data [5];
+					$email = strtolower ( $data [5] );
 					
 					$isSuccess = $this->plugin->db->addUser ( $email, $password_hash, $address, false, $username );
 					$data = [ 
@@ -989,7 +994,7 @@ class API_CustomPacketListner implements Listener {
 					// unregisterRequest
 					// slave->master = [passcode, unregisterRequest, username]
 					// master->slave = [passcode, unregisterRequest, username, isSuccess]
-					$username = $data [2];
+					$username = strtolower ( $data [2] );
 					$email = $this->plugin->db->getEmailToName ( $username );
 					$deleteCheck = $this->plugin->db->deleteUser ( $email );
 					($email === false or $deleteCheck === false) ? $isSuccess = false : $isSuccess = true;
@@ -1005,7 +1010,7 @@ class API_CustomPacketListner implements Listener {
 					// itemSyncro
 					// slave->master = [passcode, itemSyncro, username, itemData]
 					// master->slave = [passcode, itemSyncro, username, itemData]
-					$username = $data [2];
+					$username = strtolower ( $data [2] );
 					$itemData = $data [3];
 					$playerdata = $this->getPlayerData ( $username, $itemData );
 					$this->applyItemData ( $username, $playerdata );
@@ -1014,7 +1019,7 @@ class API_CustomPacketListner implements Listener {
 					// itemSyncroRequest
 					// slave->master = [passcode, itemSyncro, username]
 					// master->slave = [passcode, itemSyncro, username, itemData]
-					$username = $data [2];
+					$username = strtolower ( $data [2] );
 					// itemSyncro
 					// slave->master = [passcode, itemSyncro, username, itemData]
 					$data = [ 
@@ -1035,7 +1040,7 @@ class API_CustomPacketListner implements Listener {
 					// economySyncro
 					// slave->master = [passcode, economySyncro, username, money]
 					// master->slave = [passcode, economySyncro, username, money]
-					$username = $data [2];
+					$username = strtolower ( $data [2] );
 					$money = $data [3];
 					$this->applyEconomyData ( $username, $money );
 					$data = [ 
@@ -1067,8 +1072,8 @@ class API_CustomPacketListner implements Listener {
 					/* checkisRegistered */
 					/* slave->master = [passcode, checkisRegistered, username, email] */
 					/* master->slave = [passcode, checkisRegistered, username, email, isRegistered[true||false] */
-					$username = $data [2];
-					$email = $data [3];
+					$username = strtolower ( $data [2] );
+					$email = strtolower ( $data [3] );
 					$isRegistered = $data [4];
 					
 					$player = $this->plugin->getServer ()->getPlayer ( $username );
@@ -1097,9 +1102,9 @@ class API_CustomPacketListner implements Listener {
 					/* sendAuthCode */
 					/* slave->master = [passcode, sendAuthCode, username, email] */
 					/* master->slave = [passcode, sendAuthCode, username, email, authcodeSented */
-					$username = $data [2];
+					$username = strtolower ( $data [2] );
 					$player = $this->plugin->getServer ()->getPlayer ( $username );
-					$email = $data [3];
+					$email = strtolower ( $data [3] );
 					$authcodeSented = $data [4];
 					
 					if (! $player instanceof Player)
@@ -1114,8 +1119,8 @@ class API_CustomPacketListner implements Listener {
 					/* checkAuthCode */
 					/* slave->master = [passcode, checkAuthCode, username, authCode, passcode_hash] */
 					/* master->slave = [passcode, checkAuthCode, username, email, isSuccess, orAuthCodeNotExist, passcode_hash] */
-					$username = $data [2];
-					$email = $data [3];
+					$username = strtolower ( $data [2] );
+					$email = strtolower ( $data [3] );
 					$isSuccess = $data [4];
 					$orAuthCodeNotExist = $data [5];
 					$passcode_hash = $data [6];
@@ -1167,13 +1172,13 @@ class API_CustomPacketListner implements Listener {
 					/* defaultInfoRequest */
 					/* slave->master = [passcode, defaultInfoRequest, username, IP] */
 					/* master->slave = [passcode, defaultInfoRequest, username, isConnected[true|false], isRegistered[true||false], isConnected[true||false], NBT, isCheckAuthReady, lockDomain] */
-					$username = $data [2];
+					$username = strtolower ( $data [2] );
 					$isConnect = $data [3];
 					$isRegistered = $data [4];
 					$isAutoLogin = $data [5];
 					$NBT = $data [6];
 					$isCheckAuthReady = $data [7];
-					$lockDomain = $data [8];
+					$lockDomain = strtolower ( $data [8] );
 					
 					$this->tmpDb [$username] = [ 
 							"isConnect" => $isConnect,
@@ -1203,7 +1208,7 @@ class API_CustomPacketListner implements Listener {
 					// loginRequest
 					// slave->master = [passcode, loginRequest, username, password_hash, IP]
 					// master->slave = [passcode, loginRequest, username, isSuccess[true||false]]
-					$username = $data [2];
+					$username = strtolower ( $data [2] );
 					$isSuccess = $data [3];
 					$player = $this->plugin->getServer ()->getPlayer ( $username );
 					if (! $player instanceof Player)
@@ -1220,7 +1225,7 @@ class API_CustomPacketListner implements Listener {
 					// logoutRequest
 					// slave->master = [passcode, logoutRequest, username, IP, isUserGenerate]
 					// master->slave = [passcode, logoutRequest, username, isSuccess]
-					$username = $data [2];
+					$username = strtolower ( $data [2] );
 					$isSuccess = $data [3];
 					$player = $this->plugin->getServer ()->getPlayer ( $username );
 					if (! $player instanceof Player)
@@ -1236,7 +1241,7 @@ class API_CustomPacketListner implements Listener {
 					// registerRequest
 					// slave->master = [passcode, registerRequest, username, password, IP, email]
 					// master->slave = [passcode, registerRequest, username, isSuccess[true||false]]
-					$username = $data [2];
+					$username = strtolower ( $data [2] );
 					$isSuccess = $data [3];
 					$player = $this->plugin->getServer ()->getPlayer ( $username );
 					if (! $player instanceof Player)
@@ -1253,13 +1258,13 @@ class API_CustomPacketListner implements Listener {
 					// unregisterRequest
 					// slave->master = [passcode, unregisterRequest, username]
 					// master->slave = [passcode, unregisterRequest, username, isSuccess]
-					$username = $data [2];
+					$username = strtolower ( $data [2] );
 					$isSuccess = $data [3];
 					$player = $this->plugin->getServer ()->getPlayer ( $username );
 					if (! $player instanceof Player)
 						return;
 					if ($isSuccess) {
-						$player->kick ( "회원탈퇴완료" );
+						$player->kick ( $this->plugin->get ( "complete-unregister" ) );
 					} else {
 						$this->plugin->message ( $player, $this->plugin->get ( "unregister-is-fail" ) );
 					}

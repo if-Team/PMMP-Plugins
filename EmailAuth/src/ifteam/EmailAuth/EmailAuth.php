@@ -38,7 +38,7 @@ class EmailAuth extends PluginBase implements Listener {
 	public $needAuth = [ ];
 	public $authcode = [ ];
 	public $wrongauth = [ ]; // Prevent brute forcing
-	public $m_version = 8;
+	public $m_version = 9;
 	public $checkCustomPacket = false;
 	public $api_custompacket;
 	public function onEnable() {

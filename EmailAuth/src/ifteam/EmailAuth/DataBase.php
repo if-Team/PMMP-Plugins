@@ -152,6 +152,7 @@ class DataBase {
 		if (! $this->checkUserData ( $email ))
 			return false;
 		unset ( $this->yml ["ip"] [$this->getUserData ( $email )["ip"]] );
+		return true;
 	}
 	public function updateIPAddress($email, $ip) {
 		if (! $this->checkUserData ( $email ))
