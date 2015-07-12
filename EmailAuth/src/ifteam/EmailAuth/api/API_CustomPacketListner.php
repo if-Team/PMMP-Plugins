@@ -731,7 +731,7 @@ class API_CustomPacketListner implements Listener {
 					
 					if ($this->plugin->db->getUserData ( $email ) !== false) {
 						$isRegistered = true;
-					} else if ($this->plugin->db->getEmailToName ( $email ) !== false) {
+					} else if ($this->plugin->db->getEmailToName ( $username ) !== false) {
 						$isRegistered = true;
 					} else {
 						$isRegistered = false;
@@ -871,7 +871,7 @@ class API_CustomPacketListner implements Listener {
 							$this->plugin->db->updateIPAddress ( $email, $requestedUserIp );
 						} else {
 							$isAutoLogin = false;
-							$isRegistered = false;
+							$isRegistered = true;
 						}
 						$NBT = $this->getPlayerDataFile ( $requestedUserName );
 					}
