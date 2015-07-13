@@ -155,12 +155,10 @@ class Chatty extends PluginBase implements Listener {
 		unset ( $this->lastNametags [$event->getPlayer ()->getName ()] );
 	}
 	public function putStack($key, $message) {
-		$messages = [ ];
 		for($start = 0; $start < mb_strlen ( $message, "UTF-8" ); $start += self::MESSAGE_LENGTH) {
-			$messages [] = mb_substr ( $message, $start, self::MESSAGE_LENGTH, "UTF-8" );
+			$this->messageStack [$key] [] = mb_substr ( $message, $start, self::MESSAGE_LENGTH, "UTF-8" );
 		}
-		
-		$this->messageStack [$key] .= $messages;
+
 		$this->messageStack [$key] = array_slice ( $this->messageStack [$key], - self::MESSAGE_MAX_LINES );
 		
 		foreach ( $this->messageStack [$key] as $index => $message ) {
