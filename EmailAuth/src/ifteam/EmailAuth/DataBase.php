@@ -12,6 +12,24 @@ class DataBase {
 		$this->yml = (new Config ( $this->path, Config::YAML, [ 
 				"lockDomain" => "" 
 		] ))->getAll ();
+		$this->updateDB ();
+	}
+	public function updateDB() {
+		$this->nameToLower ();
+	}
+	public function nameToLower() {
+		if (! isset ( $this->yml ["updatePatch"] ["lower"] )) {
+			if (isset ( $this->yml ["user"] ))
+				foreach ( $this->yml ["user"] as $index => $data ) {
+					$this->yml ["user"] [$index] ["name"] = strtolower ( $this->yml ["user"] [$index] ["name"] );
+				}
+			if (isset ( $this->yml ["name"] ))
+				foreach ( $this->yml ["name"] as $index => $data ) {
+					unset ( $this->yml ["name"] [$index] );
+					$this->yml ["name"] [strtolower ( $index )] = $data;
+				}
+			$this->yml ["updatePatch"] ["lower"] = true;
+		}
 	}
 	public function save() {
 		$config = new Config ( $this->path, Config::YAML );

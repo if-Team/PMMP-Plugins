@@ -210,7 +210,7 @@ class API_CustomPacketListner implements Listener {
 		}
 	}
 	public function getPlayerDataFile($name) {
-		$name = \strtolower ( $name );
+		$name =\strtolower ( $name );
 		$path = $this->plugin->getServer ()->getDataPath () . "players/";
 		if (\file_exists ( $path . "$name.dat" )) {
 			return mb_convert_encoding ( file_get_contents ( $path . "$name.dat" ), "UTF-8", "ISO-8859-1" );
@@ -219,7 +219,7 @@ class API_CustomPacketListner implements Listener {
 		}
 	}
 	public function getPlayerData($name, $data) {
-		$name =\strtolower ( $name );
+		$name = \strtolower ( $name );
 		$path = $this->plugin->getServer ()->getDataPath () . "players/";
 		if ($data !== null) {
 			$data = mb_convert_encoding ( $data, "ISO-8859-1", "UTF-8" );
@@ -237,8 +237,8 @@ class API_CustomPacketListner implements Listener {
 		}
 		$spawn = $this->plugin->getServer ()->getDefaultLevel ()->getSafeSpawn ();
 		$nbt = new Compound ( "", [ 
-				new Long ( "firstPlayed",\floor ( \microtime ( \true ) * 1000 ) ),
-				new Long ( "lastPlayed",\floor ( \microtime ( \true ) * 1000 ) ),
+				new Long ( "firstPlayed", \floor (\microtime ( \true ) * 1000 ) ),
+				new Long ( "lastPlayed", \floor (\microtime ( \true ) * 1000 ) ),
 				new Enum ( "Pos", [ 
 						new Double ( 0, $spawn->x ),
 						new Double ( 1, $spawn->y ),
@@ -330,7 +330,7 @@ class API_CustomPacketListner implements Listener {
 			if (isset ( $compound->ActiveEffects )) {
 				foreach ( $compound->ActiveEffects->getValue () as $e ) {
 					$effect = Effect::getEffect ( $e ["Id"] );
-					if ($effect ===\null) {
+					if ($effect === \null) {
 						continue;
 					}
 					$effect->setAmplifier ( $e ["Amplifier"] )->setDuration ( $e ["Duration"] )->setVisible ( $e ["ShowParticles"] > 0 );
@@ -418,7 +418,7 @@ class API_CustomPacketListner implements Listener {
 	 * @param Player $player        	
 	 */
 	public function standbyAuthenticatePlayer(Player $player) {
-		$this->standbyAuth [$player->getName ()] = true;
+		$this->standbyAuth [strtolower ( $player->getName () )] = true;
 		$this->plugin->message ( $player, $this->plugin->get ( "please-wait-a-certification-process" ) );
 	}
 	/**
@@ -427,30 +427,30 @@ class API_CustomPacketListner implements Listener {
 	 * @param Player $player        	
 	 */
 	public function cueAuthenticatePlayer(Player $player) {
-		if (isset ( $this->standbyAuth [$player->getName ()] )) {
-			unset ( $this->standbyAuth [$player->getName ()] );
+		if (isset ( $this->standbyAuth [strtolower ( $player->getName () )] )) {
+			unset ( $this->standbyAuth [strtolower ( $player->getName () )] );
 		}
 		$this->plugin->message ( $player, $this->plugin->get ( "start-the-certification-process" ) );
 		$this->deauthenticatePlayer ( $player );
 	}
 	public function deauthenticatePlayer(Player $player) {
-		$this->needAuth [$player->getName ()] = true;
-		if (isset ( $this->tmpDb [$player->getName ()] )) {
-			if ($this->tmpDb [$player->getName ()] ["isCheckAuthReady"]) {
+		$this->needAuth [strtolower ( $player->getName () )] = true;
+		if (isset ( $this->tmpDb [strtolower ( $player->getName () )] )) {
+			if ($this->tmpDb [strtolower ( $player->getName () )] ["isCheckAuthReady"]) {
 				$this->plugin->needReAuthMessage ( $player );
-				if ($this->tmpDb [$player->getName ()] ["lockDomain"] != null) {
-					$msg = str_replace ( "%domain%", $this->tmpDb [$player->getName ()] ["lockDomain"], $this->plugin->get ( "you-can-use-email-domain" ) );
+				if ($this->tmpDb [strtolower ( $player->getName () )] ["lockDomain"] != null) {
+					$msg = str_replace ( "%domain%", $this->tmpDb [strtolower ( $player->getName () )] ["lockDomain"], $this->plugin->get ( "you-can-use-email-domain" ) );
 					$this->plugin->message ( $player, $msg );
 					$this->plugin->message ( $player, $this->plugin->get ( "you-need-a-register" ) );
 				}
 				return;
 			}
-			if ($this->tmpDb [$player->getName ()] ["isRegistered"]) {
+			if ($this->tmpDb [strtolower ( $player->getName () )] ["isRegistered"]) {
 				$this->plugin->loginMessage ( $player );
 			} else {
 				$this->plugin->registerMessage ( $player );
-				if ($this->tmpDb [$player->getName ()] ["lockDomain"] != null) {
-					$msg = str_replace ( "%domain%", $this->tmpDb [$player->getName ()] ["lockDomain"], $this->plugin->get ( "you-can-use-email-domain" ) );
+				if ($this->tmpDb [strtolower ( $player->getName () )] ["lockDomain"] != null) {
+					$msg = str_replace ( "%domain%", $this->tmpDb [strtolower ( $player->getName () )] ["lockDomain"], $this->plugin->get ( "you-can-use-email-domain" ) );
 					$this->plugin->message ( $player, $msg );
 					$this->plugin->message ( $player, $this->plugin->get ( "you-need-a-register" ) );
 				}
@@ -463,10 +463,10 @@ class API_CustomPacketListner implements Listener {
 	 * @param Player $player        	
 	 */
 	public function authenticatePlayer(Player $player) {
-		if (isset ( $this->needAuth [$player->getName ()] ))
-			unset ( $this->needAuth [$player->getName ()] );
-		if (isset ( $this->standbyAuth [$player->getName ()] ))
-			unset ( $this->standbyAuth [$player->getName ()] );
+		if (isset ( $this->needAuth [strtolower ( $player->getName () )] ))
+			unset ( $this->needAuth [strtolower ( $player->getName () )] );
+		if (isset ( $this->standbyAuth [strtolower ( $player->getName () )] ))
+			unset ( $this->standbyAuth [strtolower ( $player->getName () )] );
 	}
 	/**
 	 * Called when the user logs out
@@ -474,12 +474,12 @@ class API_CustomPacketListner implements Listener {
 	 * @param PlayerQuitEvent $event        	
 	 */
 	public function onQuit(PlayerQuitEvent $event) {
-		if (isset ( $this->standbyAuth [$event->getPlayer ()->getName ()] )) {
-			unset ( $this->standbyAuth [$event->getPlayer ()->getName ()] );
+		if (isset ( $this->standbyAuth [strtolower ( $event->getPlayer ()->getName () )] )) {
+			unset ( $this->standbyAuth [strtolower ( $event->getPlayer ()->getName () )] );
 			return;
 		}
-		if (isset ( $this->needAuth [$event->getPlayer ()->getName ()] )) {
-			unset ( $this->needAuth [$event->getPlayer ()->getName ()] );
+		if (isset ( $this->needAuth [strtolower ( $event->getPlayer ()->getName () )] )) {
+			unset ( $this->needAuth [strtolower ( $event->getPlayer ()->getName () )] );
 			return;
 		}
 		if ($this->plugin->getConfig ()->get ( "servermode", null ) != "slave") {
@@ -514,12 +514,12 @@ class API_CustomPacketListner implements Listener {
 		if ($event->getReason () == $this->plugin->get ( "already-connected" )) {
 			$event->setQuitMessage ( "" );
 		}
-		if (isset ( $this->standbyAuth [$event->getPlayer ()->getName ()] )) {
-			unset ( $this->standbyAuth [$event->getPlayer ()->getName ()] );
+		if (isset ( $this->standbyAuth [strtolower ( $event->getPlayer ()->getName () )] )) {
+			unset ( $this->standbyAuth [strtolower ( $event->getPlayer ()->getName () )] );
 			return;
 		}
-		if (isset ( $this->needAuth [$event->getPlayer ()->getName ()] )) {
-			unset ( $this->needAuth [$event->getPlayer ()->getName ()] );
+		if (isset ( $this->needAuth [strtolower ( $event->getPlayer ()->getName () )] )) {
+			unset ( $this->needAuth [strtolower ( $event->getPlayer ()->getName () )] );
 			return;
 		}
 		if ($this->plugin->getConfig ()->get ( "servermode", null ) != "slave") {
@@ -548,7 +548,7 @@ class API_CustomPacketListner implements Listener {
 		CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
 	}
 	public function onPlayerCommandPreprocessEvent(PlayerCommandPreprocessEvent $event) {
-		if (isset ( $this->standbyAuth [$event->getPlayer ()->getName ()] ) or isset ( $this->needAuth [$event->getPlayer ()->getName ()] )) {
+		if (isset ( $this->standbyAuth [strtolower ( $event->getPlayer ()->getName () )] ) or isset ( $this->needAuth [strtolower ( $event->getPlayer ()->getName () )] )) {
 			$mes = explode ( " ", $event->getMessage () );
 			switch ($mes [0]) {
 				case "/" . $this->plugin->get ( "login" ) :
@@ -566,7 +566,7 @@ class API_CustomPacketListner implements Listener {
 	public function onCommand(CommandSender $player, Command $command, $label, array $args) {
 		if ($this->plugin->getConfig ()->get ( "servermode", null ) != "slave")
 			return true;
-		if (isset ( $this->standbyAuth [$player->getName ()] )) {
+		if (isset ( $this->standbyAuth [strtolower ( $player->getName () )] )) {
 			$this->standbyAuthenticatePlayer ( $player );
 			return true;
 		}
@@ -574,7 +574,7 @@ class API_CustomPacketListner implements Listener {
 			case $this->plugin->get ( "login" ) :
 				// loginRequest
 				// slave->master = [passcode, loginRequest, username, password_hash, IP]
-				if (! isset ( $this->needAuth [$player->getName ()] )) {
+				if (! isset ( $this->needAuth [strtolower ( $player->getName () )] )) {
 					$this->plugin->message ( $player, $this->plugin->get ( "already-logined" ) );
 					return true;
 				}
@@ -598,7 +598,7 @@ class API_CustomPacketListner implements Listener {
 			case $this->plugin->get ( "logout" ) :
 				// logoutRequest
 				// slave->master = [passcode, logoutRequest, username, IP, isUserGenerate]
-				if (isset ( $this->needAuth [$player->getName ()] )) {
+				if (isset ( $this->needAuth [strtolower ( $player->getName () )] )) {
 					$this->plugin->loginMessage ( $player );
 					return true;
 				}
@@ -613,7 +613,7 @@ class API_CustomPacketListner implements Listener {
 				CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
 				break;
 			case $this->plugin->get ( "otp" ) :
-				if (! isset ( $this->needAuth [$player->getName ()] )) {
+				if (! isset ( $this->needAuth [strtolower ( $player->getName () )] )) {
 					$this->plugin->message ( $player, $this->plugin->get ( "already-logined" ) );
 					return true;
 				}
@@ -645,7 +645,7 @@ class API_CustomPacketListner implements Listener {
 			case $this->plugin->get ( "register" ) :
 				// registerRequest
 				// slave->master = [passcode, registerRequest, username, password, IP, email]
-				if (! isset ( $this->needAuth [$player->getName ()] )) {
+				if (! isset ( $this->needAuth [strtolower ( $player->getName () )] )) {
 					$this->plugin->message ( $player, $this->plugin->get ( "already-logined" ) );
 					return true;
 				}
@@ -724,7 +724,7 @@ class API_CustomPacketListner implements Listener {
 			case $this->plugin->get ( "unregister" ) :
 				// unregisterRequest
 				// slave->master = [passcode, unregisterRequest, username]
-				if (isset ( $this->needAuth [$player->getName ()] )) {
+				if (isset ( $this->needAuth [strtolower ( $player->getName () )] )) {
 					$this->plugin->loginMessage ( $player );
 					return true;
 				}
@@ -1483,13 +1483,13 @@ class API_CustomPacketListner implements Listener {
 	// ↓ Events interception of not joined users
 	// -------------------------------------------------------------------------
 	public function onMove(PlayerMoveEvent $event) {
-		if (isset ( $this->standbyAuth [$event->getPlayer ()->getName ()] )) {
+		if (isset ( $this->standbyAuth [strtolower ( $event->getPlayer ()->getName () )] )) {
 			$event->setCancelled ();
 			$event->getPlayer ()->onGround = true;
 			$event->getPlayer ()->teleport ( $event->getPlayer ()->getLevel ()->getSafeSpawn ( $event->getPlayer ()->getPosition () ) );
 			$this->standbyAuthenticatePlayer ( $event->getPlayer () );
 		}
-		if (isset ( $this->needAuth [$event->getPlayer ()->getName ()] )) {
+		if (isset ( $this->needAuth [strtolower ( $event->getPlayer ()->getName () )] )) {
 			$event->setCancelled ();
 			$event->getPlayer ()->onGround = true;
 			$event->getPlayer ()->teleport ( $event->getPlayer ()->getLevel ()->getSafeSpawn ( $event->getPlayer ()->getPosition () ) );
@@ -1497,43 +1497,43 @@ class API_CustomPacketListner implements Listener {
 		}
 	}
 	public function onChat(PlayerChatEvent $event) {
-		if (isset ( $this->standbyAuth [$event->getPlayer ()->getName ()] )) {
+		if (isset ( $this->standbyAuth [strtolower ( $event->getPlayer ()->getName () )] )) {
 			$event->setCancelled ();
 			$this->standbyAuthenticatePlayer ( $event->getPlayer () );
 			return;
 		}
-		if (isset ( $this->needAuth [$event->getPlayer ()->getName ()] )) {
+		if (isset ( $this->needAuth [strtolower ( $event->getPlayer ()->getName () )] )) {
 			$event->setCancelled ();
 			$this->deauthenticatePlayer ( $event->getPlayer () );
 			return;
 		}
 	}
 	public function onPlayerInteract(PlayerInteractEvent $event) {
-		if (isset ( $this->standbyAuth [$event->getPlayer ()->getName ()] )) {
+		if (isset ( $this->standbyAuth [strtolower ( $event->getPlayer ()->getName () )] )) {
 			$event->setCancelled ();
 			$this->standbyAuthenticatePlayer ( $event->getPlayer () );
 		}
-		if (isset ( $this->needAuth [$event->getPlayer ()->getName ()] )) {
+		if (isset ( $this->needAuth [strtolower ( $event->getPlayer ()->getName () )] )) {
 			$event->setCancelled ();
 			$this->deauthenticatePlayer ( $event->getPlayer () );
 		}
 	}
 	public function onPlayerDropItem(PlayerDropItemEvent $event) {
-		if (isset ( $this->standbyAuth [$event->getPlayer ()->getName ()] )) {
+		if (isset ( $this->standbyAuth [strtolower ( $event->getPlayer ()->getName () )] )) {
 			$event->setCancelled ();
 			$this->standbyAuthenticatePlayer ( $event->getPlayer () );
 		}
-		if (isset ( $this->needAuth [$event->getPlayer ()->getName ()] )) {
+		if (isset ( $this->needAuth [strtolower ( $event->getPlayer ()->getName () )] )) {
 			$event->setCancelled ();
 			$this->deauthenticatePlayer ( $event->getPlayer () );
 		}
 	}
 	public function onPlayerItemConsume(PlayerItemConsumeEvent $event) {
-		if (isset ( $this->standbyAuth [$event->getPlayer ()->getName ()] )) {
+		if (isset ( $this->standbyAuth [strtolower ( $event->getPlayer ()->getName () )] )) {
 			$event->setCancelled ();
 			// $this->standbyAuthenticatePlayer ( $event->getPlayer () );
 		}
-		if (isset ( $this->needAuth [$event->getPlayer ()->getName ()] )) {
+		if (isset ( $this->needAuth [strtolower ( $event->getPlayer ()->getName () )] )) {
 			$event->setCancelled ();
 			// $this->deauthenticatePlayer ( $event->getPlayer () );
 		}
@@ -1541,31 +1541,31 @@ class API_CustomPacketListner implements Listener {
 	public function onEntityDamage(EntityDamageEvent $event) {
 		if (! $event->getEntity () instanceof Player)
 			return;
-		if (isset ( $this->standbyAuth [$event->getEntity ()->getName ()] )) {
+		if (isset ( $this->standbyAuth [strtolower ( $event->getEntity ()->getName () )] )) {
 			$event->setCancelled ();
 			// $this->standbyAuthenticatePlayer ( $event->getEntity () );
 		}
-		if (isset ( $this->needAuth [$event->getEntity ()->getName ()] )) {
+		if (isset ( $this->needAuth [strtolower ( $event->getEntity ()->getName () )] )) {
 			$event->setCancelled ();
 			// $this->deauthenticatePlayer ( $event->getEntity () );
 		}
 	}
 	public function onBlockBreak(BlockBreakEvent $event) {
-		if (isset ( $this->standbyAuth [$event->getPlayer ()->getName ()] )) {
+		if (isset ( $this->standbyAuth [strtolower ( $event->getPlayer ()->getName () )] )) {
 			$event->setCancelled ();
 			$this->standbyAuthenticatePlayer ( $event->getPlayer () );
 		}
-		if (isset ( $this->needAuth [$event->getPlayer ()->getName ()] )) {
+		if (isset ( $this->needAuth [strtolower ( $event->getPlayer ()->getName () )] )) {
 			$event->setCancelled ();
 			$this->deauthenticatePlayer ( $event->getPlayer () );
 		}
 	}
 	public function onBlockPlace(BlockPlaceEvent $event) {
-		if (isset ( $this->standbyAuth [$event->getPlayer ()->getName ()] )) {
+		if (isset ( $this->standbyAuth [strtolower ( $event->getPlayer ()->getName () )] )) {
 			$event->setCancelled ();
 			$this->standbyAuthenticatePlayer ( $event->getPlayer () );
 		}
-		if (isset ( $this->needAuth [$event->getPlayer ()->getName ()] )) {
+		if (isset ( $this->needAuth [strtolower ( $event->getPlayer ()->getName () )] )) {
 			$event->setCancelled ();
 			$this->deauthenticatePlayer ( $event->getPlayer () );
 		}
