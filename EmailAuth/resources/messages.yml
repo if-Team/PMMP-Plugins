@@ -2,7 +2,7 @@
 # YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
 
 #PLEASE SET HERE TO YOUR LANGUAGE PREFIX
-m_version: 9
+m_version: 10
 
 #(EN) ENGLISH
 eng: true
@@ -83,6 +83,8 @@ kor-register: "가입"
 kor-register-help: "서버에 가입합니다"
 kor-unregister: "탈퇴"
 kor-unregister-help: "서버에 탈퇴합니다"
+kor-otp: "otp"
+kor-otp-help: "일회용암호를 발급받거나 사용합니다."
 kor-manage-help: "이메일오스를 관리합니다"
 kor-adminMail-doesnt-exist: "관리자 이메일이 등록되지 않았습니다 !"
 kor-adminEmailHost-doesnt-exist: "관리자 이메일 호스트가 등록되지 않았습니다 !"
@@ -106,6 +108,7 @@ kor-setup-failed: "이메일 전송에 실패했습니다, 잘못된 설정이 �
 kor-automatic-ip-logined: "자동으로 로그인되었습니다! (IP 로그인)"
 kor-emailauth-notification: "이 서버는 이메일오스를 통한 계정보호를 진행중입니다."
 kor-you-need-a-login: "로그인을 진행해주세요 ! /로그인 <설정한암호>"
+kor-you-can-use-otp: "암호를 잊었으면, /otp 로 이메일에 임시암호 발급가능"
 kor-you-need-a-register: "/가입 <이메일 또는 인증번호> <원하는암호>"
 kor-you-needReAuthMessage: "/가입 <이메일 또는 인증번호> <설정했던 암호>"
 kor-whitelist-enabled: "화이트리스트가 활성화 되었습니다 !"
@@ -164,6 +167,13 @@ kor-rejected-an-authorization-code: "잘못된 이메일형식이거나, 이미�
 kor-password-is-too-long: "암호가 너무 깁니다 ! 사용불가 !"
 kor-youre-not-yet-login: "아직 로그인하지 않았습니다 ! 사용불가 !"
 kor-complete-unregister: "회원탈퇴완료"
+kor-banned-brute-force: "과다접근 시도로 400초 밴처리 !"
+kor-otp-logined: "로그인 처리되었습니다 ! (OTP로그인)"
+kor-otp-is-generated: "OTP가 발급되었습니다, 이메일을 확인해주세요 !"
+kor-otp-is-not-generated: "이전 OTP가 쓰이지 않음, OTP 발급 거부 !"
+kor-otp-access-denied: "오래되었거나 잘못된 OTP입니다, 접근 불가 !"
+kor-request-generate-otp: "서버에 OTP 발급을 요청합니다.."
+kor-request-using-otp: "서버에 OTP 사용을 요청합니다.."
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
 # https://github.com/if-Team/PMMP-Plugins/blob/master/EmailAuth/resources/messages.yml

@@ -4,7 +4,7 @@
 serverName: "PocketMine"
 
 #Title to be displayed in the email
-subjectName: "[PocketMine] 회원가입 확인메일"
+subjectName: "[PocketMine] 메일이 도착했습니다"
 
 #Email Encoding
 encoding: euc-kr

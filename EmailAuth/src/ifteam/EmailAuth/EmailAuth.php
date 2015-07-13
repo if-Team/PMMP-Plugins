@@ -38,7 +38,7 @@ class EmailAuth extends PluginBase implements Listener {
 	public $needAuth = [ ];
 	public $authcode = [ ];
 	public $wrongauth = [ ]; // Prevent brute forcing
-	public $m_version = 9;
+	public $m_version = 10;
 	public $checkCustomPacket = false;
 	public $api_custompacket;
 	public function onEnable() {
@@ -53,6 +53,7 @@ class EmailAuth extends PluginBase implements Listener {
 		$this->db = new DataBase ( $this->getDataFolder () . "database.yml" );
 		
 		$this->saveResource ( "signform.html", false );
+		$this->saveResource ( "otpform.html", false );
 		$this->saveResource ( "config.yml", false );
 		$this->initMessage ();
 		
@@ -65,6 +66,7 @@ class EmailAuth extends PluginBase implements Listener {
 		$this->registerCommand ( $this->get ( "logout" ), "EmailAuth.logout", $this->get ( "logout-help" ), "/" . $this->get ( "logout" ) );
 		$this->registerCommand ( $this->get ( "register" ), "EmailAuth.register", $this->get ( "register-help" ), "/" . $this->get ( "register" ) );
 		$this->registerCommand ( $this->get ( "unregister" ), "EmailAuth.unregister", $this->get ( "unregister-help" ), "/" . $this->get ( "unregister" ) );
+		$this->registerCommand ( $this->get ( "otp" ), "EmailAuth.otp", $this->get ( "otp-help" ), "/" . $this->get ( "otp" ) );
 		$this->registerCommand ( "emailauth", "EmailAuth.manage", $this->get ( "manage-help" ), "/emailauth" );
 		
 		if (file_exists ( $this->getDataFolder () . "SimpleAuth/players" ))
@@ -222,14 +224,6 @@ class EmailAuth extends PluginBase implements Listener {
 		return true;
 	}
 	public function onCommand(CommandSender $player, Command $command, $label, array $args) {
-		// 연속으로 7회 이상틀리면 밴 처리(이메일 전송포함)
-		if ($player instanceof Player) {
-			if (isset ( $this->wrongauth [$player->getAddress ()] )) {
-				if ($this->wrongauth [$player->getAddress ()] >= 7) {
-					$this->getServer ()->blockAddress ( $player->getAddress (), 400 );
-				}
-			}
-		}
 		switch (strtolower ( $command->getName () )) {
 			case $this->get ( "login" ) :
 				if ($this->getConfig ()->get ( "servermode", null ) == "slave") {
@@ -261,6 +255,9 @@ class EmailAuth extends PluginBase implements Listener {
 							if ($player instanceof Player) {
 								if (isset ( $this->wrongauth [$player->getAddress ()] )) {
 									$this->wrongauth [$player->getAddress ()] ++;
+									if ($this->wrongauth [$player->getAddress ()] >= 7)
+										$this->getServer ()->blockAddress ( $player->getAddress (), 400 );
+									$player->kick ( $this->get ( "banned-brute-force" ) );
 								} else {
 									$this->wrongauth [$player->getAddress ()] = 1;
 								}
@@ -286,6 +283,16 @@ class EmailAuth extends PluginBase implements Listener {
 				}
 				$this->db->logout ( $this->db->getEmail ( $player ) );
 				$this->message ( $player, $this->get ( "logout-complete" ) );
+				break;
+			case $this->get ( "otp" ) :
+				if ($this->getConfig ()->get ( "servermode", null ) == "slave") {
+					// 커스텀패킷이 작동하고 있고, 슬레이브모드면 일단 모든걸 중지 후
+					// 마스터서버로의 데이터가 오고 인증이 재기되기까지 대기
+					if ($this->checkCustomPacket) {
+						$this->api_custompacket->onCommand ( $player, $command, $label, $args );
+						return true;
+					}
+				}
 				break;
 			case $this->get ( "register" ) :
 				if ($this->getConfig ()->get ( "servermode", null ) == "slave") {
@@ -325,6 +332,9 @@ class EmailAuth extends PluginBase implements Listener {
 						if ($player instanceof Player) {
 							if (isset ( $this->wrongauth [strtolower ( $player->getAddress () )] )) {
 								$this->wrongauth [$player->getAddress ()] ++;
+								if ($this->wrongauth [$player->getAddress ()] >= 7)
+									$this->getServer ()->blockAddress ( $player->getAddress (), 400 );
+								$player->kick ( $this->get ( "banned-brute-force" ) );
 							} else {
 								$this->wrongauth [$player->getAddress ()] = 1;
 							}
@@ -336,7 +346,7 @@ class EmailAuth extends PluginBase implements Listener {
 					if (isset ( $this->authcode [$player->getName ()] )) {
 						if ($this->authcode [$player->getName ()] ["authcode"] == $args [0]) {
 							$password_hash = $this->hash ( strtolower ( $player->getName () ), $password );
-							$result = $this->db->addUser ( $this->authcode [$player->getName ()] ["email"], $password_hash, $player->getAddress (), false, $player->getName () );
+							$result = $this->db->addUser ( $this->authcode [$player->getName ()] ["email"], $password_hash, $player->getAddress (), $player->getName () );
 							if ($result) {
 								$this->message ( $player, $this->get ( "register-complete" ) );
 							} else {
@@ -352,6 +362,9 @@ class EmailAuth extends PluginBase implements Listener {
 							if ($player instanceof Player) {
 								if (isset ( $this->wrongauth [strtolower ( $player->getAddress () )] )) {
 									$this->wrongauth [$player->getAddress ()] ++;
+									if ($this->wrongauth [$player->getAddress ()] >= 7)
+										$this->getServer ()->blockAddress ( $player->getAddress (), 400 );
+									$player->kick ( $this->get ( "banned-brute-force" ) );
 								} else {
 									$this->wrongauth [$player->getAddress ()] = 1;
 								}
@@ -394,6 +407,9 @@ class EmailAuth extends PluginBase implements Listener {
 					$serverName = $this->getConfig ()->get ( "serverName", "" );
 					if (isset ( $this->wrongauth [$player->getAddress ()] )) {
 						$this->wrongauth [$player->getAddress ()] ++;
+						if ($this->wrongauth [$player->getAddress ()] >= 7)
+							$this->getServer ()->blockAddress ( $player->getAddress (), 400 );
+						$player->kick ( $this->get ( "banned-brute-force" ) );
 					} else {
 						$this->wrongauth [$player->getAddress ()] = 1;
 					}
@@ -611,6 +627,7 @@ class EmailAuth extends PluginBase implements Listener {
 	public function loginMessage(CommandSender $player) {
 		$this->message ( $player, $this->get ( "emailauth-notification" ) );
 		$this->message ( $player, $this->get ( "you-need-a-login" ) );
+		$this->message ( $player, $this->get ( "you-can-use-otp" ) );
 	}
 	public function needReAuthMessage(CommandSender $player) {
 		$this->message ( $player, $this->get ( "emailauth-notification" ) );

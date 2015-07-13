@@ -82,6 +82,11 @@ class API_CustomPacketListner implements Listener {
 	public $tmpDb = [ ];
 	/**
 	 *
+	 * @var Otp DB
+	 */
+	public $otpDb = [ ];
+	/**
+	 *
 	 * @var EconomyAPI
 	 */
 	public $economyAPI;
@@ -549,6 +554,7 @@ class API_CustomPacketListner implements Listener {
 				case "/" . $this->plugin->get ( "login" ) :
 				case "/" . $this->plugin->get ( "logout" ) :
 				case "/" . $this->plugin->get ( "register" ) :
+				case "/" . $this->plugin->get ( "otp" ) :
 					break;
 				default :
 					$this->plugin->message ( $event->getPlayer (), $this->plugin->get ( "youre-not-yet-login" ) );
@@ -606,6 +612,36 @@ class API_CustomPacketListner implements Listener {
 				$this->plugin->message ( $player, $this->plugin->get ( "proceed-to-logout-please-wait" ) );
 				CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
 				break;
+			case $this->plugin->get ( "otp" ) :
+				if (! isset ( $this->needAuth [$player->getName ()] )) {
+					$this->plugin->message ( $player, $this->plugin->get ( "already-logined" ) );
+					return true;
+				}
+				if (! isset ( $args [0] )) {
+					$this->plugin->message ( $player, $this->plugin->get ( "request-generate-otp" ) );
+					/* requestCreateOTP */
+					/* slave->master = [passcode, requestCreateOTP, username, IP] */
+					$data = [ 
+							$this->plugin->getConfig ()->get ( "passcode" ),
+							"requestCreateOTP",
+							$player->getName (),
+							$player->getAddress () 
+					];
+					CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
+				} else {
+					$this->plugin->message ( $player, $this->plugin->get ( "request-using-otp" ) );
+					/* requestUseOTP */
+					/* slave->master = [passcode, requestUseOTP, username, IP, otp] */
+					$data = [ 
+							$this->plugin->getConfig ()->get ( "passcode" ),
+							"requestUseOTP",
+							$player->getName (),
+							$player->getAddress (),
+							$args [0] 
+					];
+					CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
+				}
+				break;
 			case $this->plugin->get ( "register" ) :
 				// registerRequest
 				// slave->master = [passcode, registerRequest, username, password, IP, email]
@@ -637,6 +673,9 @@ class API_CustomPacketListner implements Listener {
 						if ($player instanceof Player) {
 							if (isset ( $this->plugin->wrongauth [strtolower ( $player->getAddress () )] )) {
 								$this->plugin->wrongauth [$player->getAddress ()] ++;
+								$player->kick ( $this->plugin->get ( "banned-brute-force" ) );
+								if ($this->plugin->wrongauth [$player->getAddress ()] >= 7)
+									$this->plugin->getServer ()->blockAddress ( $player->getAddress (), 400 );
 							} else {
 								$this->plugin->wrongauth [$player->getAddress ()] = 1;
 							}
@@ -842,6 +881,78 @@ class API_CustomPacketListner implements Listener {
 						}
 					}
 					break;
+				case "requestCreateOTP":
+					/* requestCreateOTP */
+					/* slave->master = [passcode, requestCreateOTP, username, IP] */
+					/* master->slave = [passcode, requestCreateOTP, username, IP, isGenerated[true|false] */
+					$username = strtolower ( $data [2] );
+					$address = $data [3];
+					
+					$isGenerated = false;
+					$isTimeout = true;
+					if (isset ( $this->otpDb [$username] )) {
+						$progress = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) ) - $this->makeTimestamp ( $this->otpDb [$username] ["date"] );
+						if ($progress < 3600) {
+							$isTimeout = false;
+						}
+					}
+					if ($isTimeout) {
+						$email = $this->plugin->db->getEmailToName ( $username );
+						if ($email !== false) {
+							$isGenerated = true;
+							$nowTime = date ( "Y-m-d H:i:s" );
+							$serverName = $this->plugin->getConfig ()->get ( "serverName", "" );
+							
+							$this->otpDb [$username] = [ 
+									"passkey" => $this->plugin->authCodeGenerator ( 6 ),
+									"requestedIp" => $address,
+									"date" => $nowTime 
+							];
+							$task = new EmailSendTask ( $email, $username, $nowTime, $serverName, $this->otpDb [$username] ["passkey"], $this->plugin->getConfig ()->getAll (), $this->plugin->getDataFolder () . "otpform.html" );
+							$this->plugin->getServer ()->getScheduler ()->scheduleAsyncTask ( $task );
+						}
+					}
+					$data = [ 
+							$this->plugin->getConfig ()->get ( "passcode" ),
+							"requestCreateOTP",
+							$username,
+							$address,
+							$isGenerated 
+					];
+					CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, json_encode ( $data ) ) );
+					break;
+				case "requestUseOTP":
+					/* requestUseOTP */
+					/* slave->master = [passcode, requestUseOTP, username, IP, otp] */
+					/* master->slave = [passcode, requestUseOTP, username, IP, isSuccess[true|false] */
+					$username = strtolower ( $data [2] );
+					$address = $data [3];
+					$otp = $data [4];
+					
+					$isSuccess = false;
+					if (isset ( $this->otpDb [$username] )) {
+						$progress = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) ) - $this->makeTimestamp ( $this->otpDb [$username] ["date"] );
+						if ($progress < 3600) {
+							if ($this->otpDb [$username] ["passkey"] === $otp) {
+								$email = $this->plugin->db->getEmailToName ( $username );
+								if ($email !== false) {
+									$isSuccess = true;
+									$this->onlineUserList [$username] = $ev->getPacket ()->address . ":" . $ev->getPacket ()->port;
+									$this->plugin->db->updateIPAddress ( $email, $address );
+									unset ( $this->otpDb [$username] );
+								}
+							}
+						}
+					}
+					$data = [ 
+							$this->plugin->getConfig ()->get ( "passcode" ),
+							"requestUseOTP",
+							$username,
+							$address,
+							$isSuccess 
+					];
+					CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, json_encode ( $data ) ) );
+					break;
 				case "defaultInfoRequest" :
 					/* defaultInfoRequest */
 					/* slave->master = [passcode, defaultInfoRequest, username, IP] */
@@ -978,7 +1089,7 @@ class API_CustomPacketListner implements Listener {
 					$address = $data [4];
 					$email = strtolower ( $data [5] );
 					
-					$isSuccess = $this->plugin->db->addUser ( $email, $password_hash, $address, false, $username );
+					$isSuccess = $this->plugin->db->addUser ( $email, $password_hash, $address, $username );
 					$data = [ 
 							$this->plugin->getConfig ()->get ( "passcode" ),
 							"registerRequest",
@@ -1098,6 +1209,59 @@ class API_CustomPacketListner implements Listener {
 						CPAPI::sendPacket ( new DataPacket ( $ev->getPacket ()->address, $ev->getPacket ()->port, json_encode ( $data ) ) );
 					}
 					break;
+				case "requestCreateOTP":
+					/* requestCreateOTP */
+					/* slave->master = [passcode, requestCreateOTP, username, IP] */
+					/* master->slave = [passcode, requestCreateOTP, username, IP, isGenerated[true|false] */
+					$username = $data [2];
+					$address = $data [3];
+					$isGenerated = $data [4];
+					
+					$player = $this->plugin->getServer ()->getPlayer ( $username );
+					if (! $player instanceof Player)
+						return;
+					
+					if ($isGenerated) {
+						$this->plugin->message ( $player, $this->plugin->get ( "otp-is-generated" ) );
+					} else {
+						$this->plugin->message ( $player, $this->plugin->get ( "otp-is-not-generated" ) );
+						if (isset ( $this->plugin->wrongauth [strtolower ( $player->getAddress () )] )) {
+							$this->plugin->wrongauth [$player->getAddress ()] ++;
+							$player->kick ( $this->plugin->get ( "banned-brute-force" ) );
+							if ($this->plugin->wrongauth [$player->getAddress ()] >= 7)
+								$this->plugin->getServer ()->blockAddress ( $player->getAddress (), 400 );
+						} else {
+							$this->plugin->wrongauth [$player->getAddress ()] = 1;
+						}
+					}
+					break;
+				case "requestUseOTP":
+					/* requestUseOTP */
+					/* slave->master = [passcode, requestUseOTP, username, IP, otp] */
+					/* master->slave = [passcode, requestUseOTP, username, IP, isSuccess[true|false] */
+					$username = $data [2];
+					$address = $data [3];
+					$isSuccess = $data [4];
+					
+					$player = $this->plugin->getServer ()->getPlayer ( $username );
+					if (! $player instanceof Player)
+						return;
+					
+					if ($isSuccess) {
+						$this->plugin->message ( $player, $this->plugin->get ( "otp-logined" ) );
+						$this->authenticatePlayer ( $player );
+					} else {
+						$this->plugin->message ( $player, $this->plugin->get ( "otp-access-denied" ) );
+						if (isset ( $this->plugin->wrongauth [strtolower ( $player->getAddress () )] )) {
+							$this->plugin->wrongauth [$player->getAddress ()] ++;
+							$player->kick ( $this->plugin->get ( "banned-brute-force" ) );
+							if ($this->plugin->wrongauth [$player->getAddress ()] >= 7)
+								$this->plugin->getServer ()->blockAddress ( $player->getAddress (), 400 );
+						} else {
+							$this->plugin->wrongauth [$player->getAddress ()] = 1;
+						}
+					}
+					break;
 				case "sendAuthCode" :
 					/* sendAuthCode */
 					/* slave->master = [passcode, sendAuthCode, username, email] */
@@ -1152,6 +1316,9 @@ class API_CustomPacketListner implements Listener {
 						if ($player instanceof Player) {
 							if (isset ( $this->plugin->wrongauth [strtolower ( $player->getAddress () )] )) {
 								$this->plugin->wrongauth [$player->getAddress ()] ++;
+								$player->kick ( $this->plugin->get ( "banned-brute-force" ) );
+								if ($this->plugin->wrongauth [$player->getAddress ()] >= 7)
+									$this->plugin->getServer ()->blockAddress ( $player->getAddress (), 400 );
 							} else {
 								$this->plugin->wrongauth [$player->getAddress ()] = 1;
 							}

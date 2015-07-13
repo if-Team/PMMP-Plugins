@@ -71,7 +71,7 @@ class DataBase {
 		}
 		return false;
 	}
-	public function addUser($email, $password, $ip, $set_otp = false, $name) {
+	public function addUser($email, $password, $ip, $name) {
 		if ($this->checkUserData ( $email ))
 			return false;
 		
@@ -93,7 +93,6 @@ class DataBase {
 		$this->yml ["user"] [$email] = [ 
 				"password" => $password,
 				"ip" => $ip,
-				"isotp" => $set_otp,
 				"name" => $name 
 		];
 		$this->yml ["ip"] [$ip] = $email;
@@ -126,8 +125,6 @@ class DataBase {
 			$this->updateName ( $email, $data ["name"] );
 			$this->yml [$email] ["name"] = $data ["name"];
 		}
-		if (isset ( $data ["isotp"] ))
-			$this->yml [$email] ["isotp"] = $data ["isotp"];
 		return true;
 	}
 	public function getEmail(Player $player) {
