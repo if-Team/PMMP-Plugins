@@ -70,7 +70,7 @@ class LoadBalancer extends PluginBase implements Listener {
 			if ($this->db ["mode"] == "master")
 				$this->dummyInterface = new DummyInterface ( $this->getServer () );
 			$this->callback = $this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new LoadBalancerTask ( $this ), 20 );
-			new EDGEControl($this);
+			new EDGEControl ( $this );
 		}
 	}
 	/**
@@ -169,6 +169,14 @@ class LoadBalancer extends PluginBase implements Listener {
 							$priority ["list"] = count ( $this->updateList [$ipport] ["list"] );
 							continue;
 						}
+						// Minimum connection check
+						if ($priority ["list"] < 18) {
+							$priority ["ip"] = explode ( ":", $ipport )[0];
+							$priority ["port"] = $this->updateList [$ipport] ["port"];
+							$priority ["list"] = count ( $this->updateList [$ipport] ["list"] );
+							break;
+						}
+						// Stable distribution
 						if ($priority ["list"] > count ( $data ["list"] )) {
 							if (count ( $data ["list"] ) >= $data ["max"]) {
 								continue;
