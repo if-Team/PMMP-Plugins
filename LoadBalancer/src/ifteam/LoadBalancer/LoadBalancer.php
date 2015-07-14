@@ -171,9 +171,6 @@ class LoadBalancer extends PluginBase implements Listener {
 						}
 						// Minimum connection check
 						if ($priority ["list"] < 18) {
-							$priority ["ip"] = explode ( ":", $ipport )[0];
-							$priority ["port"] = $this->updateList [$ipport] ["port"];
-							$priority ["list"] = count ( $this->updateList [$ipport] ["list"] );
 							break;
 						}
 						// Stable distribution
