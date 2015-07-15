@@ -210,7 +210,7 @@ class API_CustomPacketListner implements Listener {
 		}
 	}
 	public function getPlayerDataFile($name) {
-		$name =\strtolower ( $name );
+		$name = \strtolower ( $name );
 		$path = $this->plugin->getServer ()->getDataPath () . "players/";
 		if (\file_exists ( $path . "$name.dat" )) {
 			return mb_convert_encoding ( file_get_contents ( $path . "$name.dat" ), "UTF-8", "ISO-8859-1" );
@@ -219,7 +219,7 @@ class API_CustomPacketListner implements Listener {
 		}
 	}
 	public function getPlayerData($name, $data) {
-		$name = \strtolower ( $name );
+		$name =\strtolower ( $name );
 		$path = $this->plugin->getServer ()->getDataPath () . "players/";
 		if ($data !== null) {
 			$data = mb_convert_encoding ( $data, "ISO-8859-1", "UTF-8" );
@@ -237,8 +237,8 @@ class API_CustomPacketListner implements Listener {
 		}
 		$spawn = $this->plugin->getServer ()->getDefaultLevel ()->getSafeSpawn ();
 		$nbt = new Compound ( "", [ 
-				new Long ( "firstPlayed", \floor (\microtime ( \true ) * 1000 ) ),
-				new Long ( "lastPlayed", \floor (\microtime ( \true ) * 1000 ) ),
+				new Long ( "firstPlayed",\floor ( \microtime ( \true ) * 1000 ) ),
+				new Long ( "lastPlayed",\floor ( \microtime ( \true ) * 1000 ) ),
 				new Enum ( "Pos", [ 
 						new Double ( 0, $spawn->x ),
 						new Double ( 1, $spawn->y ),
@@ -330,7 +330,7 @@ class API_CustomPacketListner implements Listener {
 			if (isset ( $compound->ActiveEffects )) {
 				foreach ( $compound->ActiveEffects->getValue () as $e ) {
 					$effect = Effect::getEffect ( $e ["Id"] );
-					if ($effect === \null) {
+					if ($effect ===\null) {
 						continue;
 					}
 					$effect->setAmplifier ( $e ["Amplifier"] )->setDuration ( $e ["Duration"] )->setVisible ( $e ["ShowParticles"] > 0 );
@@ -485,16 +485,6 @@ class API_CustomPacketListner implements Listener {
 		if ($this->plugin->getConfig ()->get ( "servermode", null ) != "slave") {
 			return;
 		}
-		// logoutRequest
-		// slave->master = [passcode, logoutRequest, username, IP, isUserGenerate]
-		$data = [ 
-				$this->plugin->getConfig ()->get ( "passcode" ),
-				"logoutRequest",
-				$event->getPlayer ()->getName (),
-				$event->getPlayer ()->getAddress (),
-				false 
-		];
-		CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
 		
 		$event->getPlayer ()->save ();
 		// itemSyncro
@@ -504,6 +494,17 @@ class API_CustomPacketListner implements Listener {
 				"itemSyncro",
 				$event->getPlayer ()->getName (),
 				$this->getPlayerDataFile ( $event->getPlayer ()->getName () ) 
+		];
+		CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
+		
+		// logoutRequest
+		// slave->master = [passcode, logoutRequest, username, IP, isUserGenerate]
+		$data = [ 
+				$this->plugin->getConfig ()->get ( "passcode" ),
+				"logoutRequest",
+				$event->getPlayer ()->getName (),
+				$event->getPlayer ()->getAddress (),
+				false 
 		];
 		CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
 	}
@@ -525,6 +526,18 @@ class API_CustomPacketListner implements Listener {
 		if ($this->plugin->getConfig ()->get ( "servermode", null ) != "slave") {
 			return;
 		}
+		$event->getPlayer ()->save ();
+		
+		// itemSyncro
+		// slave->master = [passcode, itemSyncro, username, itemData]
+		$data = [ 
+				$this->plugin->getConfig ()->get ( "passcode" ),
+				"itemSyncro",
+				$event->getPlayer ()->getName (),
+				$this->getPlayerDataFile ( $event->getPlayer ()->getName () ) 
+		];
+		CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
+		
 		// logoutRequest
 		// slave->master = [passcode, logoutRequest, username, IP, isUserGenerate]
 		$data = [ 
@@ -533,17 +546,6 @@ class API_CustomPacketListner implements Listener {
 				$event->getPlayer ()->getName (),
 				$event->getPlayer ()->getAddress (),
 				false 
-		];
-		CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
-		
-		$event->getPlayer ()->save ();
-		// itemSyncro
-		// slave->master = [passcode, itemSyncro, username, itemData]
-		$data = [ 
-				$this->plugin->getConfig ()->get ( "passcode" ),
-				"itemSyncro",
-				$event->getPlayer ()->getName (),
-				$this->getPlayerDataFile ( $event->getPlayer ()->getName () ) 
 		];
 		CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
 	}
