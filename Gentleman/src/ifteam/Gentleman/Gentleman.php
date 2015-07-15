@@ -107,9 +107,7 @@ class Gentleman extends PluginBase implements Listener {
 	public function onJoin(PlayerJoinEvent $event) {
 		if ($event->getPlayer ()->isOp ())
 			return;
-		if (! isset ( $this->playerTemp [$event->getPlayer ()->getName ()] )) {
-			$this->playerTemp [$event->getPlayer ()->getName ()] = $event->getPlayer ();
-		}
+		$this->playerTemp [$event->getPlayer ()->getName ()] = $event->getPlayer ();
 		if (! isset ( $this->nameCheck [$event->getPlayer ()->getName ()] )) {
 			$this->nameCheck [$event->getPlayer ()->getName ()] = true;
 			$this->getServer ()->getScheduler ()->scheduleAsyncTask ( new GentlemanAsyncTask ( $event->getPlayer ()->getName (), $event->getJoinMessage (), $event->getPlayer ()->getName (), $this->badQueue, $this->dictionary, "name", true ) );
@@ -123,10 +121,10 @@ class Gentleman extends PluginBase implements Listener {
 	}
 	public function asyncProcess($name, $format, $message, $find, $eventType) {
 		$player = $this->playerTemp [$name];
-		if (! $player instanceof Player){
+		if (! $player instanceof Player) {
 			return;
 		}
-		if ($player->closed){
+		if ($player->closed) {
 			return;
 		}
 		switch ($eventType) {

@@ -25,7 +25,11 @@ class GentlemanAsyncTask extends AsyncTask {
 			$chat = explode ( ">", $this->message );
 			array_shift ( $chat );
 			$chat = implode ( $chat );
-			$this->find = $this->checkSwearWord ( $chat, $this->dictionaryCheck );
+			if ($chat == null) {
+				$this->find = $this->checkSwearWord ( $this->message, $this->dictionaryCheck );
+			} else {
+				$this->find = $this->checkSwearWord ( $chat, $this->dictionaryCheck );
+			}
 		} else {
 			$this->find = $this->checkSwearWord ( $this->message, $this->dictionaryCheck );
 		}
