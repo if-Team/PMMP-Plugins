@@ -43,6 +43,7 @@ use pocketmine\item\Item as ItemItem;
 use pocketmine\entity\Effect;
 use pocketmine\inventory\InventoryHolder;
 use pocketmine\event\player\PlayerCommandPreprocessEvent;
+use pocketmine\utils\MainLogger;
 
 class API_CustomPacketListner implements Listener {
 	/**
@@ -486,16 +487,30 @@ class API_CustomPacketListner implements Listener {
 			return;
 		}
 		
-		$event->getPlayer ()->save ();
-		// itemSyncro
-		// slave->master = [passcode, itemSyncro, username, itemData]
-		$data = [ 
-				$this->plugin->getConfig ()->get ( "passcode" ),
-				"itemSyncro",
-				$event->getPlayer ()->getName (),
-				$this->getPlayerDataFile ( $event->getPlayer ()->getName () ) 
-		];
-		CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
+		$nbt = new NBT ( NBT::BIG_ENDIAN );
+		try {
+			$nbt->setData ( $event->getPlayer ()->namedtag );
+			$nbtFile = mb_convert_encoding ( $nbt->writeCompressed (), "UTF-8", "ISO-8859-1" );
+			
+			// itemSyncro
+			// slave->master = [passcode, itemSyncro, username, itemData]
+			$data = [ 
+					$this->plugin->getConfig ()->get ( "passcode" ),
+					"itemSyncro",
+					$event->getPlayer ()->getName (),
+					$nbtFile 
+			];
+			
+			CPAPI::sendPacket ( new DataPacket ( $this->plugin->getConfig ()->get ( "masterip" ), $this->plugin->getConfig ()->get ( "masterport" ), json_encode ( $data ) ) );
+		} catch ( \Exception $e ) {
+			$this->plugin->getLogger ()->critical ( $this->plugin->getServer ()->getLanguage ()->translateString ( "pocketmine.data.saveError", [ 
+					$event->getPlayer ()->getName (),
+					$e->getMessage () 
+			] ) );
+			if (\pocketmine\DEBUG > 1 and $this->plugin->getServer ()->getLogger () instanceof MainLogger) {
+				$this->plugin->getServer ()->getLogger ()->logException ( $e );
+			}
+		}
 		
 		// logoutRequest
 		// slave->master = [passcode, logoutRequest, username, IP, isUserGenerate]
