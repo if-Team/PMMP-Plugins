@@ -29,11 +29,11 @@ class SimpleArea_Database {
 	public function save() {
 		$config = new Config ( $this->path . "protects.yml", Config::YAML );
 		$config->setAll ( $this->yml );
-		$config->save ();
+		$config->save (true);
 		
 		$config = new Config ( $this->path . "options.yml", Config::YAML );
 		$config->setAll ( $this->option );
-		$config->save ();
+		$config->save (true);
 	}
 	public function getAll() {
 		return $this->yml;
