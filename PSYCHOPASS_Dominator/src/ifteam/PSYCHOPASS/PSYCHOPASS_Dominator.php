@@ -59,7 +59,8 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		
-		if (self::$instance == null) self::$instance = $this;
+		if (self::$instance == null)
+			self::$instance = $this;
 		
 		if ($this->getServer ()->getPluginManager ()->getPlugin ( "PSYCHOPASS_API" ) != null) {
 			$this->api = PSYCHOPASS_API::getInstance ();
@@ -127,11 +128,13 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 		$player = $event->getPlayer ();
 		
 		$onlinekey = array_search ( $player->getName (), $this->onlinelist );
-		if ($onlinekey !== false) array_splice ( $this->onlinelist, $onlinekey, 1 );
+		if ($onlinekey !== false)
+			array_splice ( $this->onlinelist, $onlinekey, 1 );
 		
 		$offlinekey = array_search ( $player->getName (), $this->offlinelist );
 		if ($offlinekey === false) {
-			if (count ( $this->offlinelist ) >= 5) array_shift ( $this->offlinelist );
+			if (count ( $this->offlinelist ) >= 5)
+				array_shift ( $this->offlinelist );
 			$this->offlinelist [] = $player->getName ();
 		}
 		
@@ -157,12 +160,15 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 		$player = $event->getPlayer ();
 		
 		$onlinekey = array_search ( $player->getName (), $this->onlinelist );
-		if ($onlinekey !== false) array_splice ( $this->onlinelist, $onlinekey, 1 );
+		if ($onlinekey !== false)
+			array_splice ( $this->onlinelist, $onlinekey, 1 );
 		
 		$offlinekey = array_search ( $player->getName (), $this->offlinelist );
 		if ($offlinekey === false) {
-			if (count ( $this->offlinelist ) >= 5) array_shift ( $this->offlinelist );
-			if (count ( $this->offline_iplist ) >= 5) array_shift ( $this->offlinelist );
+			if (count ( $this->offlinelist ) >= 5)
+				array_shift ( $this->offlinelist );
+			if (count ( $this->offline_iplist ) >= 5)
+				array_shift ( $this->offlinelist );
 			$this->offlinelist [] = $player->getName ();
 			$this->offline_iplist [] = $player->getAddress ();
 		}
@@ -219,8 +225,10 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 						} else {
 							// 닉네임을 통한 밴일경우
 							$name_search = $this->getServer ()->getOfflinePlayer ( $args [0] );
-							if ($name_search instanceof IPlayer) $target = $name_search;
-							else $sender->sendMessage ( $this->getMessage ( "not-found-user" ) );
+							if ($name_search instanceof IPlayer)
+								$target = $name_search;
+							else
+								$sender->sendMessage ( $this->getMessage ( "not-found-user" ) );
 						}
 					}
 					if (isset ( $args [1] )) {
@@ -363,7 +371,8 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 										$target [] = $checkip;
 									}
 								}
-								if (count ( $target ) == 0) $target [] = $e [0] . "." . $e [1];
+								if (count ( $target ) == 0)
+									$target [] = $e [0] . "." . $e [1];
 							} else {
 								// 유저명을 통한 밴일경우
 								$playerSearch = $this->getServer ()->getPlayer ( $args [0] );
@@ -412,7 +421,13 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 					if (isset ( $args [1] )) {
 						$this->DoBanList ( $sender, $args [0], $args [1] );
 					} else {
-						$temp_array = [ "b","k","i","s","p" ];
+						$temp_array = [ 
+								"b",
+								"k",
+								"i",
+								"s",
+								"p" 
+						];
 						foreach ( $temp_array as $temp_key ) {
 							$e = explode ( $temp_key, strtolower ( $args [0] ) );
 							if (isset ( $e [1] ) and is_numeric ( $e [1] )) {
@@ -478,7 +493,8 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$index_key = array_keys ( $target );
 			$full_index = floor ( $index_count / $once_print );
 			
-			if ($index_count > $full_index * $once_print) $full_index ++;
+			if ($index_count > $full_index * $once_print)
+				$full_index ++;
 			
 			if ($index <= $full_index) {
 				$executor->sendMessage ( TextFormat::RED . $targetname . " " . $this->getMessage ( "search_info" ) . " (" . $index . "/" . $full_index . ") " . $this->getMessage ( "amount" ) . ": " . $index_count );
@@ -486,11 +502,13 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 				
 				for($for_i = $once_print; $for_i >= 1; $for_i --) {
 					$now_index = $index * $once_print - $for_i;
-					if (! isset ( $index_key [$now_index] )) break;
+					if (! isset ( $index_key [$now_index] ))
+						break;
 					$now_key = $index_key [$now_index];
 					$message .= TextFormat::RED . "[" . $now_key . "] " . $this->getMessage ( "execute-time" ) . ": " . $target [$now_key] ["time"] . "\n";
 					$message .= $this->getMessage ( "executor" ) . ": " . $target [$now_key] ["executor"] . " " . $this->getMessage ( "execute-cause" ) . ": " . $target [$now_key] ["cause"] . "\n";
-					if (isset ( $target [$now_key] ["before-cause"] )) $executor->sendMessage ( TextFormat::RED . "(" . $this->getMessage ( "execute-before-cause" ) . ": " . $target [$now_key] ["before-cause"] . ")" );
+					if (isset ( $target [$now_key] ["before-cause"] ))
+						$executor->sendMessage ( TextFormat::RED . "(" . $this->getMessage ( "execute-before-cause" ) . ": " . $target [$now_key] ["before-cause"] . ")" );
 				}
 				$executor->sendMessage ( $message );
 				return;
@@ -532,7 +550,8 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$executor->sendMessage ( $this->getMessage ( "executed-ban" ) );
 		}
 		$this->getServer ()->broadcastMessage ( TextFormat::DARK_AQUA . $name . " " . $this->getMessage ( "broadcast-kick-info" ) . ":" . $cause );
-		if ($target instanceof Player and ! $target->closed) $this->initialize_schedule_delay ( new KickExecuteTask ( $this, $target ), 100 );
+		if ($target instanceof Player and ! $target->closed)
+			$this->initialize_schedule_delay ( new KickExecuteTask ( $this, $target ), 100 );
 	}
 	public function DoKick(CommandSender $executor, $target, $cause) {
 		if ($target instanceof IPlayer) {
@@ -573,7 +592,8 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$executor->sendMessage ( "( " . $this->getMessage ( "executor" ) . ":" . $info_executor . $this->getMessage ( "executed-name" ) . ": " . $info_name );
 			return;
 		}
-		if ($target instanceof IPlayer) $this->ipban_data [$address] ["name"] = $target->getName ();
+		if ($target instanceof IPlayer)
+			$this->ipban_data [$address] ["name"] = $target->getName ();
 		$this->ipban_data [$address] ["time"] = date ( $this->getMessage ( "time" ) );
 		$this->ipban_data [$address] ["cause"] = $cause;
 		$this->ipban_data [$address] ["executor"] = $executor->getName ();
@@ -607,7 +627,8 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$executor->sendMessage ( "( " . $this->getMessage ( "executor" ) . $info_executor . " " . $this->getMessage ( "executed-name" ) . ": " . $info_name );
 			return;
 		}
-		if ($target instanceof IPlayer) $this->subban_data [$subnet] ["name"] = $target->getName ();
+		if ($target instanceof IPlayer)
+			$this->subban_data [$subnet] ["name"] = $target->getName ();
 		$this->subban_data [$subnet] ["time"] = date ( $this->getMessage ( "time" ) );
 		$this->subban_data [$subnet] ["cause"] = $cause;
 		$this->subban_data [$subnet] ["executor"] = $executor->getName ();
@@ -667,7 +688,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 		}
 		$keylist = array_keys ( $this->subban_data );
 		foreach ( $keylist as $index => $target_key ) {
-			if(isset($this->subban_data [$target_key] ["name"] )){
+			if (isset ( $this->subban_data [$target_key] ["name"] )) {
 				if ($this->subban_data [$target_key] ["name"] == $name) {
 					
 					$this->pardon_data [$name] ["time"] = date ( $this->getMessage ( "time" ) );
@@ -712,10 +733,12 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 			$executor->sendMessage ( TextFormat::DARK_AQUA . $name . " " . $this->getMessage ( "deleted-subban" ) );
 			$this->getServer ()->broadcastMessage ( TextFormat::DARK_AQUA . $name . " " . $this->getMessage ( "broadcast-pardon-subban" ) . ":" . $cause );
 		}
-		if ($success_find == 0) $executor->sendMessage ( $this->getMessage ( "can-not-found-ban" ) );
+		if ($success_find == 0)
+			$executor->sendMessage ( $this->getMessage ( "can-not-found-ban" ) );
 	}
 	public function KickExecute(Player $target) {
-		if (! $target->closed) $target->kick ();
+		if (! $target->closed)
+			$target->kick ();
 	}
 	public function loadExecuteData() {
 		$this->log_ban = $this->initializeYML ( "log_ban.yml", [ ] );
@@ -728,6 +751,7 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 		$this->ipban_data = $this->log_ipban->getAll ();
 		$this->subban_data = $this->log_subban->getAll ();
 		$this->pardon_data = $this->log_pardon->getAll ();
+		$this->defaultTextData ();
 	}
 	public function saveExecuteData() {
 		$this->log_ban->setAll ( $this->ban_data );
@@ -735,12 +759,11 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 		$this->log_subban->setAll ( $this->subban_data );
 		$this->log_kick->setAll ( $this->kick_data );
 		$this->log_pardon->setAll ( $this->pardon_data );
-		$this->log_ban->save ();
-		$this->log_ipban->save ();
-		$this->log_subban->save ();
-		$this->log_kick->save ();
-		$this->log_pardon->save ();
-		$this->defaultTextData ();
+		$this->log_ban->save ( true );
+		$this->log_ipban->save ( true );
+		$this->log_subban->save ( true );
+		$this->log_kick->save ( true );
+		$this->log_pardon->save ( true );
 	}
 	public function defaultTextData() {
 		$this->saveResource ( "messages.yml", false );
@@ -748,8 +771,10 @@ class PSYCHOPASS_Dominator extends PluginBase implements Listener {
 		$this->language = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
 	}
 	public function getMessage($var) {
-		if (isset ( $this->language [$this->language ["setlanguage"] . "-" . $var] )) return $this->language [$this->language ["setlanguage"] . "-" . $var];
-		else return $var . " NOT FOUND LANGUAGE DATA";
+		if (isset ( $this->language [$this->language ["setlanguage"] . "-" . $var] ))
+			return $this->language [$this->language ["setlanguage"] . "-" . $var];
+		else
+			return $var . " NOT FOUND LANGUAGE DATA";
 	}
 	public function messagesUpdate($targetYmlName) {
 		$targetYml = (new Config ( $this->getDataFolder () . $targetYmlName, Config::YAML ))->getAll ();
