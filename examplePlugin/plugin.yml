@@ -1,5 +1,0 @@
-name: examplePlugin
-main: examplePlugin
-version: 0.1-Alpha
-author: example
-api: [1.4.1]

@@ -1,6 +1,0 @@
-name : autoReseter
-main : ifteam\autoReseter\autoReseter
-description: "Automatic Server Restarter"
-version : 3.1-non-alpha
-author : ifteam
-api : [1.12.0]

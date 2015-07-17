@@ -1,5 +1,0 @@
-name: Purge
-main: ifteam\Purge\Purge
-version: 0.3-alpha
-author: ifteam
-api: [1.12.0]

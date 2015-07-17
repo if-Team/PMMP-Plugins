@@ -1,9 +1,0 @@
-name: EconomyGamble
-main: ifteam\EconomyGamble\EconomyGamble
-version: 3.3-alpha
-author: hm
-api: [1.12.0]
-
-permissions:
- economygamble.commands.gamble:
-  default: OP

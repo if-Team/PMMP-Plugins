@@ -1,5 +1,0 @@
-name: QuestNPC
-main: ifteam\questnpc
-version: 0.1-Alpha
-author: ifteam
-api: [1.4.1]

@@ -1,5 +1,0 @@
-name: TAGSuffix
-main: ifteam\TAGSuffix\TAGSuffix
-author: hm
-version: 0.1-Alpha
-api: [1.12.0]

@@ -1,5 +1,0 @@
-name: tutorialMode
-main: ifteam\tutorialMode\tutorialMode
-version: 0.2-Alpha
-author: ifteam
-api: [1.12.0]

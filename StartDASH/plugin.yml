@@ -1,6 +1,0 @@
-name: StartDASH
-main: ifteam\StartDASH\StartDASH
-version: 1.0-alpha
-author: ifteam
-api: [1.4.1]
-load: STARTUP

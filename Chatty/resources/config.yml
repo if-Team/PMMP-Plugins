@@ -1,4 +1,0 @@
-echo-enabled: false
-echo-my-name: "MAIN"
-echo-passcode: null
-echo-recipients: ["127.0.0.1:19132"]
