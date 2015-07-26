@@ -1,0 +1,5 @@
+name: Server Runtime
+author: CodeInside
+main: ci\serverRuntime\ServerRuntime
+api: [1.4.0, 1.4.1]
+version: "v2"
