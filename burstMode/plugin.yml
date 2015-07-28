@@ -1,5 +1,0 @@
-name: burstMode
-main: ifteam\burstMode\burstMode
-version: 1.2-alpha
-author: ifteam
-api: [1.12.0]

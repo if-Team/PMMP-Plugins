@@ -1,9 +1,0 @@
-name: poolTax
-main: ifteam\poolTax\poolTax
-version: 0.1-Alpha
-author: ifteam
-api: [1.4.1]
-
-permissions:
- taxControl:
-  default: op

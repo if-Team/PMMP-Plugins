@@ -1,5 +1,0 @@
-name: Trampoline
-main: ifteam\Trampoline\Trampoline
-version: 1.7
-author: ifteam
-api: [1.12.0]

@@ -1,9 +1,0 @@
-name: AnnouncePro
-main: ifteam\AnnouncePro\AnnouncePro
-version: 1.4-alpha
-author: ifteam
-api: [1.12.0]
-
-permissions:
- announcepro:
-  default: op

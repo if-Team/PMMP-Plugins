@@ -1,5 +1,0 @@
-name: ZombieInfection
-main: ifteam\ZombieInfection\ZombieInfection
-version: 0.1-Alpha
-author: ifteam
-api: [1.12.0]

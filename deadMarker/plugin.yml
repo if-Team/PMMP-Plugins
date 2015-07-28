@@ -1,5 +1,0 @@
-name: deadMarker
-main: ifteam\deadMarker\deadMarker
-version: 0.1-Alpha
-author: ifteam
-api: [1.12.0]
