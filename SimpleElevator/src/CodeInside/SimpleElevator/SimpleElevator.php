@@ -82,20 +82,24 @@ class SimpleElevator extends PluginBase implements Listener {
 	"crashElevator" => "고장! 엘레베이터를 다시 설치해 주세요"
 	];
 	
+	
+	
 	public function onEnable() {
 		$this->getServer()->getScheduler()->scheduleRepeatingTask(new SimpleElevatorTask($this), 1);
 		$this->getServer()->getPluginManager()->registerEvents($this, $this);
-		$this->lang = self::ko_KR;
+		//lang
+		$this->lang = self::en_US;
 		//debug
 		//$this->getServer()->getLogger()->setLogDebug(true);
 	}
+	
+	
 	
 	public function ElevatorTickTask() {
 		$keys = array_keys($this->elevateQueue);
 		foreach($keys as $e) {
 			switch($this->elevateQueue[$e][self::TICK_MODE]) {
 				case self::MODE_MOVE:
-				
 					if(!($this->elevateQueue[$e][self::TICK_PLAYER]->isOnline())) {
 						$this->log("elevator cancell: " .$this->elevateQueue[$e][self::TICK_PLAYER]->getName() . " is Offline");
 						$keys = array_keys($this->elevateQueue[$e][self::TICK_BLOCKS]);
@@ -107,7 +111,7 @@ class SimpleElevator extends PluginBase implements Listener {
 						continue;
 					}
 					
-					//goUp
+					//UP
 					if($this->elevateQueue[$e][self::TICK_START_POS]->getY() < $this->elevateQueue[$e][self::TICK_END_POS]->getY()) {
 						$this->log("goUp");
 						if($this->elevateQueue[$e][self::TICK_PLAYER]->getPosition()->getY() - 1 < $this->elevateQueue[$e][self::TICK_END_POS]->getY()) {
@@ -135,6 +139,7 @@ class SimpleElevator extends PluginBase implements Listener {
 							//slow
 							if($this->elevateQueue[$e][self::TICK_TYPE] === self::TYPE_IRON || $this->elevateQueue[$e][self::TICK_TYPE] === self::TYPE_EMERALD) {
 								$this->elevateQueue[$e][self::TICK_PLAYER]->setMotion(new Vector3($motionX, 0.2, $motionZ));
+								
 							//fast
 							}else if($this->elevateQueue[$e][self::TICK_TYPE] === self::TYPE_GOLD || $this->elevateQueue[$e][self::TICK_TYPE] === self::TYPE_DIAMOND) {
 								$this->elevateQueue[$e][self::TICK_PLAYER]->setMotion(new Vector3($motionX, 0.6, $motionZ));
@@ -143,6 +148,8 @@ class SimpleElevator extends PluginBase implements Listener {
 						//arrive
 						}else {
 							$this->elevateQueue[$e][self::TICK_PLAYER]->setMotion(new Vector3(0, 0, 0));
+							
+							//Block recover
 							$keys = array_keys($this->elevateQueue[$e][self::TICK_BLOCKS]);
 							foreach($keys as $k) {
 								$this->log($k . "index Block place " . $this->elevateQueue[$e][self::TICK_BLOCKS][$k]["x"] . " " . $this->elevateQueue[$e][self::TICK_BLOCKS][$k]["y"] . " " . $this->elevateQueue[$e][self::TICK_BLOCKS][$k]["z"] . " " . $this->elevateQueue[$e][self::TICK_BLOCKS][$k]["id"]);
@@ -153,7 +160,7 @@ class SimpleElevator extends PluginBase implements Listener {
 							$this->elevateQueue[$e][self::TICK_MODE] = self::MODE_ONGROUND;
 						}
 						
-					//goDown
+					//Down
 					}else {
 						$this->log("goDown");
 						if($this->elevateQueue[$e][self::TICK_PLAYER]->getPosition()->getY() - 2 > $this->elevateQueue[$e][self::TICK_END_POS]->getY()) {
@@ -182,6 +189,7 @@ class SimpleElevator extends PluginBase implements Listener {
 							if($this->elevateQueue[$e][self::TICK_TYPE] === self::TYPE_IRON || $this->elevateQueue[$e][self::TICK_TYPE] === self::TYPE_EMERALD) {
 								$this->log("slow");
 								$this->elevateQueue[$e][self::TICK_PLAYER]->setMotion(new Vector3($motionX, -0.2, $motionZ));
+								
 							//fast
 							}else if($this->elevateQueue[$e][self::TICK_TYPE] === self::TYPE_GOLD || $this->elevateQueue[$e][self::TICK_TYPE] === self::TYPE_DIAMOND) {
 								$this->log("fast");
@@ -193,6 +201,8 @@ class SimpleElevator extends PluginBase implements Listener {
 						//arrive
 						}else {
 							$this->elevateQueue[$e][self::TICK_PLAYER]->setMotion(new Vector3(0, 0, 0));
+							
+							//Block recover
 							$keys = array_keys($this->elevateQueue[$e][self::TICK_BLOCKS]);
 							foreach($keys as $k) {
 								$this->log($k . "index Block place " . $this->elevateQueue[$e][self::TICK_BLOCKS][$k]["x"] . " " . $this->elevateQueue[$e][self::TICK_BLOCKS][$k]["y"] . " " . $this->elevateQueue[$e][self::TICK_BLOCKS][$k]["z"] . " " . $this->elevateQueue[$e][self::TICK_BLOCKS][$k]["id"]);
@@ -216,17 +226,20 @@ class SimpleElevator extends PluginBase implements Listener {
 		}
 	}
 	
+	
+	
 	protected function buttonUp($type, $player, $pos, $sign, $event) {
-		
 		if(!($sign instanceof Sign)) {
 			$this->getServer()->getLogger()->alert("'buttonUp' get wrong '$sign' parameter at X:" . $pos->getX() . " Y:" . $pos->getY() . " Z:" . $pos->getZ());
 			return;
 		}
 		
 		$texts = $sign->getText();
-		$base = $this->getBaseBlockId($player->getLevel(), $pos);
+		$baseBlock = $this->getBaseFloor($player->getLevel(), $pos);
+		$base = $baseBlock->getId();
 		$sourcePos = new Vector3($pos->getX(), $pos->getY() - 2, $pos->getZ());
 		$tempFloor = $this->getFloorIndex($player->getLevel(), $sourcePos);
+		
 		if($tempFloor === 0) {
 			$floor = "Lobby";
 		}else if($tempFloor < 0) {
@@ -234,13 +247,25 @@ class SimpleElevator extends PluginBase implements Listener {
 		}else {
 			$floor = $tempFloor;
 		}
+		
 		$color = $this->getColor($base);
 		$hasNext = $this->hasNextFloor($player->getLevel(), new Vector3($pos->getX(), $pos->getY() - 2, $pos->getZ()));
 		$nextColor = $hasNext ? TextFormat::BOLD . TextFormat::BLUE : TextFormat::BOLD . TextFormat::DARK_RED;
 		
-		//createSubButton
+		//Create SubButton
 		if($texts[0] === "" && $texts[1] === "" && $texts[2] === "" && $texts[3] === "") {
 			if($type === self::TYPE_GLASS) {
+				
+				//Check Elevator
+				$baseSign = $player->getLevel()->getTile(new Vector3($baseBlock->getX(), $baseBlock->getY() + 2, $baseBlock ->getZ()));
+				if(!($baseSign instanceof Sign)) {
+					return;
+				}
+				$baseTexts = $baseSign->getText();
+				if(mb_substr($baseTexts[0], 2) != "[" . $this->lang["ELEVATOR"] . "]") {
+					return;
+				}
+				
 				if($base === self::TYPE_IRON || $base == self::TYPE_GOLD) {
 					$sign->setText($color . "[" . $this->lang["ELEVATOR"] . "]", $nextColor . $this->lang["up"], $this->lang["currentFloor"] . " : " . $floor, "");
 				}else if($base === self::TYPE_DIAMOND || $base == self::TYPE_EMERALD) {
@@ -256,9 +281,10 @@ class SimpleElevator extends PluginBase implements Listener {
 					}
 				}
 				
-				//autoFillBottomSign
-				if($player->getLevel()->getBlockIdAt($pos->getX(), $pos->getY() + 1, $pos->getZ()) === Block::WALL_SIGN) {
-					$pos2 = new Vector3($pos->getX(), $pos->getY() + 1, $pos->getZ());
+				//Auto fill under Sign
+				//This method is BROKEN (NEED FIX)
+				if($player->getLevel()->getBlockIdAt($pos->getX(), $pos->getY() - 1, $pos->getZ()) === Block::WALL_SIGN) {
+					$pos2 = new Vector3($pos->getX(), $pos->getY() - 1, $pos->getZ());
 					$tile = $player->getLevel()->getTile($pos2);
 					if(!($tile instanceof Sign)) {
 						return;
@@ -272,7 +298,7 @@ class SimpleElevator extends PluginBase implements Listener {
 			}
 		}
 		
-		//createNewElevator
+		//Create New Elevator
 		switch($type) {
 			case Block::IRON_BLOCK:
 			case Block::GOLD_BLOCK:
@@ -303,9 +329,9 @@ class SimpleElevator extends PluginBase implements Listener {
 				}
 			}
 			
-			//autoFillBottomSign
-			if($player->getLevel()->getBlockIdAt($pos->getX(), $pos->getY() + 1, $pos->getZ()) === Block::WALL_SIGN) {
-				$pos2 = new Vector3($pos->getX(), $pos->getY() + 1, $pos->getZ());
+			//Auto fill buttom Sign
+			if($player->getLevel()->getBlockIdAt($pos->getX(), $pos->getY() - 1, $pos->getZ()) === Block::WALL_SIGN) {
+				$pos2 = new Vector3($pos->getX(), $pos->getY() - 1, $pos->getZ());
 				$tile = $player->getLevel()->getTile($pos2);
 				if(!($tile instanceof Sign)) {
 					return;
@@ -318,14 +344,16 @@ class SimpleElevator extends PluginBase implements Listener {
 			return;
 		}
 		
-		//up
+		//Up Button
 		if(mb_substr($texts[0], 2) == "[" . $this->lang["ELEVATOR"] . "]") {
-			$this->log("active goUp");
+			$this->log("active Up Button");
 			if($event instanceof Cancellable) {
 				if(!($event->isCancelled())) {
 					$event->setCancelled();
 				}
 			}
+			
+			//Simple Mode
 			if($base === self::TYPE_IRON || $base === self::TYPE_GOLD) {
 				$pos2 = $this->getNextFloor($player->getLevel(), $sourcePos);
 				if($pos2 === false) {
@@ -334,6 +362,8 @@ class SimpleElevator extends PluginBase implements Listener {
 				}
 				$this->log("elevate " . $pos->getY() . "->" . $pos2->getY());
 				$this->moveFloor($player, $base, $sourcePos, $pos2);
+				
+			//Advance Mode
 			}else if($base === self::TYPE_DIAMOND || $base === self::TYPE_EMERALD) {
 				$floorSign = $sign;
 				$floorSubSign = $player->getLevel()->getTile(new Vector3($pos->getX(), $pos->getY() - 1, $pos->getZ()));
@@ -390,8 +420,9 @@ class SimpleElevator extends PluginBase implements Listener {
 		}
 	}
 	
+	
+	
 	protected function buttonDown($type, $player, $pos, $sign, $event) {
-		
 		if(!($sign instanceof Sign)) {
 			$this->getServer()->getLogger()->alert("'buttonDown' get wrong '$sign' parameter at X:" . $pos->getX() . " Y:" . $pos->getY() . " Z:" . $pos->getZ());
 			return;
@@ -412,7 +443,7 @@ class SimpleElevator extends PluginBase implements Listener {
 		$hasPrev = $this->hasPrevFloor($player->getLevel(), new Vector3($pos->getX(), $pos->getY() - 1, $pos->getZ()));
 		$prevColor = $hasPrev ? TextFormat::BOLD . TextFormat::BLUE : TextFormat::BOLD . TextFormat::DARK_RED;
 		
-		//createSubButton
+		//Create Sub Button
 		if($texts[0] === "" && $texts[1] === "" && $texts[2] === "" && $texts[3] === "") {
 			$pow2 = new Vector3($pos->getX(), $pos->getY()+1, $pos->getZ());
 			$sign2 = $player->getLevel()->getTile($pow2);
@@ -433,7 +464,7 @@ class SimpleElevator extends PluginBase implements Listener {
 			}
 		}
 		
-		//down
+		//Down Button
 		if(mb_substr($texts[0], 4) == $this->lang["down"]) {
 			$this->log("active goDown");
 			if($event instanceof Cancellable) {
@@ -441,6 +472,8 @@ class SimpleElevator extends PluginBase implements Listener {
 					$event->setCancelled();
 				}
 			}
+			
+			//Simple Mode
 			if($base === self::TYPE_IRON || $base === self::TYPE_GOLD) {
 				$pos2 = $this->getPrevFloor($player->getLevel(), $sourcePos);
 				if($pos2 === false) {
@@ -449,6 +482,8 @@ class SimpleElevator extends PluginBase implements Listener {
 				}
 				$this->log("elevate " . $pos->getY() . "->" . $pos2->getY());
 				$this->moveFloor($player, $base, $sourcePos, $pos2);
+				
+			//Advance Mode
 			}else if($base === self::TYPE_DIAMOND || $base === self::TYPE_EMERALD) {
 				$floorSign = $player->getLevel()->getTile(new Vector3($pos->getX(), $pos->getY() + 1, $pos->getZ()));
 				$floorSubSign = $sign;
@@ -504,6 +539,8 @@ class SimpleElevator extends PluginBase implements Listener {
 			}
 		}
 	}
+	
+	
 	
 	protected function advanceMove($player, $pos, $event) {
 		
@@ -682,30 +719,47 @@ class SimpleElevator extends PluginBase implements Listener {
 	
 	public function getFloorIndex($level, $pos) {
 		$this->log("getFloorIndex -");
+		
 		$floor = 0;
+		
 		for($e = 0; $e <= 128; $e++) {
+			
 			$id = $level->getBlockIdAt($pos->getX(), $pos->getY() - $e, $pos->getZ());
+			
 			if($id === Block::GLASS) {
+				
 				$floor++;
+				
 			}else if($id === Block::IRON_BLOCK || $id === Block::GOLD_BLOCK || $id === Block::DIAMOND_BLOCK || $id === Block::EMERALD_BLOCK) {
+				
 				return $floor;
+				
 			}else if(!($id === Block::AIR || $id === Block::WALL_SIGN || $id === Block::SIGN_POST || $id === Block::TORCH || $id === Block::FIRE || $id === Block::SNOW_LAYER || $id === Block::VINE)) {
 				break;
 			}
 		}
+		
 		$floor = 0;
+		
 		for($e = 0; $e <= 128; $e++) {
+			
 			$id = $level->getBlockIdAt($pos->getX(), $pos->getY() + $e, $pos->getZ());
+			
 			if($id === Block::GLASS) {
+				
 				$floor--;
+				
 			}else if($id === Block::IRON_BLOCK || $id === Block::GOLD_BLOCK || $id === Block::DIAMOND_BLOCK || $id === Block::EMERALD_BLOCK) {
+				
 				return $floor;
+				
 			}else if(!($id === Block::AIR || $id === Block::WALL_SIGN || $id === Block::SIGN_POST || $id === Block::TORCH || $id === Block::FIRE || $id === Block::SNOW_LAYER || $id === Block::VINE)) {
 				break;
 			}
 		}
+		
 		$this->getServer()->getLogger()->alert("<function 'getFloor'> can't find current floor at Level:" . $level->getName() . " X:" . $pos->getX() . " Y:" . $pos->getY() . " Z:" . $pos->getZ());
-		return null;
+		return 0;
 	}
 	
 	public function getBaseFloor($level, $pos) {
@@ -799,11 +853,16 @@ class SimpleElevator extends PluginBase implements Listener {
 	
 	public function getNextFloor($level, $pos) {
 		$this->log("getNextFloor -");
+		
 		for($e = 1; $e <= 128; $e++) {
+			
 			$block = $level->getBlock(new Vector3($pos->getX(), $pos->getY() + $e, $pos->getZ()));
 			$id = $block->getId();
+			
 			if($id === Block::GLASS || $id === Block::IRON_BLOCK || $id === Block::GOLD_BLOCK || $id === Block::DIAMOND_BLOCK || $id === Block::EMERALD_BLOCK) {
+				
 				return $block;
+				
 			}else if(!($id === Block::AIR || $id === Block::WALL_SIGN || $id === Block::SIGN_POST || $id === Block::TORCH || $id === Block::FIRE || $id === Block::SNOW_LAYER || $id === Block::VINE)) {
 				return false;
 			}
@@ -813,11 +872,16 @@ class SimpleElevator extends PluginBase implements Listener {
 	
 	public function getPrevFloor($level, $pos) {
 		$this->log("getPrevFloor -");
+		
 		for($e = 1; $e <= 128; $e++) {
+			
 			$block = $level->getBlock(new Vector3($pos->getX(), $pos->getY() - $e, $pos->getZ()));
 			$id = $block->getId();
+			
 			if($id === Block::GLASS || $id === Block::IRON_BLOCK || $id === Block::GOLD_BLOCK || $id === Block::DIAMOND_BLOCK || $id === Block::EMERALD_BLOCK) {
+				
 				return $block;
+				
 			}else if(!($id === Block::AIR || $id === Block::WALL_SIGN || $id === Block::SIGN_POST || $id === Block::TORCH || $id === Block::FIRE || $id === Block::SNOW_LAYER || $id === Block::VINE)) {
 				return false;
 			}
@@ -836,11 +900,16 @@ class SimpleElevator extends PluginBase implements Listener {
 		
 		$pos = $base;
 		$floor = 0;
+		
 		for($e = 1; $e <= 128; $e++) {
+			
 			$block = $level->getBlock(new Vector3($pos->getX(), $pos->getY() - $e, $pos->getZ()));
 			$id = $block->getId();
+			
 			if($id === Block::GLASS || $id === Block::IRON_BLOCK || $id === Block::GOLD_BLOCK || $id === Block::DIAMOND_BLOCK || $id === Block::EMERALD_BLOCK) {
+				
 				$floor--;
+				
 			}else if(!($id === Block::AIR || $id === Block::WALL_SIGN || $id === Block::SIGN_POST || $id === Block::TORCH || $id === Block::FIRE || $id === Block::SNOW_LAYER || $id === Block::VINE)) {
 				return $floor;
 			}
@@ -850,17 +919,25 @@ class SimpleElevator extends PluginBase implements Listener {
 	
 	public function getLastFloorIndex($level, $pos) {
 		$this->log("getLastFloorIndex -");
+		
 		$base = $this->getBaseFloor($level, $pos);
+		
 		if($base === false) {
 			return false;
 		}
+		
 		$pos = $base;
 		$floor = 0;
+		
 		for($e = 1; $e <= 128; $e++) {
+			
 			$block = $level->getBlock(new Vector3($pos->getX(), $pos->getY() + $e, $pos->getZ()));
 			$id = $block->getId();
+			
 			if($id === Block::GLASS || $id === Block::IRON_BLOCK || $id === Block::GOLD_BLOCK || $id === Block::DIAMOND_BLOCK || $id === Block::EMERALD_BLOCK) {
+				
 				$floor++;
+				
 			}else if(!($id === Block::AIR || $id === Block::WALL_SIGN || $id === Block::SIGN_POST || $id === Block::TORCH || $id === Block::FIRE || $id === Block::SNOW_LAYER || $id === Block::VINE)) {
 				return $floor;
 			}
@@ -872,17 +949,25 @@ class SimpleElevator extends PluginBase implements Listener {
 		$this->log("getBaseBlockId -");
 		
 		for($e = 0; $e <= 128; $e++) {
+			
 			$id = $level->getBlockIdAt($pos->getX(), $pos->getY() - $e, $pos->getZ());
+			
 			if($id === Block::IRON_BLOCK || $id === Block::GOLD_BLOCK || $id === Block::DIAMOND_BLOCK || $id === Block::EMERALD_BLOCK) {
+				
 				return $id;
+				
 			}else if(!($id === Block::GLASS || $id === Block::AIR || $id === Block::WALL_SIGN || $id === Block::SIGN_POST || $id === Block::TORCH || $id === Block::FIRE || $id === Block::SNOW_LAYER || $id === Block::VINE)) {
 				break;
 			}
 		}
 		for($e = 0; $e <= 128; $e++) {
+			
 			$id = $level->getBlockIdAt($pos->getX(), $pos->getY() + $e, $pos->getZ());
+			
 			if($id === Block::IRON_BLOCK || $id === Block::GOLD_BLOCK || $id === Block::DIAMOND_BLOCK || $id === Block::EMERALD_BLOCK) {
+				
 				return $id;
+				
 			}else if(!($id === Block::GLASS || $id === Block::AIR || $id === Block::WALL_SIGN || $id === Block::SIGN_POST || $id === Block::TORCH || $id === Block::FIRE || $id === Block::SNOW_LAYER || $id === Block::VINE)) {
 				break;
 			}
@@ -911,16 +996,21 @@ class SimpleElevator extends PluginBase implements Listener {
 			
 					if($two === self::TYPE_IRON || $two === self::TYPE_GOLD || $two === self::TYPE_DIAMOND || $two === self::TYPE_EMERALD || $two === self::TYPE_GLASS) {
 						$this->log("run buttonUp");
+						
 						$this->buttonUp($two, $event->getPlayer(), $pos, $tile, $event);
+						
 					}else if($one === self::TYPE_IRON || $one === self::TYPE_GOLD || $one === self::TYPE_DIAMOND || $one === self::TYPE_EMERALD || $one === self::TYPE_GLASS){
 						$this->log("run buttonDown");
+						
 						$this->buttonDown($one, $event->getPlayer(), $pos, $tile, $event);
 					}
 					break;
+					
 				case Block::DIAMOND_BLOCK:
 				case Block::EMERALD_BLOCK:
 				case Block::GLASS:
 					$this->log("run advanceMove");
+					
 					$this->advanceMove($event->getPlayer(), $pos, $event);
 					break;
 			}
@@ -928,10 +1018,13 @@ class SimpleElevator extends PluginBase implements Listener {
 	}
 	
 	public function fallenDamagePrevent(EntityDamageEvent $event) {
+		
 		if($event->getCause() == EntityDamageEvent::CAUSE_FALL) {
+			
 			if(!$event->getEntity() instanceof Player) {
 				return;
 			}
+			
 			if(isset($this->elevateQueue[$event->getEntity()->getName()])) {
 				$event->setCancelled();
 			}
