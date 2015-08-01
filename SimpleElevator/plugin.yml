@@ -1,5 +1,5 @@
 name: SimpleElevator
 author: CodeInside
-main: CodeInside\SimpleElevator\SimpleElevator
+main: codeinside\SimpleElevator\SimpleElevator
 api: [1.4.0, 1.4.1]
 version: "1.0"

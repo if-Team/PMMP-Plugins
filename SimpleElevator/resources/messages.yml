@@ -1,0 +1,112 @@
+message-version: 2
+default-language: "eng"
+
+command-elevator:
+  eng: "ev"
+  kor: "엘베"
+
+command-elevator-description:
+  eng: "show Elevator command"
+  kor: "엘레베이터 명령어를 보여줍니다"
+
+command-sub-help:
+ eng: "help"
+ kor: "도움말"
+
+command-sub-help-description:
+  eng: "show how to setup elevator"
+  kor: "엘레베이터 설치방법을 보여줍니다"
+
+command-sub-debug:
+  eng: "debug"
+  kor: "디버그"
+
+command-sub-debug-description:
+  eng: "check elevator work"
+  kor: "엘레베이터 작동을 체크합니다"
+
+
+
+#SIGN INPUT AREA. DO NOT TYPE TOO LONG (WILL BE CRASH!)
+#표지판 입력 부분입니다. 절대로 길게 쓰지 마세요(고장납니다!)
+
+sign-input-register-elevator:
+  eng: "elevator"
+  kor: "엘레베이터"
+
+sign-output-title:
+  eng: "ELEVATOR"
+  kor: "엘레베이터"
+
+sign-output-up: 
+  eng: "^"
+
+sign-output-down:
+  eng: "v"
+
+sign-output-current-floor:
+  eng: "Floor"
+  kor: "현재 층"
+
+sign-output-target-floor:
+  eng: "Move to"
+  kor: "이동할 층"
+
+sign-output-lobby:
+  eng: "Lobby"
+  kor: "로비"
+  
+
+sign-output-basement:
+  eng: "B"
+  kor: "지하"
+
+
+
+help-00:
+  eng: "Step1: place the base block"
+  kor: "첫번째: 베이스가 될 블럭을 놓으세요"
+
+help-01:
+  eng: "(Iron Block, Gold Block, Diamond Block, Emerald Block)"
+  kor: "(철 블럭, 금 블럭, 다이아몬드 블럭, 에메랄드 블럭)"
+
+help-10:
+  eng: "Step2: place the two wall-sign above the base block"
+  kor: "두번째: 놓은 블럭 위에 두개의 벽걸이 표지판을 붙이세요"
+
+help-11:
+  eng: "and write '%sign-input-register-elevator%' on the first line of upward sign"
+  kor: "그리고 '%sign-input-register-elevator%' 라고 위쪽 표지판 첫번째 줄에 적으세요"
+
+help-12:
+  eng: "and touch the upward Sign to register the elevator"
+  kor: "그리고 위쪽 표지판을 터치해서 엘레베이터를 활성화 하세요"
+
+help-20:
+  eng: "Step3: if you want extend floor"
+  kor: "세번째: 층을 확장하려면 수직 위치에 유리를 놓고"
+
+help-21:
+  eng: "place the glass on the vertical location"
+  kor: "두개의 벽걸이 표지판을 유리위에 놓고 터치하면 됩니다"
+
+help-22:
+  eng: "and place two wall-sign above the glass block"
+
+help-23:
+  eng: "and touch it"
+
+
+
+warning-no-under-sign:
+  eng: "Please place 'sign' under this 'sign'"
+  kor: "이 표지판 밑에도 표지판을 놓아주세요"
+
+warning-no-above-sign:
+  eng: "Please place 'sign' above this'sign'"
+  kor: "이 표지판 위에도 표지판을 놓아주세요"
+
+warning-elevator-crash:
+  eng: "this elevator is crashed. Please replace new one"
+  kor: "이 엘레베에터는 망가졌습니다. 다시 놓아주세요"

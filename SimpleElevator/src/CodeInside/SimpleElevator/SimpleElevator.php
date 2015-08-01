@@ -1,11 +1,17 @@
 <?php
 
-namespace CodeInside\SimpleElevator;
+namespace codeinside\simpleelevator;
+
+use codeinside\simpleelevator\task\SimpleElevatorTask;
 
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\scheduler\CallbackTask;
 use pocketmine\utils\TextFormat;
+use pocketmine\utils\Config;
+use pocketmine\command\CommandSender;
+use pocketmine\command\Command;
+use pocketmine\command\PluginCommand;
 use pocketmine\math\Vector3;
 use pocketmine\block\Block;
 use pocketmine\tile\Sign;
@@ -20,7 +26,7 @@ use pocketmine\event\Cancellable;
 
 
 class SimpleElevator extends PluginBase implements Listener {
-	static $tag = "[SimpleElevator]";
+	const MESSAGE_VERSION = 1;
 	
 	/** @var array*/
 	public $elevateQueue = [];
@@ -56,55 +62,106 @@ class SimpleElevator extends PluginBase implements Listener {
 	const TYPE_GLASS = Block::GLASS;
 	
 	/** @var array*/
-	public $lang = [];
-	
-	const en_US = [
-	"elevator" => "elevator",
-	"ELEVATOR" => "ELEVATOR",
-	"currentFloor" => "Floor",
-	"targetFloor" => "Move to",
-	"up" => "^",
-	"down" => "v",
-	"noBottomSign" => "Please place 'sign' under this 'sign'",
-	"noTopSign" => "Please place 'sign' over this'sign'",
-	"crashElevator" => "Crash! Please replace new one"
-	];
-	
-	const ko_KR = [
-	"elevator" => "엘레베이터",
-	"ELEVATOR" => "엘레베이터",
-	"currentFloor" => "현재 층",
-	"targetFloor" => "이동할 층",
-	"up" => "^",
-	"down" => "v",
-	"noBottomSign" => "이 표지판 아래쪽에 표지판을 부착해 주세요",
-	"noTopSign" => "이 표지판 위쪽에 표지판을 부착해 주세요",
-	"crashElevator" => "고장! 엘레베이터를 다시 설치해 주세요"
-	];
+	private $lang = [];
 	
 	
 	
 	public function onEnable() {
+		$this->loadMessages();
 		$this->getServer()->getScheduler()->scheduleRepeatingTask(new SimpleElevatorTask($this), 1);
 		$this->getServer()->getPluginManager()->registerEvents($this, $this);
-		//lang
-		$this->lang = self::en_US;
+		
 		//debug
-		//$this->getServer()->getLogger()->setLogDebug(true);
+		$this->getServer()->getLogger()->setLogDebug(true);
+	}
+	
+	
+	
+	public function onDisable() {
+		$this->powerOffImmediately();
+	}
+	
+	
+	
+	private function loadMessages() {
+		@mkdir($this->getDataFolder());
+		
+		$this->updateMessages("messages.yml");
+		$this->lang = (new Config($this->getDataFolder () . "messages.yml", Config::YAML))->getAll();
+	}
+	
+	
+	
+	private function updateMessages($filename = "messages.yml") {
+		
+		$this->saveResource($filename, false);
+		
+		$lang = (new Config($this->getDataFolder () . $filename, Config::YAML))->getAll();
+		
+		if(!isset($lang["message-version"])) {
+			$this->saveResource($filename, true);
+		}else if($lang["message-version"] != self::MESSAGE_VERSION) {
+			$this->saveResource($filename, true);
+		}
+	}
+	
+	
+	
+	public function msg($msg) {
+		if(isset($this->lang[$msg])) {
+			if(isset($this->lang[$msg][$this->lang["default-language"]])) {
+			return $this->lang[$msg][$this->lang["default-language"]];
+			}else if(isset($this->lang[$msg]["eng"])) {
+				return $this->lang[$msg]["eng"];
+			}
+			return $msg;
+		}
+	}
+	
+	
+	
+	public function tipMsg($step) {
+		$messages = [];
+		for($max = 0; isset($this->lang["help-" . $step . $max][$this->lang["default-language"]]); $max++) {
+			$messages[] = $this->lang["help-" . $step . $max][$this->lang["default-language"]];
+		}
+		return $messages;
+	}
+	
+	
+	
+	public function getMaxTipMsg() {
+		$step = 0;
+		while(isset($this->lang["help-" . $step . "0"][$this->lang["default-language"]])) {
+			$step++;
+			if($step > 100) {
+				//something wrong...
+				return -1;
+			}
+		}
+		return $step;
 	}
 	
 	
 	
 	public function ElevatorTickTask() {
+		
 		$keys = array_keys($this->elevateQueue);
+		
 		foreach($keys as $e) {
+			
 			switch($this->elevateQueue[$e][self::TICK_MODE]) {
+				
 				case self::MODE_MOVE:
+				
 					if(!($this->elevateQueue[$e][self::TICK_PLAYER]->isOnline())) {
+						
 						$this->log("elevator cancell: " .$this->elevateQueue[$e][self::TICK_PLAYER]->getName() . " is Offline");
 						$keys = array_keys($this->elevateQueue[$e][self::TICK_BLOCKS]);
+						
 						foreach($keys as $k) {
 							$this->log($k . "index Block place " . $this->elevateQueue[$e][self::TICK_BLOCKS][$k]["x"] . " " . $this->elevateQueue[$e][self::TICK_BLOCKS][$k]["y"] . " " . $this->elevateQueue[$e][self::TICK_BLOCKS][$k]["z"] . " " . $this->elevateQueue[$e][self::TICK_BLOCKS][$k]["id"]);
+							
 							$this->elevateQueue[$e][self::TICK_PLAYER]->getLevel()->setBlock(new Vector3($this->elevateQueue[$e][self::TICK_BLOCKS][$k]["x"], $this->elevateQueue[$e][self::TICK_BLOCKS][$k]["y"], $this->elevateQueue[$e][self::TICK_BLOCKS][$k]["z"]), Block::get($this->elevateQueue[$e][self::TICK_BLOCKS][$k]["id"], 0), true, false);
 						}
 						unset($this->elevateQueue[$e]);
@@ -228,6 +285,29 @@ class SimpleElevator extends PluginBase implements Listener {
 	
 	
 	
+	public function powerOffImmediately() {
+		$keys = array_keys($this->elevateQueue);
+		
+		foreach($keys as $e) {
+			$this->emergencyStop($e);
+		}
+	}
+	
+	
+	
+	public function emergencyStop($elevatorIndex) {
+		//Block recover
+		$keys = array_keys($this->elevateQueue[$elevatorIndex][self::TICK_BLOCKS]);
+		foreach($keys as $k) {
+			$this->log($k . "index Block place " . $this->elevateQueue[$elevatorIndex][self::TICK_BLOCKS][$k]["x"] . " " . $this->elevateQueue[$elevatorIndex][self::TICK_BLOCKS][$k]["y"] . " " . $this->elevateQueue[$elevatorIndex][self::TICK_BLOCKS][$k]["z"] . " " . $this->elevateQueue[$elevatorIndex][self::TICK_BLOCKS][$k]["id"]);
+			$this->elevateQueue[$elevatorIndex][self::TICK_PLAYER]->getLevel()->setBlock(new Vector3($this->elevateQueue[$elevatorIndex][self::TICK_BLOCKS][$k]["x"], $this->elevateQueue[$elevatorIndex][self::TICK_BLOCKS][$k]["y"], $this->elevateQueue[$elevatorIndex][self::TICK_BLOCKS][$k]["z"]), Block::get($this->elevateQueue[$elevatorIndex][self::TICK_BLOCKS][$k]["id"], 0), true, false);
+		}
+		$player = $this->elevateQueue[$elevatorIndex][self::TICK_PLAYER];
+		$player->teleportImmediate($this->elevateQueue[$elevatorIndex][self::TICK_START_POS], null, null);
+	}
+	
+	
+	
 	protected function buttonUp($type, $player, $pos, $sign, $event) {
 		if(!($sign instanceof Sign)) {
 			$this->getServer()->getLogger()->alert("'buttonUp' get wrong '$sign' parameter at X:" . $pos->getX() . " Y:" . $pos->getY() . " Z:" . $pos->getZ());
@@ -236,14 +316,19 @@ class SimpleElevator extends PluginBase implements Listener {
 		
 		$texts = $sign->getText();
 		$baseBlock = $this->getBaseFloor($player->getLevel(), $pos);
+		
+		if($baseBlock === false) {
+			return;
+		}
+		
 		$base = $baseBlock->getId();
 		$sourcePos = new Vector3($pos->getX(), $pos->getY() - 2, $pos->getZ());
 		$tempFloor = $this->getFloorIndex($player->getLevel(), $sourcePos);
 		
 		if($tempFloor === 0) {
-			$floor = "Lobby";
+			$floor = $this->msg("sign-output-lobby");
 		}else if($tempFloor < 0) {
-			$floor = "B" . abs($tempFloor);
+			$floor = $this->msg("sign-output-basement") . abs($tempFloor);
 		}else {
 			$floor = $tempFloor;
 		}
@@ -262,18 +347,18 @@ class SimpleElevator extends PluginBase implements Listener {
 					return;
 				}
 				$baseTexts = $baseSign->getText();
-				if(mb_substr($baseTexts[0], 2) != "[" . $this->lang["ELEVATOR"] . "]") {
+				if(mb_substr($baseTexts[0], 2) != "[" . $this->msg("sign-output-title") . "]") {
 					return;
 				}
 				
 				if($base === self::TYPE_IRON || $base == self::TYPE_GOLD) {
-					$sign->setText($color . "[" . $this->lang["ELEVATOR"] . "]", $nextColor . $this->lang["up"], $this->lang["currentFloor"] . " : " . $floor, "");
+					$sign->setText($color . "[" . $this->msg("sign-output-title") . "]", $nextColor . $this->msg("sign-output-up"), $this->msg("sign-output-current-floor") . " : " . $floor, "");
 				}else if($base === self::TYPE_DIAMOND || $base == self::TYPE_EMERALD) {
-					$sign->setText($color . "[" . $this->lang["ELEVATOR"] . "]", $nextColor . $this->lang["up"], $this->lang["currentFloor"] . " : " . $floor, $this->lang["targetFloor"] . " : " . $floor);
+					$sign->setText($color . "[" . $this->msg("sign-output-title") . "]", $nextColor . $this->msg("sign-output-up"), $this->msg("sign-output-current-floor") . " : " . $floor, $this->msg("sign-output-target-floor") . " : " . $floor);
 				}else {
 				$this->log("$base type isn't defind");
 				return;
-			}
+				}
 				$sign->saveNBT();
 				if($event instanceof Cancellable) {
 					if(!($event->isCancelled())) {
@@ -312,12 +397,13 @@ class SimpleElevator extends PluginBase implements Listener {
 		
 		$startColor = $this->getColor($type);
 		
-		if($isNew && $texts[0] === $this->lang["elevator"] && $texts[1] === "" && $texts[2] === "" && $texts[3] === "") {
+		$this->log($this->msg("sign-input-register-elevator") . ($texts[0] == $this->msg("sign-input-register-elevator") ? "yes" : "no"));
+		if($isNew && $texts[0] == $this->msg("sign-input-register-elevator") && $texts[1] === "" && $texts[2] === "" && $texts[3] === "") {
 			
 			if($base === self::TYPE_IRON || $base === self::TYPE_GOLD) {
-				$sign->setText($startColor . "[" . $this->lang["ELEVATOR"] . "]", $nextColor . $this->lang["up"], $this->lang["currentFloor"] . " : " . $floor, "");
+				$sign->setText($startColor . "[" . $this->msg("sign-output-title") . "]", $nextColor . $this->msg("sign-output-up"), $this->msg("sign-output-current-floor") . " : " . $floor, "");
 			}else if($base === self::TYPE_DIAMOND || $base === self::TYPE_EMERALD) {
-				$sign->setText($startColor . "[" . $this->lang["ELEVATOR"] . "]", $nextColor . $this->lang["up"], $this->lang["currentFloor"] . " : " . $floor, $this->lang["targetFloor"] . " : " . $floor);
+				$sign->setText($startColor . "[" . $this->msg("sign-output-title") . "]", $nextColor . $this->msg("sign-output-up"), $this->msg("sign-output-current-floor") . " : " . $floor, $this->msg("sign-output-target-floor") . " : " . $floor);
 			}else {
 				$this->log("$base type isn't defind");
 				return;
@@ -345,7 +431,7 @@ class SimpleElevator extends PluginBase implements Listener {
 		}
 		
 		//Up Button
-		if(mb_substr($texts[0], 2) == "[" . $this->lang["ELEVATOR"] . "]") {
+		if(mb_substr($texts[0], 2) == "[" . $this->msg("sign-output-title") . "]") {
 			$this->log("active Up Button");
 			if($event instanceof Cancellable) {
 				if(!($event->isCancelled())) {
@@ -368,19 +454,19 @@ class SimpleElevator extends PluginBase implements Listener {
 				$floorSign = $sign;
 				$floorSubSign = $player->getLevel()->getTile(new Vector3($pos->getX(), $pos->getY() - 1, $pos->getZ()));
 				if(!($floorSubSign instanceof Sign)) {
-					$player->sendTip(TextFormat::RED . $this->lang["noBottomSign"]);
+					$player->sendTip(TextFormat::RED . $this->msg("warning-no-under-sign"));
 					return;
 				}
 				$floorTexts = $floorSign->getText();
 				$floorSubTexts = $floorSubSign->getText();
 				$floorStr = $floorTexts[3];
 				$floorSplit = explode(" : ", $floorStr);
-				if($floorSplit[0] === $this->lang["targetFloor"]) {
+				if($floorSplit[0] === $this->msg("sign-output-target-floor")) {
 					$floorBasement = mb_substr($floorSplit[1], 0, 1);
 					$floorBasement2 = mb_substr($floorSplit[1], 1);
-					if($floorSplit[1] === "Lobby") {
+					if($floorSplit[1] === $this->msg("sign-output-lobby")) {
 						$floorTarget = 0;
-					}else if($floorBasement[0] === "B") {
+					}else if($floorBasement[0] === $this->msg("sign-output-basement")) {
 						$floorTarget = (-1 * $floorBasement2);
 					}else {
 						$floorTarget = $floorSplit[1];
@@ -395,21 +481,21 @@ class SimpleElevator extends PluginBase implements Listener {
 						return;
 					}else {
 						if($last - ($floorTarget + 1) <= 0) {
-							$buttonStr = TextFormat::BOLD . TextFormat::DARK_RED . $this->lang["up"];
+							$buttonStr = TextFormat::BOLD . TextFormat::DARK_RED . $this->msg("sign-output-up");
 						}else {
-							$buttonStr = TextFormat::BOLD . TextFormat::BLUE . $this->lang["up"];
+							$buttonStr = TextFormat::BOLD . TextFormat::BLUE . $this->msg("sign-output-up");
 						}
 						if($floorTarget + 1 == 0) {
-							$floorTargetNext = "Lobby";
+							$floorTargetNext = $this->msg("sign-output-lobby");
 						}else if($floorTarget + 1 < 0) {
-							$floorTargetNext = "B" . abs($floorTarget + 1);
+							$floorTargetNext = $this->msg("sign-output-basement") . abs($floorTarget + 1);
 						}else {
 							$floorTargetNext = $floorTarget + 1;
 						}
-						$floorSign->setText($floorTexts[0], $buttonStr, $floorTexts[2], $this->lang["targetFloor"] . " : " . $floorTargetNext);
+						$floorSign->setText($floorTexts[0], $buttonStr, $floorTexts[2], $this->msg("sign-output-target-floor") . " : " . $floorTargetNext);
 						$floorSign->saveNBT();
 						
-						$floorSubSign->setText(TextFormat::BOLD . TextFormat::BLUE . $this->lang["down"]);
+						$floorSubSign->setText(TextFormat::BOLD . TextFormat::BLUE . $this->msg("sign-output-down"), "", "", "");
 						$floorSubSign->saveNBT();
 					}
 				}
@@ -423,22 +509,31 @@ class SimpleElevator extends PluginBase implements Listener {
 	
 	
 	protected function buttonDown($type, $player, $pos, $sign, $event) {
+		
 		if(!($sign instanceof Sign)) {
 			$this->getServer()->getLogger()->alert("'buttonDown' get wrong '$sign' parameter at X:" . $pos->getX() . " Y:" . $pos->getY() . " Z:" . $pos->getZ());
 			return;
 		}
 		
 		$texts = $sign->getText();
-		$base = $this->getBaseBlockId($player->getLevel(), $pos);
+		$baseBlock = $this->getBaseFloor($player->getLevel(), $pos);
+		
+		if($baseBlock === false) {
+			return;
+		}
+		
+		$base = $baseBlock->getId();
 		$sourcePos = new Vector3($pos->getX(), $pos->getY() - 1, $pos->getZ());
 		$tempFloor = $this->getFloorIndex($player->getLevel(), $sourcePos);
+		
 		if($tempFloor === 0) {
-			$floor = "Lobby";
+			$floor = $this->msg("sign-output-lobby");
 		}else if($tempFloor < 0) {
-			$floor = "B" . abs($tempFloor);
+			$floor = $this->msg("sign-output-basement") . abs($tempFloor);
 		}else {
 			$floor = $tempFloor;
 		}
+		
 		$color = $this->getColor($base);
 		$hasPrev = $this->hasPrevFloor($player->getLevel(), new Vector3($pos->getX(), $pos->getY() - 1, $pos->getZ()));
 		$prevColor = $hasPrev ? TextFormat::BOLD . TextFormat::BLUE : TextFormat::BOLD . TextFormat::DARK_RED;
@@ -451,9 +546,9 @@ class SimpleElevator extends PluginBase implements Listener {
 				$this->log("buttonDown->createSubButton->sign2 is not instanceof Sign");
 				return;
 			}
-			$this->log($sign2->getText() == $color . "[" . $this->lang["ELEVATOR"] . "]" ? "true" : "false");
-			if($sign2->getText()[0] == $color . "[" . $this->lang["ELEVATOR"] . "]") {
-				$sign->setText($prevColor . $this->lang["down"], "", "", "");
+			$this->log($sign2->getText() == $color . "[" . $this->msg("sign-output-title") . "]" ? "true" : "false");
+			if($sign2->getText()[0] == $color . "[" . $this->msg("sign-output-title") . "]") {
+				$sign->setText($prevColor . $this->msg("sign-output-down"), "", "", "");
 				$sign->saveNBT();
 				if($event instanceof Cancellable) {
 					if(!($event->isCancelled())) {
@@ -465,7 +560,7 @@ class SimpleElevator extends PluginBase implements Listener {
 		}
 		
 		//Down Button
-		if(mb_substr($texts[0], 4) == $this->lang["down"]) {
+		if(mb_substr($texts[0], 4) == $this->msg("sign-output-down")) {
 			$this->log("active goDown");
 			if($event instanceof Cancellable) {
 				if(!($event->isCancelled())) {
@@ -488,19 +583,19 @@ class SimpleElevator extends PluginBase implements Listener {
 				$floorSign = $player->getLevel()->getTile(new Vector3($pos->getX(), $pos->getY() + 1, $pos->getZ()));
 				$floorSubSign = $sign;
 				if(!($floorSign instanceof Sign)) {
-					$player->sendTip(TextFormat::RED . $this->lang["noTopSign"]);
+					$player->sendTip(TextFormat::RED . $this->msg("warning-no-above-sign"));
 					return;
 				}
 				$floorTexts = $floorSign->getText();
 				$floorSubTexts = $floorSubSign->getText();
 				$floorStr = $floorTexts[3];
 				$floorSplit = explode(" : ", $floorStr);
-				if($floorSplit[0] === $this->lang["targetFloor"]) {
+				if($floorSplit[0] === $this->msg("sign-output-target-floor")) {
 					$floorBasement = mb_substr($floorSplit[1], 0, 1);
 					$floorBasement2 = mb_substr($floorSplit[1], 1);
-					if($floorSplit[1] === "Lobby") {
+					if($floorSplit[1] === $this->msg("sign-output-loby")) {
 						$floorTarget = 0;
-					}else if($floorBasement[0] === "B") {
+					}else if($floorBasement[0] === $this->msg("sign-output-basement")) {
 						$floorTarget = (-1 * $floorBasement2);
 					}else {
 						$floorTarget = $floorSplit[1];
@@ -515,18 +610,18 @@ class SimpleElevator extends PluginBase implements Listener {
 						return;
 					}else {
 						if(($floorTarget - 1) - $first <= 0) {
-							$buttonStr = TextFormat::BOLD . TextFormat::DARK_RED . $this->lang["down"];
+							$buttonStr = TextFormat::BOLD . TextFormat::DARK_RED . $this->msg("sign-output-down");
 						}else {
-							$buttonStr = TextFormat::BOLD . TextFormat::BLUE . $this->lang["down"];
+							$buttonStr = TextFormat::BOLD . TextFormat::BLUE . $this->msg("sign-output-down");
 						}
 						if($floorTarget - 1 == 0) {
-							$floorTargetNext = "Lobby";
+							$floorTargetNext = $this->msg("sign-output-lobby");
 						}else if($floorTarget - 1 < 0) {
-							$floorTargetNext = "B" . abs($floorTarget - 1);
+							$floorTargetNext = $this->msg("sign-output-basement") . abs($floorTarget - 1);
 						}else {
 							$floorTargetNext = $floorTarget - 1;
 						}
-						$floorSign->setText($floorTexts[0], TextFormat::BOLD . TextFormat::BLUE . $this->lang["up"], $floorTexts[2], $this->lang["targetFloor"] . " : " . $floorTargetNext);
+						$floorSign->setText($floorTexts[0], TextFormat::BOLD . TextFormat::BLUE . $this->msg("sign-output-up"), $floorTexts[2], $this->msg("sign-output-target-floor") . " : " . $floorTargetNext);
 						$floorSign->saveNBT();
 						
 						$floorSubSign->setText($buttonStr, "", "", "");
@@ -567,7 +662,7 @@ class SimpleElevator extends PluginBase implements Listener {
 		
 		$texts = $sign->getText();
 		
-		if(mb_substr($texts[0], 2) == "[" . $this->lang["ELEVATOR"] . "]") {
+		if(mb_substr($texts[0], 2) == "[" . $this->msg("sign-output-title") . "]") {
 			
 			$this->log("active advanceMove");
 			
@@ -579,14 +674,14 @@ class SimpleElevator extends PluginBase implements Listener {
 			
 			$split = explode(" : ", $texts[3]);
 			
-			if($split[0] === $this->lang["targetFloor"]) {
+			if($split[0] === $this->msg("sign-output-target-floor")) {
 				
 				$basement = mb_substr($split[1], 0, 1);
 				$basement2 = mb_substr($split[1], 1);
 				
-				if($split[1] === "Lobby") {
+				if($split[1] === $this->msg("sign-output-lobby")) {
 					$floorTarget = 0;
-				}else if($basement === "B") {
+				}else if($basement === $this->msg("sign-output-basement")) {
 					$floorTarget = (-1 * $basement2);
 				}else {
 					$floorTarget = $split[1];
@@ -602,7 +697,7 @@ class SimpleElevator extends PluginBase implements Listener {
 				$this->moveFloor($player, $type, $pos, $pos2);
 				
 			}else {
-				$player->sendTip(TextFormat::DARK_RED . $this->lang["crashElevator"]);
+				$player->sendTip(TextFormat::DARK_RED . $this->msg("warning-elevator-crash"));
 			}
 		}
 	}
@@ -722,9 +817,9 @@ class SimpleElevator extends PluginBase implements Listener {
 		
 		$floor = 0;
 		
-		for($e = 0; $e <= 128; $e++) {
+		for($e = $pos->getY(); $e >= 0; $e--) {
 			
-			$id = $level->getBlockIdAt($pos->getX(), $pos->getY() - $e, $pos->getZ());
+			$id = $level->getBlockIdAt($pos->getX(), $e, $pos->getZ());
 			
 			if($id === Block::GLASS) {
 				
@@ -741,9 +836,9 @@ class SimpleElevator extends PluginBase implements Listener {
 		
 		$floor = 0;
 		
-		for($e = 0; $e <= 128; $e++) {
+		for($e = $pos->getY(); $e <= 128; $e++) {
 			
-			$id = $level->getBlockIdAt($pos->getX(), $pos->getY() + $e, $pos->getZ());
+			$id = $level->getBlockIdAt($pos->getX(), $e, $pos->getZ());
 			
 			if($id === Block::GLASS) {
 				
