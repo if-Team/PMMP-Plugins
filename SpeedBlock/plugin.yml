@@ -1,0 +1,40 @@
+#Khinenw's Speed Block
+name: SpeedBlock
+author: Khinenw
+version: "0.0.1 alpha"
+description: "Thank you, Speed Block!"
+main: Khinenw\SpeedBlock\SpeedBlock
+api: 1.12.0
+
+permissions:
+  speedblock.*:
+    description: "The permission for using features of speedblock."
+    default: true
+    children:
+      speedblock.speed: 
+        default: op
+        description: "The permission for creating speedblocks."
+
+      speedblock.speeddmg:
+        default: op
+        description: "The permission for creating speedblocks."
+
+      speedblock.del: 
+        default: op
+        description: "The permission for deleting speedblocks."
+        
+commands:
+  sblock:
+    description: "Set SpeedBlock"
+    usage: "/sblock [Speed]"
+    permission: speedblock.speed
+
+  sblockdmg:
+      description: "Set SpeedBlock which applies falling damage"
+      usage: "/sblockdmg [Speed]"
+      permission: speedblock.speeddmg
+  
+  sblockdel:
+    description: "Remove SpeedBlock"
+    usage: "/sblockdel"
+    permission: speedblock.speed
