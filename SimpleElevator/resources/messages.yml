@@ -1,6 +1,21 @@
 message-version: 2
 default-language: "eng"
 
+
+
+block-simple-slow: 42
+block-damage-simple-slow: 0
+block-simple-fast: 41
+block-damage-simple-fast: 0
+block-advance-slow: 133
+block-damage-advance-slow: 0
+block-advance-fast: 57
+block-damage-advance-fast: 0
+block-extension-floor: 20
+block-damage-extension-floor: 0
+
+
+
 command-elevator:
   eng: "ev"
   kor: "엘베"
@@ -35,8 +50,8 @@ sign-input-register-elevator:
   kor: "엘레베이터"
 
 sign-output-title:
-  eng: "ELEVATOR"
-  kor: "엘레베이터"
+  eng: "[ELEVATOR]"
+  kor: "[엘레베이터]"
 
 sign-output-up: 
   eng: "^"
