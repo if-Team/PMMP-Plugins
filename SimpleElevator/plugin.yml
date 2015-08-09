@@ -1,0 +1,5 @@
+name: SimpleElevator
+author: SemTeul
+main: semteul\simpleelevator\SimpleElevator
+api: [1.12.0]
+version: "1.0"
