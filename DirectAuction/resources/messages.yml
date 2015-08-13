@@ -1,0 +1,218 @@
+message-version: 1
+default-language: kr
+
+messages:
+  
+  plugin-name:
+    en: "DirectAuction"
+    kr: "경매"
+  
+  plugin-prefix:
+    en: "Auction"
+    kr: "경매"
+    
+    
+
+  command-main:
+    en: "ac"
+    kr: "경매"
+  
+  command-main-description:
+    en: "Show DirectAuction commands"
+    kr: "DirectAuction 명령어를 보여줍니다"
+  
+  command-main-usage:
+    en: "/ac"
+    kr: "/경매"
+  
+  command-sub-start:
+    en: "start"
+    kr: "시작"
+  
+  command-sub-start-description:
+    en: "Start Auction"
+    kr: "경매 시작"
+  
+  command-sub-start-usage:
+    en: "/ac start <count> <minimum price> <seconds>"
+    kr: "/경매 시작 <갯수> <최소 가격> <초>"
+  
+  command-sub-bid:
+    en: "bid"
+    kr: "입찰"
+  
+  command-sub-bid-description:
+    en: "Auction bid"
+    kr: "경매 입찰"
+  
+  command-sub-bid-usage:
+    en: "/ac bid <price>"
+    kr: "/경매 입찰 <가격>"
+  
+  command-sub-stop:
+    en: "stop"
+    kr: "중지"
+  
+  command-sub-stop-description:
+    en: "Force stop Auction"
+    kr: "경매 강제 중지"
+  
+  command-sub-stop-usage:
+    en: "/ac stop"
+    kr: "/경매 중지"
+  
+  command-sub-info:
+    en: "info"
+    kr: "정보"
+  
+  command-sub-info-description:
+    en: "Show current auction infomation"
+    kr: "현재 경매의 정보를 보여줍니다"
+  
+  command-sub-info-usage:
+    en: "/ac info"
+    kr: "/경매 정보"
+  
+  
+  
+  auction-start:
+    en: "{%player} started auction with {%count} of {%item} for {%second} seconds. Minimum bidding price is {%money}"
+    kr: "{%player} 님이 {%count} 개의 {%item} 아이템을 {%second} 초간 경매합니다. 최소 입찰 가격은 {%money}입니다"
+  
+  auction-enchant-item:
+    en: "Enchanted item:{%info}"
+    kr: "인첸트된 아이템:{%info}"
+  
+  auction-bid:
+    en: "{%player} bidding {%money}"
+    kr: "{%player} 님이 입찰 {%money}"
+  
+  auction-no-bid:
+    en: "No auction bidder"
+    kr: "경매 입찰자가 없습니다"
+  
+  auction-how-to-bid:
+    en: "type '/ac bid <price>' to join auction"
+    kr: "경매에 참가하실려면 '/경매 입찰 <가격>'을 입력하세요"
+  
+  auction-left-time:
+    en: "{%second} seconds left..."
+    kr: "{%second} 초 남았습니다..."
+  
+  auction-bid-successfully:
+    en: "{%count} of {%item} was auctioned off by {%player} (price: {%money})"
+    kr: "{%player} 님이 {%count} 개의 {%item} 아이템을 낙찰했습니다 (가격: {%money})"
+  
+  auction-force-stop:
+    en: "Auction is force stopped by {%player}!"
+    kr: "경매가 {%player} 에 의해 강제 취소되었습니다!"
+  
+  auction-force-stop-fee:
+    en: "Force stop fee is {%money} ({%percent}% of current bid price)"
+    kr: "강제 취소 비용은 {%money} 입니다 (현 경매가의 {%percent}%)"
+  
+  auction-info-title:
+    en: "--- Auction information ---"
+    kr: "--- 경매 정보 ---"
+  
+  auction-info-name:
+    en: "-Item name: {%info}"
+    kr: "-아이템 이름: {%info}"
+  
+  auction-info-durability:
+    en: "-Damage Value: {%info}"
+    kr: "-데미지 값: {%info}"
+  
+  auction-info-count:
+    en: "-Count: {%info}"
+    kr: "-개수: {%info}"
+  
+  auction-info-custom-name:
+    en: "-Custom name: {%info}"
+    kr: "-사용자 지정 이름: {%info}"
+  
+  auction-info-enchant:
+    en: "-Enchant: {%info}"
+    kr: "-인첸트: {%info}"
+  
+  auction-info-price:
+    en: "-Current bid price: {%info}"
+    kr: "-현재 입찰 가격: {%info}"
+  
+  auction-info-left-time:
+    en: "-Left time: {%info}"
+    kr: "-남은 시간: {%info}"
+  
+  
+  
+  warning-not-player:
+    en: "Run this command in game"
+    kr: "이 명령어를 게임안에서 실행하세요"
+  
+  warning-no-fit-form:
+    en: "Command does not fit the form"
+    kr: "형식에 맞지 않는 명령입니다"
+ 
+  warning-no-permission:
+    en: "No permission"
+    kr: "권한이 없습니다"
+  
+  warning-already-ongoing:
+    en: "There is already an ongoing auction. Please wait..."
+    kr: "이미 진행중인 경매가 있습니다. 잠시만 기다려주세요..."
+  
+  warning-idle:
+    en: "DirectAuction is not on progress"
+    kr: "경매가 진행중이지 않습니다"
+  
+  warning-self-bid:
+    en: "You can not bid on own auction"
+    kr: "자기 자신의 경매에는 입찰할 수 없습니다"
+  
+  warning-low-price:
+    en: "Bid prices must be higher than the current auction price (current price: {%money})"
+    kr: "입찰 가격은 현재 경매 가격보다 높아야 합니다 (현재 가격: {%money})"
+  
+  warning-not-enough-money:
+    en: "Not enough money (holding price: {%money})"
+    kr: "돈이 모자랍니다 (보유 금액: {%money})"
+  
+  warning-no-item:
+    en: "Please hold items to sell on auction"
+    kr: "경매할 아이템을 손에 들고 입력하세요"
+  
+  warning-not-enough-item:
+    en: "You have only {%count} of {%item}"
+    kr: "{%item} 아이템은 {%count} 개 밖에 없습니다"
+  
+  warning-short-time:
+    en: "Auction time must longer then {%second} second"
+    kr: "경매 시간은 {%second} 보다 길어야합니다"
+  
+  warning-long-time:
+    en: "Auction time must shorter then {%second} second"
+    kr: "경매 시간은 {%second} 보다 짧아야 합니다"
+  
+  warning-price-minus:
+   en: "Price can't lower then 0"
+   kr: "최소 가격은 0보다 낮을 수 없습니다"
+  
+  warning-tag-item:
+    en: "Tagged items for the auction can not be more than a bundle"
+    kr: "태그가 있는 아이템은 한 묶음 이상 거래할 수 없습니다"
+  
+  warning-no-economy-account:
+    en: "Your Economy account isn't register"
+    kr: "당신의 이코노미 계정이 등록되지 않았습니다"
+  
+  warning-cant-add-money:
+    en: "Can't add money {%price} to {%player}"
+    kr: "{%player} 에게 {%price} 금액을 더할 수 없습니다"
+  
+  warning-cant-reduce-money:
+    en: "Can't reduce money {%price} to {%player}"
+    kr: "{%player} 에게 {%price} 금액을 가져올 수 없습니다"
+  
+  warning-crash:
+    en: "Error - Please error report to author"
+    kr: "에러 - 제작자에게 에러 보고를 해주세요"
