@@ -3,3 +3,7 @@ author: SemTeul
 main: semteul\directauction\DirectAuction
 api: [1.12.0]
 version: "0.1"
+permissions:
+  directauction:
+    description: "DirectAuction command"
+    default: true
