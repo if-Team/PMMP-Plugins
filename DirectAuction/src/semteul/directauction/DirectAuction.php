@@ -16,13 +16,16 @@ use pocketmine\utils\Config;
 use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
 use pocketmine\command\PluginCommand;
+use pocketmine\permission\Permission;
 use pocketmine\item\Item;
+use pocketmine\level\Level;
+use pocketmine\math\Vector3;
 
 
 
 class DirectAuction extends PluginBase implements Listener {
 	private $TAG = "[DirectAuction] ";
-	const VERSION = "Indev0.1";
+	const VERSION = "Indev0.2";
 	const MESSAGE_VERSION = 1;
 	
 	private $task = null;
@@ -105,6 +108,7 @@ class DirectAuction extends PluginBase implements Listener {
 	
 	private function commands() {
 		$this->registerCommand($this->msg->getMessage("command-main"), "DirectAuction", "directauction", $this->msg->getMessage("command-main-description"), $this->msg->getMessage("command-main-usage"));
+		$this->permission = new Permission("directauction", "DirectAuction Permission", Permission::DEFAULT_NOT_OP);
 	}
 	
 	
@@ -178,17 +182,17 @@ class DirectAuction extends PluginBase implements Listener {
 			$sellerLevel = $seller->getLevel();
 			$this->task["sellerPos"] = $sellerPos;
 			$this->task["sellerLevel"] = $sellerLevel;
-		}else if($this->task["sellerPos"] instanceof Vector3) {
+		}else if($this->task["sellerPos"] instanceof Vector3 && $this->task["sellerLevel"] instanceof Level) {
 			$sellerPos = $this->task["sellerPos"];
 			$sellerLevel = $this->task["sellerLevel"];
 		}
 		
-		if($buyer instanceof Player && $seller->isOnline()) {
+		if($buyer instanceof Player && $buyer->isOnline()) {
 			$buyerPos = $buyer->getPosition();
 			$buyerLevel = $buyer->getLevel();
 			$this->task["buyerPos"] = $buyerPos;
 			$this->task["buyerLevel"] = $buyerLevel;
-		}else if($this->task["buyerPos"] instanceof Vector3) {
+		}else if($this->task["buyerPos"] instanceof Vector3  && $this->task["buyerLevel"] instanceof Level) {
 			$buyerPos = $this->task["buyerPos"];
 			$buyerLevel = $this->task["buyerLevel"];
 		}
