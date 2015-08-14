@@ -25,7 +25,7 @@ use pocketmine\math\Vector3;
 
 class DirectAuction extends PluginBase implements Listener {
 	private $TAG = "[DirectAuction] ";
-	const VERSION = "Indev0.2";
+	const VERSION = "Indev0.3";
 	const MESSAGE_VERSION = 1;
 	
 	private $task = null;
@@ -35,7 +35,6 @@ class DirectAuction extends PluginBase implements Listener {
 	
 	
 	public function onEnable() {
-		$this->getServer()->getLogger()->setLogDebug(true);
 		@mkdir($this->getDataFolder());
 		$this->saveDefaultConfig();
 		$this->configData = $this->getConfig()->getAll();
