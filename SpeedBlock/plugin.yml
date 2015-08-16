@@ -9,7 +9,7 @@ api: 1.12.0
 permissions:
   speedblock.*:
     description: "The permission for using features of speedblock."
-    default: true
+    default: op
     children:
       speedblock.speed: 
         default: op
