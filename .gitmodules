@@ -16,3 +16,6 @@
 [submodule "CreativeEconomy"]
 	path = CreativeEconomy
 	url = https://github.com/HmHmmHm/CreativeEconomy.git
+[submodule "EconomyGamble"]
+	path = EconomyGamble
+	url = https://github.com/HmHmmHm/EconomyGamble.git
