@@ -4,3 +4,6 @@
 [submodule "MineBros"]
 	path = MineBros
 	url = https://github.com/ns827/MineBros.git
+[submodule "SimpleArea"]
+	path = SimpleArea
+	url = https://github.com/HmHmmHm/SimpleArea.git
