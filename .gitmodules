@@ -13,3 +13,6 @@
 [submodule "FixBiome"]
 	path = FixBiome
 	url = https://github.com/HmHmmHm/FixBiome.git
+[submodule "CreativeEconomy"]
+	path = CreativeEconomy
+	url = https://github.com/HmHmmHm/CreativeEconomy.git
