@@ -7,3 +7,6 @@
 [submodule "SimpleArea"]
 	path = SimpleArea
 	url = https://github.com/HmHmmHm/SimpleArea
+[submodule "THAAD"]
+	path = THAAD
+	url = https://github.com/HmHmmHm/THAAD.git
