@@ -10,3 +10,6 @@
 [submodule "THAAD"]
 	path = THAAD
 	url = https://github.com/HmHmmHm/THAAD.git
+[submodule "FixBiome"]
+	path = FixBiome
+	url = https://github.com/HmHmmHm/FixBiome.git
