@@ -19,3 +19,6 @@
 [submodule "EconomyGamble"]
 	path = EconomyGamble
 	url = https://github.com/HmHmmHm/EconomyGamble.git
+[submodule "AnnouncePro"]
+	path = AnnouncePro
+	url = https://github.com/HmHmmHm/AnnouncePro.git
