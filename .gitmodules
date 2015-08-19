@@ -37,3 +37,9 @@
 [submodule "HookShot"]
 	path = HookShot
 	url = https://github.com/HmHmmHm/HookShot.git
+[submodule "TAGBlock"]
+	path = TAGBlock
+	url = https://github.com/HmHmmHm/TAGBlock
+[submodule "RankManager"]
+	path = RankManager
+	url = https://github.com/HmHmmHm/RankManager
