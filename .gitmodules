@@ -22,3 +22,6 @@
 [submodule "AnnouncePro"]
 	path = AnnouncePro
 	url = https://github.com/HmHmmHm/AnnouncePro.git
+[submodule "EmailAuth"]
+	path = EmailAuth
+	url = https://github.com/HmHmmHm/EmailAuth.git
