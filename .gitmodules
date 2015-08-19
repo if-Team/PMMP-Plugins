@@ -34,3 +34,6 @@
 [submodule "FloatingBoat"]
 	path = FloatingBoat
 	url = https://github.com/HmHmmHm/FloatingBoat
+[submodule "HookShot"]
+	path = HookShot
+	url = https://github.com/HmHmmHm/HookShot.git
