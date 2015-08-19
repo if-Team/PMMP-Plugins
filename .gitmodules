@@ -25,3 +25,6 @@
 [submodule "EmailAuth"]
 	path = EmailAuth
 	url = https://github.com/HmHmmHm/EmailAuth.git
+[submodule "Gentleman"]
+	path = Gentleman
+	url = https://github.com/HmHmmHm/Gentleman
