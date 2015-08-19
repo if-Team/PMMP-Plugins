@@ -31,3 +31,6 @@
 [submodule "Farms"]
 	path = Farms
 	url = https://github.com/HmHmmHm/Farms
+[submodule "FloatingBoat"]
+	path = FloatingBoat
+	url = https://github.com/HmHmmHm/FloatingBoat
