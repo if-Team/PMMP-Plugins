@@ -28,3 +28,6 @@
 [submodule "Gentleman"]
 	path = Gentleman
 	url = https://github.com/HmHmmHm/Gentleman
+[submodule "Farms"]
+	path = Farms
+	url = https://github.com/HmHmmHm/Farms
