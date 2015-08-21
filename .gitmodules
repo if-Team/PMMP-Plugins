@@ -43,3 +43,6 @@
 [submodule "RankManager"]
 	path = RankManager
 	url = https://github.com/HmHmmHm/RankManager
+[submodule "Chatty"]
+	path = Chatty
+	url = https://github.com/ChalkPE/Chatty.git
