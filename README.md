@@ -1,13 +1,20 @@
 # PMMP-Plugins
 
-This project is licensed under the terms of Apache License 2.0. License details can be also found from the root directory of this repository.
+![Logo](http://i.imgur.com/lR2AHL7.png)
 
-All project suggestions and PRs will be very appreciated, of course :D
+```
+Copyright (C) 2015  if(Team);
 
-프로젝트에 대한 의견 및 아이디어가 있거나, 풀 리퀘스트를 작성하신다면 기쁘게 받아들이겠습니다 :)
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-이 프로젝트는 Apache License 2.0 하에서 개발 및 배포됩니다. LICENSE 파일에서 전문을 참고해 주세요.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-- MCPE Korea: if-Team Members
-
-![alt text](http://i.imgur.com/zB5OQA3.png "Logo Title Text 1")
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+```
