@@ -46,3 +46,6 @@
 [submodule "Chatty"]
 	path = Chatty
 	url = https://github.com/ChalkPE/Chatty.git
+[submodule "PocketTelegram"]
+	path = PocketTelegram
+	url = https://github.com/ChalkPE/PocketTelegram.git
